@@ -1,12 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const IMAGE_WIDTH = SCREEN_WIDTH - 40; // padding 20 per lato
 
 type DayEntry = {
   id: string;
-  type: 'text' | 'tip' | 'mood';
+  type: 'text' | 'tip' | 'photo';
   content: string | null;
   metadata: any;
   sort_order: number;
@@ -22,16 +27,20 @@ type DayInfo = {
 export default function DayDetailScreen() {
   const { day_id, diary_id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [dayInfo, setDayInfo] = useState<DayInfo | null>(null);
   const [entries, setEntries] = useState<DayEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
-  // Stato per l'aggiunta inline
+  // Stato per l'aggiunta inline di testo/tip
   const [addingType, setAddingType] = useState<'text' | 'tip' | null>(null);
   const [newContent, setNewContent] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Stato per upload foto
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -68,14 +77,16 @@ export default function DayDetailScreen() {
     setLoading(false);
   }
 
+  function getNextSortOrder() {
+    return entries.length > 0
+      ? Math.max(...entries.map(e => e.sort_order)) + 1
+      : 1;
+  }
+
   async function addEntry(type: 'text' | 'tip', content: string) {
     if (!content.trim()) return;
 
     setSaving(true);
-
-    const nextSortOrder = entries.length > 0
-      ? Math.max(...entries.map(e => e.sort_order)) + 1
-      : 1;
 
     const metadata = type === 'tip' ? { category: 'general' } : null;
 
@@ -86,7 +97,7 @@ export default function DayDetailScreen() {
         type,
         content: content.trim(),
         metadata,
-        sort_order: nextSortOrder,
+        sort_order: getNextSortOrder(),
       });
 
     setSaving(false);
@@ -100,11 +111,104 @@ export default function DayDetailScreen() {
     }
   }
 
+  async function pickAndUploadPhoto() {
+    // Chiedi permessi
+    const permResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permResult.granted) {
+      Alert.alert('Permesso negato', 'Devi consentire l\'accesso alla galleria per aggiungere foto.');
+      return;
+    }
+
+    // Apri la galleria
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.7, // Compressione leggera
+    });
+
+    if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+    const asset = result.assets[0];
+    setShowAddMenu(false);
+    setUploadingPhoto(true);
+
+    try {
+      // Prepara il file per l'upload
+      const fileExt = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${user?.id}/${diary_id}/${day_id}/${Date.now()}.${fileExt}`;
+
+      // Leggi il file come blob
+      const response = await fetch(asset.uri);
+      const blob = await response.blob();
+
+      // Converti blob in ArrayBuffer
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+
+      // Upload su Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('diary-media')
+        .upload(fileName, arrayBuffer, {
+          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        Alert.alert('Errore Upload', uploadError.message);
+        setUploadingPhoto(false);
+        return;
+      }
+
+      // Ottieni URL pubblico
+      const { data: urlData } = supabase.storage
+        .from('diary-media')
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlData.publicUrl;
+
+      // Crea entry nel database
+      const { error: entryError } = await supabase
+        .from('day_entries')
+        .insert({
+          day_id: day_id,
+          type: 'photo',
+          content: publicUrl,
+          metadata: {
+            width: asset.width,
+            height: asset.height,
+            caption: '',
+          },
+          sort_order: getNextSortOrder(),
+        });
+
+      if (entryError) {
+        Alert.alert('Errore', `Foto caricata ma impossibile salvarla nel diario.\n${entryError.message}`);
+      } else {
+        fetchEntries();
+      }
+    } catch (e: any) {
+      Alert.alert('Errore', `Si è verificato un errore durante l'upload.\n${e.message}`);
+    }
+
+    setUploadingPhoto(false);
+  }
+
   async function deleteEntry(entryId: string) {
     Alert.alert('Elimina', 'Vuoi eliminare questo blocco?', [
       { text: 'Annulla', style: 'cancel' },
       {
         text: 'Elimina', style: 'destructive', onPress: async () => {
+          // Se è una foto, elimina anche dallo storage
+          const entry = entries.find(e => e.id === entryId);
+          if (entry?.type === 'photo' && entry.content) {
+            try {
+              const url = new URL(entry.content);
+              const pathParts = url.pathname.split('/diary-media/');
+              if (pathParts.length > 1) {
+                await supabase.storage.from('diary-media').remove([pathParts[1]]);
+              }
+            } catch (_) { /* ignore storage errors on delete */ }
+          }
+
           const { error } = await supabase
             .from('day_entries')
             .delete()
@@ -124,6 +228,57 @@ export default function DayDetailScreen() {
     setAddingType(type);
     setNewContent('');
     setShowAddMenu(false);
+  }
+
+  // Render entry in base al tipo
+  function renderEntry(entry: DayEntry) {
+    if (entry.type === 'photo') {
+      const aspectRatio = entry.metadata?.width && entry.metadata?.height
+        ? entry.metadata.width / entry.metadata.height
+        : 4 / 3;
+
+      return (
+        <TouchableOpacity
+          key={entry.id}
+          style={styles.photoCard}
+          onLongPress={() => deleteEntry(entry.id)}
+          delayLongPress={600}
+        >
+          <Image
+            source={{ uri: entry.content || '' }}
+            style={[styles.entryPhoto, { width: IMAGE_WIDTH, height: IMAGE_WIDTH / aspectRatio }]}
+            resizeMode="cover"
+          />
+          {entry.metadata?.caption ? (
+            <Text style={styles.photoCaption}>{entry.metadata.caption}</Text>
+          ) : null}
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        key={entry.id}
+        style={[
+          styles.entryCard,
+          entry.type === 'tip' && styles.entryCardTip,
+        ]}
+        onLongPress={() => deleteEntry(entry.id)}
+        delayLongPress={600}
+      >
+        <View style={styles.entryHeader}>
+          <Ionicons
+            name={entry.type === 'tip' ? 'bulb' : 'document-text'}
+            size={18}
+            color={entry.type === 'tip' ? '#FF9500' : '#007AFF'}
+          />
+          <Text style={[styles.entryType, entry.type === 'tip' && styles.entryTypeTip]}>
+            {entry.type === 'tip' ? 'Consiglio' : 'Testo'}
+          </Text>
+        </View>
+        <Text style={styles.entryContent}>{entry.content}</Text>
+      </TouchableOpacity>
+    );
   }
 
   if (loading && !dayInfo) {
@@ -162,10 +317,22 @@ export default function DayDetailScreen() {
             <Ionicons name="document-text" size={24} color="#007AFF" />
             <Text style={styles.addMenuText}>Testo</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.addMenuItem} onPress={pickAndUploadPhoto}>
+            <Ionicons name="camera" size={24} color="#34C759" />
+            <Text style={styles.addMenuText}>Foto</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.addMenuItem} onPress={() => startAdding('tip')}>
             <Ionicons name="bulb" size={24} color="#FF9500" />
             <Text style={styles.addMenuText}>Consiglio</Text>
           </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Overlay caricamento foto */}
+      {uploadingPhoto && (
+        <View style={styles.uploadOverlay}>
+          <ActivityIndicator size="small" color="#007AFF" />
+          <Text style={styles.uploadText}>Caricamento foto...</Text>
         </View>
       )}
 
@@ -175,33 +342,11 @@ export default function DayDetailScreen() {
           <View style={styles.emptyState}>
             <Ionicons name="create-outline" size={64} color="#ccc" />
             <Text style={styles.emptyTitle}>Nessun contenuto ancora</Text>
-            <Text style={styles.emptySub}>Premi il + in alto per aggiungere testi o consigli di viaggio!</Text>
+            <Text style={styles.emptySub}>Premi il + in alto per aggiungere testi, foto o consigli!</Text>
           </View>
         )}
 
-        {entries.map((entry) => (
-          <TouchableOpacity
-            key={entry.id}
-            style={[
-              styles.entryCard,
-              entry.type === 'tip' && styles.entryCardTip,
-            ]}
-            onLongPress={() => deleteEntry(entry.id)}
-            delayLongPress={600}
-          >
-            <View style={styles.entryHeader}>
-              <Ionicons
-                name={entry.type === 'tip' ? 'bulb' : 'document-text'}
-                size={18}
-                color={entry.type === 'tip' ? '#FF9500' : '#007AFF'}
-              />
-              <Text style={[styles.entryType, entry.type === 'tip' && styles.entryTypeTip]}>
-                {entry.type === 'tip' ? 'Consiglio' : 'Testo'}
-              </Text>
-            </View>
-            <Text style={styles.entryContent}>{entry.content}</Text>
-          </TouchableOpacity>
-        ))}
+        {entries.map((entry) => renderEntry(entry))}
 
         {/* Form aggiunta inline */}
         {addingType && (
@@ -299,9 +444,9 @@ const styles = StyleSheet.create({
   addMenu: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
+    gap: 12,
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     backgroundColor: '#f9f9f9',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -310,10 +455,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    gap: 8,
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -321,9 +466,22 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   addMenuText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
+  },
+  uploadOverlay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    backgroundColor: '#e8f4fd',
+  },
+  uploadText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
   },
   content: {
     flex: 1,
@@ -381,6 +539,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: '#333',
+  },
+  photoCard: {
+    marginBottom: 12,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+  },
+  entryPhoto: {
+    borderRadius: 16,
+  },
+  photoCaption: {
+    padding: 12,
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
   },
   addForm: {
     backgroundColor: '#f0f4ff',

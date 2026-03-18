@@ -118,3 +118,15 @@ export interface Database {
     }
   }
 }
+
+// Convenience types
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type Diary = Database['public']['Tables']['diaries']['Row']
+
+export type FeedDiary = Diary & {
+  profiles: {
+    username: string | null
+    display_name: string | null
+    avatar_url: string | null
+  }
+}

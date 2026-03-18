@@ -43,14 +43,12 @@ export default function CreateDiaryScreen() {
     if (error) {
       Alert.alert('Errore', 'Impossibile creare il diario. Riprova più tardi.');
       console.error(error);
-      router.replace('/');
     } else {
       Alert.alert('Diario Creato!', 'Ora puoi iniziare a scriverlo.');
-      // router.push(`/diary/${data.id}`); // This route doesn't exist yet, so we just go home for now
       setTitle('');
       setDescription('');
       setDestinations('');
-      router.replace('/(app)');
+      router.replace('/(app)/(tabs)');
     }
   }
 

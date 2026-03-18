@@ -4,12 +4,9 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import '../i18n';
 import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
-
-export const unstable_settings = {
-  anchor: '(app)',
-};
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -23,13 +20,20 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!session && !inAuthGroup) {
-      // Se non loggato, porta al login
       router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
-      // Se loggato e si trova nel login, porta alla home
-      router.replace('/');
+      router.replace('/(app)/(tabs)');
     }
-  }, [session, loading, segments]);
+  }, [session, loading]);
+
+  // Mostra uno splash di caricamento mentre verifichiamo la sessione
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

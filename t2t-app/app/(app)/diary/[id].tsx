@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -13,17 +13,28 @@ type Diary = {
   created_at: string;
 };
 
+type DiaryDay = {
+  id: string;
+  day_number: number;
+  title: string | null;
+  date: string | null;
+};
+
 export default function DiaryDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [diary, setDiary] = useState<Diary | null>(null);
+  const [days, setDays] = useState<DiaryDay[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchDiaryDetails();
-    }
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchDiaryDetails();
+        fetchDiaryDays();
+      }
+    }, [id])
+  );
 
   async function fetchDiaryDetails() {
     setLoading(true);
@@ -35,6 +46,19 @@ export default function DiaryDetailScreen() {
 
     if (!error && data) {
       setDiary(data);
+    }
+  }
+
+  async function fetchDiaryDays() {
+    setLoading(true); // Se vogliamo mostrare il loader anche durante il reload dei giorni
+    const { data, error } = await supabase
+      .from('diary_days')
+      .select('id, day_number, title, date')
+      .eq('diary_id', id)
+      .order('day_number', { ascending: true });
+
+    if (!error && data) {
+      setDays(data);
     }
     setLoading(false);
   }
@@ -125,16 +149,36 @@ export default function DiaryDetailScreen() {
 
         <View style={styles.daysHeader}>
           <Text style={styles.sectionTitle}>Giornate</Text>
-          <TouchableOpacity style={styles.addDayButton}>
+          <TouchableOpacity 
+            style={styles.addDayButton}
+            onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
+          >
             <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addDayText}>Aggiungi Giorno</Text>
+            <Text style={styles.addDayText}>Aggiungi</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.emptyDays}>
-          <Text style={styles.emptyDaysText}>Ancora nessuna giornata in questo diario.</Text>
-          <Text style={styles.emptyDaysSub}>Inizia ad aggiungere i ricordi del tuo viaggio!</Text>
-        </View>
+        {days.length === 0 ? (
+          <View style={styles.emptyDays}>
+            <Text style={styles.emptyDaysText}>Ancora nessuna giornata in questo diario.</Text>
+            <Text style={styles.emptyDaysSub}>Inizia ad aggiungere i ricordi del tuo viaggio!</Text>
+          </View>
+        ) : (
+          <View style={styles.daysList}>
+            {days.map((day) => (
+              <TouchableOpacity key={day.id} style={styles.dayCard}>
+                <View style={styles.dayIconBox}>
+                  <Text style={styles.dayIconText}>{day.day_number}</Text>
+                </View>
+                <View style={styles.dayContent}>
+                  <Text style={styles.dayTitle}>Giorno {day.day_number}{day.title ? `: ${day.title}` : ''}</Text>
+                  {day.date && <Text style={styles.dayDate}>{day.date}</Text>}
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
       </ScrollView>
     </View>
@@ -263,5 +307,43 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  daysList: {
+    marginTop: 8,
+  },
+  dayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+  dayIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e6f2ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  dayIconText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#007AFF',
+  },
+  dayContent: {
+    flex: 1,
+  },
+  dayTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  dayDate: {
+    fontSize: 14,
+    color: '#666',
   },
 });

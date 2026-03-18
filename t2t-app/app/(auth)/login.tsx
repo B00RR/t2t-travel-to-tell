@@ -24,10 +24,10 @@ export default function LoginScreen() {
       if (error.message.includes('Invalid login credentials')) {
         Alert.alert('Errore Login', 'Credenziali non valide. Assicurati di aver confermato l\'email (se richiesto) o che la password sia corretta.');
       } else {
-        Alert.alert('Errore Login', error.message);
+        Alert.alert('Errore', error.message);
       }
     } else {
-      router.replace('/(app)');
+      router.replace('/');
     }
     setLoading(false);
   }

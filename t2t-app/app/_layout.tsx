@@ -27,7 +27,7 @@ function RootLayoutNav() {
       router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
       // Se loggato e si trova nel login, porta alla home
-      router.replace('/(app)');
+      router.replace('/');
     }
   }, [session, loading, segments]);
 

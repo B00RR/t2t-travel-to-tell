@@ -16,23 +16,28 @@ export default function RegisterScreen() {
 
   async function signUpWithEmail() {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
-      Alert.alert('Errore Registrazione', error.message);
-    } else {
-      Alert.alert('Fatto!', 'Ti sei registrato con successo.');
-      router.replace('/(app)');
+      if (error) {
+        Alert.alert('Errore Registrazione', error.message);
+      } else {
+        Alert.alert('Fatto!', 'Ti sei registrato con successo.');
+        router.replace('/');
+      }
+    } catch (e: any) {
+      Alert.alert('Errore Registrazione', e.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (

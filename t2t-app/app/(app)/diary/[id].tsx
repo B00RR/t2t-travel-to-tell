@@ -94,7 +94,7 @@ export default function DiaryDetailScreen() {
     if (error) {
       Alert.alert('Errore', 'Impossibile eliminare il diario.');
     } else {
-      router.replace('/(app)');
+      router.replace('/');
     }
   }
 

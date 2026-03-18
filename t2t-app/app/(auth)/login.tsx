@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Link, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -17,7 +21,11 @@ export default function LoginScreen() {
     });
 
     if (error) {
-      Alert.alert('Errore Login', error.message);
+      if (error.message.includes('Invalid login credentials')) {
+        Alert.alert('Errore Login', 'Credenziali non valide. Assicurati di aver confermato l\'email (se richiesto) o che la password sia corretta.');
+      } else {
+        Alert.alert('Errore Login', error.message);
+      }
     } else {
       router.replace('/(app)');
     }
@@ -26,7 +34,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome back to T2T</Text>
+      <Text style={styles.title}>Bentornato su T2T</Text>
       
       <View style={styles.inputContainer}>
         <TextInput
@@ -40,15 +48,23 @@ export default function LoginScreen() {
         />
       </View>
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#666"
-          onChangeText={(text) => setPassword(text)}
-          value={password}
-          secureTextEntry={true}
-          autoCapitalize="none"
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            placeholderTextColor="#666"
+            onChangeText={(text) => setPassword(text)}
+            value={password}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity 
+            style={styles.eyeIcon} 
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
       </View>
       
       <TouchableOpacity 
@@ -59,15 +75,15 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Log in</Text>
+          <Text style={styles.buttonText}>Accedi</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.footerRow}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
+        <Text style={styles.footerText}>Non hai un account? </Text>
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity>
-            <Text style={styles.footerLink}>Sign up</Text>
+            <Text style={styles.footerLink}>Registrati</Text>
           </TouchableOpacity>
         </Link>
       </View>
@@ -98,6 +114,21 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     color: '#1a1a1a',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+    color: '#1a1a1a',
+  },
+  eyeIcon: {
+    padding: 16,
   },
   button: {
     backgroundColor: '#007AFF', // Primary color for MVP

@@ -119,10 +119,10 @@ export default function DayDetailScreen() {
       return;
     }
 
-    // Apri la galleria
+    // Apri la galleria (senza forzare il ritaglio)
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.7, // Compressione leggera
     });
 
@@ -158,12 +158,18 @@ export default function DayDetailScreen() {
         return;
       }
 
-      // Ottieni URL pubblico
-      const { data: urlData } = supabase.storage
+      // Ottieni URL firmato (valido 1 anno) - funziona anche se il bucket non è pubblico
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('diary-media')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
 
-      const publicUrl = urlData.publicUrl;
+      if (urlError || !urlData?.signedUrl) {
+        Alert.alert('Errore', 'Impossibile generare il link della foto.');
+        setUploadingPhoto(false);
+        return;
+      }
+
+      const publicUrl = urlData.signedUrl;
 
       // Crea entry nel database
       const { error: entryError } = await supabase

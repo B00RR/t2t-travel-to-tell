@@ -166,7 +166,11 @@ export default function DiaryDetailScreen() {
         ) : (
           <View style={styles.daysList}>
             {days.map((day) => (
-              <TouchableOpacity key={day.id} style={styles.dayCard}>
+              <TouchableOpacity
+                key={day.id}
+                style={styles.dayCard}
+                onPress={() => router.push({ pathname: '/diary/day/[day_id]', params: { day_id: day.id, diary_id: id } })}
+              >
                 <View style={styles.dayIconBox}>
                   <Text style={styles.dayIconText}>{day.day_number}</Text>
                 </View>

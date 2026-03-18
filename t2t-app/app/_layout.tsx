@@ -1,12 +1,14 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, SplashScreen } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import '../i18n';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+
+// Impedisci alla splash screen di nascondersi finché non sappiamo lo stato auth
+SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -17,6 +19,9 @@ function RootLayoutNav() {
   useEffect(() => {
     if (loading) return;
 
+    // Auth è stato verificato, nascondi la splash screen
+    SplashScreen.hideAsync();
+
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!session && !inAuthGroup) {
@@ -26,15 +31,7 @@ function RootLayoutNav() {
     }
   }, [session, loading]);
 
-  // Mostra uno splash di caricamento mentre verifichiamo la sessione
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
-
+  // IMPORTANTE: renderizza SEMPRE lo Stack, altrimenti Expo Router non si inizializza mai
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>

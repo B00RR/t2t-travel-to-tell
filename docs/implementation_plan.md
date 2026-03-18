@@ -222,13 +222,13 @@ t2t-app/
 - Onboarding: scegli username, avatar, stile di viaggio
 - Persistenza sessione con SecureStore
 
-### 3.2 Diary CRUD
+### 3.2 Diary CRUD — ✅ Completato
 - **Crea diario**: titolo, date, destinazioni, copertina
 - **Aggiungi giorni**: uno per ogni giorno di viaggio
 - **Editor giorno**: blocchi di contenuto drag & drop
   - Blocco testo (rich text)
   - Blocco foto (singola o galleria)
-  - Blocco video (player inline)
+  - Blocco video (player inline) — 🔜 Da implementare
   - Blocco "tip" (consiglio strutturato)
   - Blocco "mood" (emoji + nota)
   - Blocco "location" (tag luogo)
@@ -249,9 +249,9 @@ t2t-app/
 - **Salva diario** in raccolta personale
 - **Condividi** link al diario / deep link
 
-### 3.5 Feed & Discovery
-- **Home feed**: diari dai viaggiatori seguiti (cronologico)
-- **Explore**: diari popolari, trending, per destinazione
+### 3.5 Feed & Discovery — ✅ Completato (Home Feed)
+- **Home feed**: diari dai viaggiatori seguiti/pubblici (cronologico)
+- **Explore**: diari popolari, trending, per destinazione — 🔜 Placeholder
 - **Cerca**: per destinazione, tag, utente
 - Card preview: copertina, titolo, autore, destinazioni, like
 

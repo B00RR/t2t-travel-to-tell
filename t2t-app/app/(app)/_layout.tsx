@@ -19,9 +19,16 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="create"
+        options={{
+          title: 'Crea',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Profilo',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />

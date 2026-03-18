@@ -49,7 +49,8 @@ export default function AddDayScreen() {
         diary_id: diary_id,
         day_number: nextDayNumber,
         title: title || `Giorno ${nextDayNumber}`,
-        date: parsedDate || null
+        date: parsedDate || null,
+        sort_order: nextDayNumber,
       })
       .select()
       .single();
@@ -57,7 +58,8 @@ export default function AddDayScreen() {
     setLoading(false);
 
     if (insertError) {
-      Alert.alert('Errore', 'Impossibile aggiungere la giornata.');
+      console.error('Insert Error:', insertError);
+      Alert.alert('Errore', `Impossibile aggiungere la giornata.\nDettaglio: ${insertError.message}`);
     } else {
       router.back();
     }

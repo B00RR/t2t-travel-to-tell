@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, useCallback } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 type Diary = {
@@ -19,9 +19,11 @@ export default function HomeScreen() {
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDiaries();
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchDiaries();
+    }, [user])
+  );
 
   async function fetchDiaries() {
     if (!user) return;

@@ -1,0 +1,12 @@
+{
+  "common": {
+    "welcome": "Welcome to T2T",
+    "login": "Log in",
+    "register": "Sign up",
+    "home": "Home",
+    "explore": "Explore",
+    "create": "Create",
+    "map": "Map",
+    "profile": "Profile"
+  }
+}

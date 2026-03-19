@@ -18,6 +18,8 @@ import { EntryCard } from '@/components/EntryCard';
 import { AddEntryForm } from '@/components/AddEntryForm';
 import { EditEntryModal } from '@/components/EditEntryModal';
 import { MoodPickerModal } from '@/components/MoodPickerModal';
+import { EntryCardSkeleton } from '@/components/Skeleton';
+import { ErrorView } from '@/components/ErrorView';
 
 type AddableType = 'text' | 'tip' | 'location';
 
@@ -95,10 +97,38 @@ export default function DayDetailScreen() {
 
   // --- Renders ---
 
-  if (loading && !dayInfo) {
+  if (loading && (!dayInfo || entries.length === 0)) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+             <View style={{ backgroundColor: '#eee', width: 100, height: 20, borderRadius: 4 }} />
+          </View>
+          <View style={styles.headerIcon} />
+        </View>
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
+          <EntryCardSkeleton />
+          <EntryCardSkeleton />
+          <EntryCardSkeleton />
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (!loading && !dayInfo) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          </TouchableOpacity>
+          <View style={styles.headerCenter} />
+          <View style={styles.headerIcon} />
+        </View>
+        <ErrorView onRetry={() => { fetchDayInfo(); fetchEntries(); }} />
       </View>
     );
   }

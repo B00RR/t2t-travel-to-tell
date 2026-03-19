@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Alert } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 export function useFollow(currentUserId: string | undefined, targetProfileId: string) {
   const [isFollowing, setIsFollowing] = useState(false);
@@ -40,6 +41,9 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
     }
 
     if (currentUserId === targetProfileId) return;
+
+    // Haptic feedback
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     // Optimistic UI Update
     setIsFollowing(!isFollowing);

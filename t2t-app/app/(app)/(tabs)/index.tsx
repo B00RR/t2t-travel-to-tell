@@ -8,6 +8,8 @@ import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
+import { DiaryCardSkeleton } from '@/components/Skeleton';
+import { ErrorView } from '@/components/ErrorView';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function HomeScreen() {
@@ -15,6 +17,7 @@ export default function HomeScreen() {
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
@@ -48,6 +51,9 @@ export default function HomeScreen() {
 
     if (!error && data) {
       setDiaries(data as FeedDiary[]);
+      setErrorVisible(false);
+    } else {
+      setErrorVisible(true);
     }
     setLoading(false);
     setRefreshing(false);
@@ -167,9 +173,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+      {errorVisible && !refreshing && diaries.length === 0 ? (
+        <ErrorView onRetry={fetchFeed} />
+      ) : loading && !refreshing ? (
+        <View style={styles.listContent}>
+          <DiaryCardSkeleton />
+          <DiaryCardSkeleton />
+          <DiaryCardSkeleton />
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>

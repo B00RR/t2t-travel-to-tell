@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { SocialCounters } from '@/types/social';
 import { Alert } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 interface UseDiarySocialOptions {
   diaryId: string;
@@ -58,6 +58,9 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
       return;
     }
 
+    // Haptic feedback
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
     // Optimistic UI update
     setHasLiked(!hasLiked);
     setCounters(prev => ({ ...prev, like_count: prev.like_count + (hasLiked ? -1 : 1) }));
@@ -81,6 +84,9 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
       Alert.alert('Accesso richiesto', 'Devi effettuare l\'accesso per salvare i diari.');
       return;
     }
+
+    // Haptic feedback
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     // Optimistic UI update
     setHasSaved(!hasSaved);

@@ -19,6 +19,17 @@ interface EntryCardProps {
 
 export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   const { t } = useTranslation();
+
+  const isVideo = entry.type === 'video';
+  const videoContent = isVideo ? entry.content || '' : '';
+  const player = useVideoPlayer(videoContent, (p) => {
+    if (isVideo) {
+      p.loop = false;
+    }
+  });
+
+  const [isVideoStarted, setIsVideoStarted] = React.useState(false);
+
   // --- MOOD ---
   if (entry.type === 'mood') {
     return (
@@ -59,13 +70,8 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   }
 
   // --- VIDEO ---
-  if (entry.type === 'video') {
+  if (isVideo) {
     const videoEntry = entry as VideoDayEntry;
-    const player = useVideoPlayer(videoEntry.content || '', (p) => {
-      p.loop = false;
-    });
-
-    const [isStarted, setIsStarted] = React.useState(false);
     
     const ar =
       videoEntry.metadata?.width && videoEntry.metadata?.height
@@ -84,7 +90,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 
     const handleInitialPlay = () => {
       player.play();
-      setIsStarted(true);
+      setIsVideoStarted(true);
     };
 
     return (
@@ -94,12 +100,12 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
             <VideoView
               player={player}
               style={StyleSheet.absoluteFill}
-              nativeControls={isStarted}
+              nativeControls={isVideoStarted}
               contentFit="cover"
             />
           </GestureDetector>
           
-          {thumbnailUrl && !isStarted && (
+          {thumbnailUrl && !isVideoStarted && (
             <Image
               source={{ uri: thumbnailUrl }}
               style={StyleSheet.absoluteFill}
@@ -107,7 +113,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
             />
           )}
 
-          {!isStarted && (
+          {!isVideoStarted && (
             <TouchableOpacity 
               style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.1)' }]}
               onPress={handleInitialPlay}

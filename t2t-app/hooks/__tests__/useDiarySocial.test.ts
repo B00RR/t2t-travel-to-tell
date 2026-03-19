@@ -127,4 +127,47 @@ describe('useDiarySocial', () => {
     expect(result.current.hasLiked).toBe(false);
     expect(result.current.hasSaved).toBe(false);
   });
+
+  it('should handle toggleLike error and rollback state correctly', async () => {
+    // Mock initial fetch success
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({ data: null, error: null }),
+          })),
+        })),
+      })),
+      insert: jest.fn().mockRejectedValue(new Error('Insert error')),
+      delete: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(),
+        })),
+      })),
+    });
+
+    // Suppress console.warn for the duration of this test
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useDiarySocial({ diaryId, userId, initialCounters }));
+
+    // Wait for initial fetch
+    await waitFor(() => {
+      expect(result.current.loadingInitialState).toBe(false);
+    });
+
+    expect(result.current.hasLiked).toBe(false);
+    expect(result.current.counters.like_count).toBe(initialCounters.like_count);
+
+    // Call toggleLike
+    await act(async () => {
+      await result.current.toggleLike();
+    });
+
+    // Verify rollback happened
+    expect(result.current.hasLiked).toBe(false);
+    expect(result.current.counters.like_count).toBe(initialCounters.like_count);
+
+    consoleSpy.mockRestore();
+  });
 });

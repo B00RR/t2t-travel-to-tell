@@ -216,10 +216,36 @@ insert into storage.buckets (id, name, public) values ('avatars', 'avatars', tru
 insert into storage.buckets (id, name, public) values ('diary-media', 'diary-media', false) on conflict (id) do nothing;
 
 create policy "Avatar images are publicly accessible." on storage.objects for select using (bucket_id = 'avatars');
-create policy "Anyone can upload an avatar." on storage.objects for insert with check (bucket_id = 'avatars' and auth.role() = 'authenticated');
-create policy "Users can update their own avatars." on storage.objects for update using (auth.uid() = owner and bucket_id = 'avatars');
+create policy "Anyone can upload an avatar." on storage.objects for insert with check (
+  bucket_id = 'avatars'
+  and auth.role() = 'authenticated'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+create policy "Users can update their own avatars." on storage.objects for update using (
+  auth.uid() = owner
+  and bucket_id = 'avatars'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+create policy "Users can delete their own avatars." on storage.objects for delete using (
+  auth.uid() = owner
+  and bucket_id = 'avatars'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
 
 -- Diary media requires complex RLS inside the DB, but for storage we'll allow authenticated users to upload and view.
-create policy "Authenticated users can upload diary media" on storage.objects for insert with check (bucket_id = 'diary-media' and auth.role() = 'authenticated');
+create policy "Authenticated users can upload diary media" on storage.objects for insert with check (
+  bucket_id = 'diary-media'
+  and auth.role() = 'authenticated'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
 create policy "Authenticated users can view diary media" on storage.objects for select using (bucket_id = 'diary-media');
-create policy "Users can delete their own media" on storage.objects for delete using (auth.uid() = owner and bucket_id = 'diary-media');
+create policy "Users can update their own media" on storage.objects for update using (
+  auth.uid() = owner
+  and bucket_id = 'diary-media'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+create policy "Users can delete their own media" on storage.objects for delete using (
+  auth.uid() = owner
+  and bucket_id = 'diary-media'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);

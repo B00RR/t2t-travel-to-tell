@@ -47,7 +47,8 @@ export function useUserProfile(profileId: string | undefined) {
       setProfile(prev => prev ? { ...prev, ...updates } : null);
       return { success: true };
     } catch (err: any) {
-      Alert.alert('Errore', 'Impossibile aggiornare il profilo: ' + err.message);
+      console.error('Update profile error:', err);
+      Alert.alert('Errore', 'Impossibile aggiornare il profilo. Riprova più tardi.');
       return { success: false, error: err.message };
     } finally {
       setLoading(false);
@@ -82,7 +83,8 @@ export function useUserProfile(profileId: string | undefined) {
       await updateProfile({ avatar_url: publicUrl });
       return { success: true, url: publicUrl };
     } catch (err: any) {
-      Alert.alert('Errore Upload', 'Impossibile caricare l\'avatar: ' + err.message);
+      console.error('Upload avatar error:', err);
+      Alert.alert('Errore Upload', 'Impossibile caricare l\'avatar. Riprova più tardi.');
       return { success: false };
     } finally {
       setLoading(false);

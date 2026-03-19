@@ -178,4 +178,56 @@ describe('useMediaUpload', () => {
       })
     }));
   });
+
+  it('handles thumbnail generation failure for video assets gracefully', async () => {
+    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: true });
+    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file://video.mp4', width: 1080, height: 1920, type: 'video', duration: 15 }],
+    });
+
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Mock thumbnail extraction to fail
+    const thumbnailError = new Error('Failed to generate thumbnail');
+    (VideoThumbnails.getThumbnailAsync as jest.Mock).mockRejectedValue(thumbnailError);
+
+    const mockUpload = jest.fn().mockResolvedValue({ error: null });
+    (supabase.storage.from as jest.Mock).mockReturnValue({ upload: mockUpload });
+
+    const mockInsert = jest.fn().mockResolvedValue({ error: null });
+    (supabase.from as jest.Mock).mockReturnValue({ insert: mockInsert });
+
+    const mockOnUploadComplete = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useMediaUpload({
+      userId: 'user-1',
+      diaryId: 'diary-1',
+      dayId: 'day-1',
+      getNextSortOrder: () => 1,
+      onUploadComplete: mockOnUploadComplete,
+    }));
+
+    await act(async () => {
+      await result.current.pickAndUploadMedia();
+    });
+
+    expect(VideoThumbnails.getThumbnailAsync).toHaveBeenCalled();
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to generate thumbnail'), thumbnailError);
+
+    // Once: only for the video since thumbnail failed
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'video',
+      content: null,
+      metadata: expect.objectContaining({
+        duration: 15,
+        storagePath: expect.stringContaining('.mp4'),
+        thumbnailStoragePath: '' // Should be empty due to failure
+      })
+    }));
+
+    expect(mockOnUploadComplete).toHaveBeenCalled();
+    consoleWarnSpy.mockRestore();
+  });
 });

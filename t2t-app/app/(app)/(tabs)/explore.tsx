@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function DiscoveryScreen() {
@@ -62,25 +63,9 @@ export default function DiscoveryScreen() {
     fetchDiscovery(searchQuery);
   };
 
-  const renderItem = ({ item }: { item: FeedDiary }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => router.push(`/diary/${item.id}`)}
-    >
-      {item.cover_image_url ? (
-        <Image source={{ uri: item.cover_image_url }} style={styles.cardImage} />
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <Ionicons name="map-outline" size={32} color="#ccc" />
-        </View>
-      )}
-      <View style={styles.cardOverlay}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-        <TouchableOpacity onPress={() => router.push(`/profile/${item.author_id}`)}>
-          <Text style={styles.cardAuthor}>{t('profile.follow')} {item.profiles?.display_name || item.profiles?.username || t('common.anonymous')}</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+  const renderItem = useCallback(
+    ({ item }: { item: FeedDiary }) => <ExploreDiaryCard item={item} />,
+    []
   );
 
   return (
@@ -172,41 +157,6 @@ const styles = StyleSheet.create({
   },
   columnWrapper: {
     justifyContent: 'space-between',
-  },
-  card: {
-    width: '48%',
-    height: 200,
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    backgroundColor: '#f9f9f9',
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  imagePlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 12,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  cardTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  cardAuthor: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 12,
-    marginTop: 2,
   },
   centerContainer: {
     flex: 1,

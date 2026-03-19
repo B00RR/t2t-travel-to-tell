@@ -1,0 +1,3 @@
+## 2024-03-19 - [FlatList Inline Functions lead to O(n) re-renders]
+**Learning:** Extracting inline components passed to `renderItem` props in `FlatList` components prevents re-rendering bugs where all items are redrawn when the parent screen updates an independent state (like showing a modal).
+**Action:** Always wrap `renderItem` handlers in `useCallback` and extract item views into separate components wrapped with `React.memo()`. Rely on React's default shallow comparison for `React.memo()` unless explicit custom logic is absolutely required, to avoid stale UI elements when an item receives updates from the backend.

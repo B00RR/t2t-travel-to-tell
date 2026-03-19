@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Video, ResizeMode } from 'expo-av';
-import type { DayEntry } from '@/types/dayEntry';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import type { DayEntry } from '@/types/social';
+import type { PhotoDayEntry, VideoDayEntry } from '@/types/dayEntry';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
@@ -55,31 +56,51 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 
   // --- VIDEO ---
   if (entry.type === 'video') {
+    const videoEntry = entry as VideoDayEntry;
+    const player = useVideoPlayer(videoEntry.content || '', (p) => {
+      p.loop = false;
+    });
+
+    const [isLoaded, setIsLoaded] = React.useState(false);
+    
     const ar =
-      entry.metadata?.width && entry.metadata?.height
-        ? entry.metadata.width / entry.metadata.height
+      videoEntry.metadata?.width && videoEntry.metadata?.height
+        ? videoEntry.metadata.width / videoEntry.metadata.height
         : 16 / 9;
+
+    const thumbnailUrl = (videoEntry.metadata as any)?.thumbnailUrl;
 
     return (
       <View style={styles.photoCard}>
-        <Video
-          source={{ uri: entry.content || '' }}
-          style={[styles.entryPhoto, { width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: '#000' }]}
-          useNativeControls
-          resizeMode={ResizeMode.COVER}
-          isLooping={false}
-          posterSource={{ uri: (entry.metadata as any)?.thumbnailUrl || '' }}
-          usePoster={true}
-          posterStyle={{ width: '100%', height: '100%', resizeMode: 'cover' }}
-        />
-        {entry.metadata?.caption ? (
-          <Text style={styles.photoCaption}>{entry.metadata.caption}</Text>
+        <View style={{ width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden' }}>
+          <VideoView
+            player={player}
+            style={StyleSheet.absoluteFill}
+            nativeControls={true}
+            contentFit="cover"
+          />
+          
+          {thumbnailUrl && !isLoaded && (
+            <Image
+              source={{ uri: thumbnailUrl }}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+              onLoad={() => setIsLoaded(true)}
+            />
+          )}
+          
+          {/* Transparent overlay for long press since VideoView might swallow it */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onLongPress={() => onLongPress(entry.id)}
+            delayLongPress={600}
+            activeOpacity={1}
+          />
+        </View>
+        
+        {videoEntry.metadata?.caption ? (
+          <Text style={styles.photoCaption}>{videoEntry.metadata.caption}</Text>
         ) : null}
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          onLongPress={() => onLongPress(entry.id)}
-          delayLongPress={600}
-        />
       </View>
     );
   }

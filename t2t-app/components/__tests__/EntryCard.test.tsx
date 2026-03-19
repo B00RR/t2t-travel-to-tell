@@ -3,9 +3,9 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { EntryCard } from '../EntryCard';
 import type { DayEntry } from '@/types/dayEntry';
 
-jest.mock('expo-av', () => ({
-  Video: 'Video',
-  ResizeMode: { COVER: 'cover', CONTAIN: 'contain' }
+jest.mock('expo-video', () => ({
+  useVideoPlayer: jest.fn(() => ({})),
+  VideoView: 'VideoView',
 }));
 
 describe('EntryCard', () => {

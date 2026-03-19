@@ -57,7 +57,14 @@
     "comments": "Comments",
     "no_comments": "No comments yet. Be the first!",
     "add_comment": "Write a comment...",
-    "login_to_comment": "Log in to comment"
+    "login_to_comment": "Log in to comment",
+    "like": "Like",
+    "unlike": "Unlike",
+    "comment_action": "Comment",
+    "share": "Share diary",
+    "share_profile": "Share profile",
+    "save": "Save",
+    "unsave": "Unsave"
   },
   "diary": {
     "options": "Diary Options",

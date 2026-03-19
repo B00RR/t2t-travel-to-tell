@@ -96,33 +96,45 @@ export function useMediaUpload({
         finalHeight = manipResult.height;
       }
 
-      // 2. Upload Main Asset
+      // 2. Prepare Storage Paths
       const fileExt = isVideo ? (asset.uri.split('.').pop()?.toLowerCase() || 'mp4') : 'jpg';
       const mainStoragePath = `${userId}/${dId}/${daId}/${timestamp}.${fileExt}`;
       const contentType = isVideo ? `video/${fileExt}` : 'image/jpeg';
-      
-      const { error: uploadError } = await uploadFileToSupabase(finalUri, mainStoragePath, contentType);
-      if (uploadError) throw new Error(uploadError.message);
 
-      let metadata: PhotoMetadata | VideoMetadata;
+      let thumbnailUri = '';
+      let thumbnailStoragePath = '';
 
-      // 3. Process Thumbnail if Video
+      // 3. Process Thumbnail if Video (before main upload to allow concurrency)
       if (isVideo) {
-        let thumbnailUri = '';
         try {
           const { uri } = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 1000 });
           thumbnailUri = uri;
+          thumbnailStoragePath = `${userId}/${dId}/${daId}/${timestamp}_thumb.jpg`;
         } catch (e) {
           console.warn("Failed to generate thumbnail, uploading without it", e);
         }
+      }
 
-        let thumbnailStoragePath = '';
-        if (thumbnailUri) {
-          thumbnailStoragePath = `${userId}/${dId}/${daId}/${timestamp}_thumb.jpg`;
-          const { error: thumbUploadError } = await uploadFileToSupabase(thumbnailUri, thumbnailStoragePath, 'image/jpeg');
-          if (thumbUploadError) console.warn("Failed to upload thumbnail", thumbUploadError);
-        }
+      // 4. Upload Assets Concurrently
+      const uploadPromises = [
+        uploadFileToSupabase(finalUri, mainStoragePath, contentType).then(({ error }) => {
+          if (error) throw new Error(error.message);
+        })
+      ];
 
+      if (thumbnailUri) {
+        uploadPromises.push(
+          uploadFileToSupabase(thumbnailUri, thumbnailStoragePath, 'image/jpeg').then(({ error }) => {
+            if (error) console.warn("Failed to upload thumbnail", error);
+          })
+        );
+      }
+
+      await Promise.all(uploadPromises);
+
+      let metadata: PhotoMetadata | VideoMetadata;
+
+      if (isVideo) {
         metadata = {
           width: finalWidth,
           height: finalHeight,
@@ -141,7 +153,7 @@ export function useMediaUpload({
         } as PhotoMetadata;
       }
 
-      // 4. Save to Database
+      // 5. Save to Database
       const { error: entryError } = await supabase.from('day_entries').insert({
         day_id: daId,
         type: isVideo ? 'video' : 'photo',

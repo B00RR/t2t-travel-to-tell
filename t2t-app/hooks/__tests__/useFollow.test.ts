@@ -32,6 +32,8 @@ jest.mock('expo-haptics', () => ({
 }));
 
 jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+jest.spyOn(console, 'warn').mockImplementation(() => {});
+jest.spyOn(console, 'debug').mockImplementation(() => {});
 
 describe('useFollow', () => {
   const currentUserId = 'user-1';
@@ -80,6 +82,26 @@ describe('useFollow', () => {
     expect(result.current.isFollowing).toBe(true);
   });
 
+  it('should log error and set isFollowing to false if checkFollowStatus fails', async () => {
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockRejectedValue(new Error('Database error')),
+          })),
+        })),
+      })),
+    });
+
+    const { result } = renderHook(() => useFollow(currentUserId, targetProfileId));
+
+    await act(async () => {});
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.isFollowing).toBe(false);
+    expect(console.debug).toHaveBeenCalledWith('Failed to check follow status', expect.any(Error));
+  });
+
   it('should require authentication to follow', async () => {
     const { result } = renderHook(() => useFollow(undefined, targetProfileId));
 
@@ -99,6 +121,36 @@ describe('useFollow', () => {
 
     expect(Haptics.notificationAsync).not.toHaveBeenCalled();
     expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  it('should optimistically update and then delete follow record when already following', async () => {
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({ data: { follower_id: currentUserId }, error: null }),
+          })),
+        })),
+      })),
+      delete: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        })),
+      })),
+    });
+
+    const { result } = renderHook(() => useFollow(currentUserId, targetProfileId));
+
+    await act(async () => {});
+    expect(result.current.isFollowing).toBe(true);
+
+    await act(async () => {
+      await result.current.toggleFollow();
+    });
+
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('Success');
+    expect(result.current.isFollowing).toBe(false);
+    expect(supabase.from).toHaveBeenCalledWith('follows');
   });
 
   it('should optimistically update and then insert follow record', async () => {
@@ -151,5 +203,35 @@ describe('useFollow', () => {
     // Reverted back to false
     expect(result.current.isFollowing).toBe(false);
     expect(Alert.alert).toHaveBeenCalledWith('Errore', 'Impossibile aggiornare lo stato del follow.');
+  });
+  it('should revert optimistic update and show alert on API error when unfollowing', async () => {
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({ data: { follower_id: currentUserId }, error: null }),
+          })),
+        })),
+      })),
+      delete: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn().mockRejectedValue(new Error('Network error during delete')),
+        })),
+      })),
+    });
+
+    const { result } = renderHook(() => useFollow(currentUserId, targetProfileId));
+
+    await act(async () => {});
+    expect(result.current.isFollowing).toBe(true);
+
+    await act(async () => {
+      await result.current.toggleFollow();
+    });
+
+    // Reverted back to true
+    expect(result.current.isFollowing).toBe(true);
+    expect(Alert.alert).toHaveBeenCalledWith('Errore', 'Impossibile aggiornare lo stato del follow.');
+    expect(console.warn).toHaveBeenCalledWith('Failed to toggle follow', expect.any(Error));
   });
 });

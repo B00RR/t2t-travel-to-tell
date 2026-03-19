@@ -57,7 +57,14 @@
     "comments": "Commenti",
     "no_comments": "Nessun commento ancora. Sii il primo!",
     "add_comment": "Scrivi un commento...",
-    "login_to_comment": "Accedi per commentare"
+    "login_to_comment": "Accedi per commentare",
+    "like": "Mi piace",
+    "unlike": "Non mi piace più",
+    "comment_action": "Commenta",
+    "share": "Condividi diario",
+    "share_profile": "Condividi profilo",
+    "save": "Salva",
+    "unsave": "Rimuovi dai salvati"
   },
   "diary": {
     "options": "Opzioni Diario",

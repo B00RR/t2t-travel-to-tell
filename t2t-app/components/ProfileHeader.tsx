@@ -87,7 +87,11 @@ export function ProfileHeader({
         )}
         
         {!isOwnProfile && (
-           <TouchableOpacity style={styles.shareBtn}>
+           <TouchableOpacity
+             style={styles.shareBtn}
+             accessibilityRole="button"
+             accessibilityLabel={t('social.share_profile')}
+           >
               <Ionicons name="share-outline" size={20} color="#1a1a1a" />
            </TouchableOpacity>
         )}

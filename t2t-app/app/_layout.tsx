@@ -27,7 +27,7 @@ function RootLayoutNav() {
     } else if (session && inAuthGroup) {
       router.replace('/(app)/(tabs)');
     }
-  }, [session, loading]);
+  }, [session, loading, router, segments]);
 
   return (
     <>

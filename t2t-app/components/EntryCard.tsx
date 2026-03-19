@@ -6,7 +6,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import type { DayEntry } from '@/types/social';
-import type { PhotoDayEntry, VideoDayEntry } from '@/types/dayEntry';
+import type { VideoDayEntry } from '@/types/dayEntry';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;

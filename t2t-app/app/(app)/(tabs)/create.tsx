@@ -26,7 +26,7 @@ export default function CreateDiaryScreen() {
     // Convert comma-separated string to array
     const destArray = destinations.split(',').map(d => d.trim()).filter(d => d.length > 0);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('diaries')
       .insert({
         author_id: user?.id,

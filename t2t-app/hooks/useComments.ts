@@ -7,9 +7,11 @@ export function useComments() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchComments = useCallback(async (diaryId: string) => {
     setLoading(true);
+    setError(null);
     
     // We join the profiles table to get the author's avatar and name
     const { data, error } = await supabase
@@ -22,7 +24,7 @@ export function useComments() {
       .order('created_at', { ascending: true }); // older first
 
     if (error) {
-      console.error(error);
+      setError(error as any); // using as any since we don't know the exact Supabase error type here
     } else if (data) {
       // Map Supabase join format to our TypeScript definition
       const mapped: Comment[] = data.map((item: any) => ({
@@ -80,6 +82,7 @@ export function useComments() {
     comments,
     loading,
     submitting,
+    error,
     fetchComments,
     addComment,
     deleteComment,

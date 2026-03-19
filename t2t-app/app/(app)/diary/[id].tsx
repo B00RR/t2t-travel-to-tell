@@ -8,15 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFollow } from '@/hooks/useFollow';
 import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
-
-type Diary = {
-  id: string;
-  title: string;
-  description: string;
-  destinations: string[];
-  status: string;
-  created_at: string;
-};
+import { Diary } from '@/types/supabase';
 
 type DiaryDay = {
   id: string;
@@ -38,7 +30,7 @@ export default function DiaryDetailScreen() {
   const [showComments, setShowComments] = useState(false);
 
   // Follow logic (Mocking target profile ID as diary.author_id)
-  const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, (diary as any)?.author_id);
+  const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
 
   useFocusEffect(
     useCallback(() => {
@@ -144,7 +136,7 @@ export default function DiaryDetailScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>{diary.title}</Text>
-          {user?.id !== (diary as any)?.author_id && (
+          {user?.id !== diary.author_id && (
             <TouchableOpacity 
               style={[styles.followBtn, isFollowing && styles.followingBtn]} 
               onPress={toggleFollow}
@@ -217,9 +209,9 @@ export default function DiaryDetailScreen() {
         diaryId={id as string}
         userId={user?.id}
         initialCounters={{
-          like_count: (diary as any).like_count || 0,
-          comment_count: (diary as any).comment_count || 0,
-          save_count: (diary as any).save_count || 0,
+          like_count: diary.like_count || 0,
+          comment_count: diary.comment_count || 0,
+          save_count: diary.save_count || 0,
         }}
         onCommentPress={() => setShowComments(true)}
       />

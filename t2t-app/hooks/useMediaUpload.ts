@@ -168,7 +168,8 @@ export function useMediaUpload({
         await onUploadComplete();
       }
     } catch (e: any) {
-      Alert.alert('Errore Upload', e.message);
+      console.error('Errore Upload:', e);
+      Alert.alert('Errore Upload', 'Si è verificato un errore durante il caricamento del file. Riprova più tardi.');
     }
 
     setUploading(false);

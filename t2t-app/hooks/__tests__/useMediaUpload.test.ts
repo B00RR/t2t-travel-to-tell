@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { useMediaUpload } from '../useMediaUpload';
 import { supabase } from '@/lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
@@ -177,5 +178,46 @@ describe('useMediaUpload', () => {
         thumbnailStoragePath: expect.stringContaining('_thumb.jpg')
       })
     }));
+  });
+
+  it('handles upload errors and shows an alert', async () => {
+    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: true });
+    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file://original.jpg', width: 4000, height: 3000, type: 'image' }],
+    });
+
+    (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
+      uri: 'file://compressed.jpg',
+      width: 1920,
+      height: 1440,
+    });
+
+    // Mock upload to return an error
+    const mockUpload = jest.fn().mockResolvedValue({ error: { message: 'Network Error' } });
+    (supabase.storage.from as jest.Mock).mockReturnValue({ upload: mockUpload });
+
+    const mockAlert = jest.spyOn(Alert, 'alert');
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const mockOnUploadComplete = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useMediaUpload({
+      userId: 'user-1',
+      diaryId: 'diary-1',
+      dayId: 'day-1',
+      getNextSortOrder: () => 1,
+      onUploadComplete: mockOnUploadComplete,
+    }));
+
+    await act(async () => {
+      await result.current.pickAndUploadMedia();
+    });
+
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+    expect(mockAlert).toHaveBeenCalledWith('Errore Upload', 'Si è verificato un errore durante il caricamento del file. Riprova più tardi.');
+    expect(mockOnUploadComplete).not.toHaveBeenCalled();
+
+    mockAlert.mockRestore();
+    mockConsoleError.mockRestore();
   });
 });

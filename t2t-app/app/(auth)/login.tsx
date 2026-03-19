@@ -28,12 +28,14 @@ export default function LoginScreen() {
     });
 
     if (error) {
-      // Specific error handling for invalid credentials
+      // Log raw error securely without exposing it to the user
+      console.error('Login error:', error);
+
+      // Specific error handling for invalid credentials to maintain UX
       if (error.message.includes('Invalid login credentials')) {
         Alert.alert(t('common.error'), t('auth.err_invalid_credentials'));
       } else {
-        // General error handling
-        console.error('Login error:', error);
+        // General error handling to prevent information disclosure
         Alert.alert(t('common.error'), t('auth.err_login_failed'));
       }
     } else {

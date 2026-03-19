@@ -1,11 +1,12 @@
-import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
 // import { Ionicons } from '@expo/vector-icons'; // Useremo questo più avanti per le immagini
 
 export default function CreateDiaryScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -16,7 +17,7 @@ export default function CreateDiaryScreen() {
 
   async function handleCreateDiary() {
     if (!title.trim()) {
-      Alert.alert('Errore', 'Inserisci un titolo per il tuo diario.');
+      Alert.alert(t('common.error'), t('create.err_title_required'));
       return;
     }
 
@@ -41,10 +42,10 @@ export default function CreateDiaryScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Errore', 'Impossibile creare il diario. Riprova più tardi.');
+      Alert.alert(t('common.error'), t('create.err_create_failed'));
       console.error(error);
     } else {
-      Alert.alert('Diario Creato!', 'Ora puoi iniziare a scriverlo.');
+      Alert.alert(t('create.success_title'), t('create.success_msg'));
       setTitle('');
       setDescription('');
       setDestinations('');
@@ -54,14 +55,14 @@ export default function CreateDiaryScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.title}>Nuovo Diario di Viaggio</Text>
-      <Text style={styles.subtitle}>Dove ti porta la tua prossima avventura?</Text>
+      <Text style={styles.title}>{t('create.title')}</Text>
+      <Text style={styles.subtitle}>{t('create.subtitle')}</Text>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Titolo del Viaggio *</Text>
+        <Text style={styles.label}>{t('create.title_label')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Es. Estate a Bali 2026"
+          placeholder={t('create.title_placeholder')}
           placeholderTextColor="#999"
           value={title}
           onChangeText={setTitle}
@@ -69,10 +70,10 @@ export default function CreateDiaryScreen() {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Destinazioni (separate da virgola)</Text>
+        <Text style={styles.label}>{t('create.destinations_label')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Es. Indonesia, Bali, Ubud"
+          placeholder={t('create.destinations_placeholder')}
           placeholderTextColor="#999"
           value={destinations}
           onChangeText={setDestinations}
@@ -80,10 +81,10 @@ export default function CreateDiaryScreen() {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Breve Descrizione</Text>
+        <Text style={styles.label}>{t('create.description_label')}</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
-          placeholder="Di cosa parla questo viaggio?"
+          placeholder={t('create.description_placeholder')}
           placeholderTextColor="#999"
           value={description}
           onChangeText={setDescription}
@@ -101,7 +102,7 @@ export default function CreateDiaryScreen() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Crea Diario</Text>
+          <Text style={styles.buttonText}>{t('create.create_btn')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>

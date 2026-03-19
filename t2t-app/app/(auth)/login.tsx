@@ -1,5 +1,6 @@
+```javascript
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,22 +10,31 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Keep this state for potential future use or if the eye icon is re-added
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function signInWithEmail() {
+  async function handleLogin() { // Renamed from signInWithEmail
     setLoading(true);
+
+    if (!email || !password) {
+      Alert.alert(t('common.error'), t('auth.err_invalid_email_or_password')); // Changed from err_invalid_email to be more general
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      // Specific error handling for invalid credentials
       if (error.message.includes('Invalid login credentials')) {
-        Alert.alert('Errore Login', 'Credenziali non valide. Assicurati di aver confermato l\'email (se richiesto) o che la password sia corretta.');
+        Alert.alert(t('common.error'), t('auth.err_invalid_credentials'));
       } else {
-        Alert.alert('Errore', error.message);
+        // General error handling
+        Alert.alert(t('common.error'), error.message);
       }
     } else {
       router.replace('/');
@@ -33,65 +43,81 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bentornato su T2T</Text>
-      
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#666"
-          onChangeText={(text) => setEmail(text)}
-          value={email}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="Password"
-            placeholderTextColor="#666"
-            onChangeText={(text) => setPassword(text)}
-            value={password}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-          />
-          <TouchableOpacity 
-            style={styles.eyeIcon} 
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <TouchableOpacity 
-        style={[styles.button, loading && styles.buttonDisabled]} 
-        disabled={loading} 
-        onPress={signInWithEmail}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Accedi</Text>
-        )}
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('common.login')}</Text>
+            <Text style={styles.subtitle}>{t('auth.login_welcome')}</Text>
+          </View>
 
-      <View style={styles.footerRow}>
-        <Text style={styles.footerText}>Non hai un account? </Text>
-        <Link href="/(auth)/register" asChild>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>Registrati</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
-    </View>
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('auth.email')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t('auth.email_placeholder')} // Changed placeholder
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>{t('auth.password')}</Text>
+              <View style={styles.passwordContainer}> {/* Re-added password container for consistency/future eye icon */}
+                <TextInput
+                  style={styles.passwordInput} // Changed to passwordInput
+                  placeholder={t('auth.password_placeholder')} // Changed placeholder
+                  secureTextEntry={!showPassword} // Kept secureTextEntry logic
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeIcon} 
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.button, loading && styles.buttonDisabled]} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>{t('common.login')}</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.footerRow}> {/* Re-added footerRow for consistency */}
+              <Text style={styles.footerText}>{t('auth.no_account')}</Text>
+              <Link href="/(auth)/register" asChild>
+                <TouchableOpacity>
+                  <Text style={styles.footerLink}>{t('auth.register_now')}</Text> {/* Changed to register_now */}
+                </TouchableOpacity>
+              </Link>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
     padding: 24,

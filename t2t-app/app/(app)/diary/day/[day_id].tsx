@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,6 +22,7 @@ import { MoodPickerModal } from '@/components/MoodPickerModal';
 type AddableType = 'text' | 'tip' | 'location';
 
 export default function DayDetailScreen() {
+  const { t } = useTranslation();
   const { day_id, diary_id } = useLocalSearchParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -110,7 +112,7 @@ export default function DayDetailScreen() {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
-            Giorno {dayInfo?.day_number}{dayInfo?.title ? `: ${dayInfo.title}` : ''}
+            {t('day.title', { number: dayInfo?.day_number })}{dayInfo?.title ? `: ${dayInfo.title}` : ''}
           </Text>
           {dayInfo?.date && <Text style={styles.headerDate}>{dayInfo.date}</Text>}
         </View>
@@ -124,23 +126,23 @@ export default function DayDetailScreen() {
         <View style={styles.addMenu}>
           <TouchableOpacity style={styles.addMenuItem} onPress={() => handleStartAdding('text')}>
             <Ionicons name="document-text" size={22} color="#007AFF" />
-            <Text style={styles.addMenuText}>Testo</Text>
+            <Text style={styles.addMenuText}>{t('day.type_text')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addMenuItem} onPress={() => { setShowAddMenu(false); pickAndUploadMedia(); }}>
             <Ionicons name="camera" size={22} color="#34C759" />
-            <Text style={styles.addMenuText}>Foto/Video</Text>
+            <Text style={styles.addMenuText}>{t('day.type_photo')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addMenuItem} onPress={() => handleStartAdding('tip')}>
             <Ionicons name="bulb" size={22} color="#FF9500" />
-            <Text style={styles.addMenuText}>Tip</Text>
+            <Text style={styles.addMenuText}>{t('day.type_tip')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addMenuItem} onPress={() => { setShowMoodPicker(true); setShowAddMenu(false); }}>
             <Text style={{ fontSize: 22 }}>😊</Text>
-            <Text style={styles.addMenuText}>Mood</Text>
+            <Text style={styles.addMenuText}>{t('day.type_mood')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addMenuItem} onPress={() => handleStartAdding('location')}>
             <Ionicons name="location" size={22} color="#FF3B30" />
-            <Text style={styles.addMenuText}>Luogo</Text>
+            <Text style={styles.addMenuText}>{t('day.type_location')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -149,7 +151,7 @@ export default function DayDetailScreen() {
       {uploadingMedia && (
         <View style={styles.uploadOverlay}>
           <ActivityIndicator size="small" color="#007AFF" />
-          <Text style={styles.uploadText}>Caricamento media...</Text>
+          <Text style={styles.uploadText}>{t('day.uploading_media')}</Text>
         </View>
       )}
 
@@ -158,8 +160,8 @@ export default function DayDetailScreen() {
         {entries.length === 0 && !addingType && (
           <View style={styles.emptyState}>
             <Ionicons name="create-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>Nessun contenuto ancora</Text>
-            <Text style={styles.emptySub}>Premi il + in alto per aggiungere testi, foto, mood o consigli!</Text>
+            <Text style={styles.emptyTitle}>{t('day.no_content')}</Text>
+            <Text style={styles.emptySub}>{t('day.add_hint')}</Text>
           </View>
         )}
 

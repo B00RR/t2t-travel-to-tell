@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, Image } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,12 +8,15 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useNotifications } from '@/hooks/useNotifications';
 import type { Profile, Diary } from '@/types/supabase';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const { profile, loading: profileLoading, updateProfile, uploadAvatar, checkUsernameUnique } = useUserProfile(user?.id);
+  const { unreadCount } = useNotifications();
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const [loadingDiaries, setLoadingDiaries] = useState(true);
 
@@ -56,7 +60,7 @@ export default function ProfileScreen() {
 
   const handleSaveProfile = async () => {
     if (!editForm.username.trim()) {
-      Alert.alert('Errore', 'Lo username è obbligatorio');
+      Alert.alert(t('common.error'), t('profile.username_required'));
       return;
     }
 
@@ -64,7 +68,7 @@ export default function ProfileScreen() {
     if (editForm.username !== profile?.username) {
       const isUnique = await checkUsernameUnique(editForm.username);
       if (!isUnique) {
-        Alert.alert('Errore', 'Questo username è già in uso');
+        Alert.alert(t('common.error'), t('profile.username_taken'));
         return;
       }
     }
@@ -90,11 +94,11 @@ export default function ProfileScreen() {
 
   function handleLogout() {
     Alert.alert(
-      'Logout',
-      'Vuoi davvero uscire?',
+      t('common.logout'),
+      t('common.logout_confirm'),
       [
-        { text: 'Annulla', style: 'cancel' },
-        { text: 'Esci', style: 'destructive', onPress: () => supabase.auth.signOut() },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.logout'), style: 'destructive', onPress: () => supabase.auth.signOut() },
       ]
     );
   }
@@ -103,10 +107,23 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profilo</Text>
-        <TouchableOpacity style={styles.headerIcon} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.headerIcon} 
+            onPress={() => router.push('/(app)/notifications')}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#1a1a1a" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIcon} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -119,7 +136,7 @@ export default function ProfileScreen() {
 
         {/* Section: My Diaries */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>I tuoi Diari</Text>
+          <Text style={styles.sectionTitle}>{t('profile.my_diaries')}</Text>
           <TouchableOpacity onPress={() => router.push('/(app)/(tabs)/create')}>
             <Ionicons name="add-circle" size={28} color="#007AFF" />
           </TouchableOpacity>
@@ -130,9 +147,9 @@ export default function ProfileScreen() {
         ) : diaries.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="journal-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>Non hai ancora creato nessun diario.</Text>
+            <Text style={styles.emptyText}>{t('profile.no_diaries')}</Text>
             <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/(tabs)/create')}>
-              <Text style={styles.createBtnText}>Crea il tuo primo Diario</Text>
+              <Text style={styles.createBtnText}>{t('profile.create_first')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -153,7 +170,7 @@ export default function ProfileScreen() {
                   <View style={styles.diaryMeta}>
                     <View style={[styles.statusBadge, diary.status === 'published' && styles.statusPublished]}>
                       <Text style={[styles.statusText, diary.status === 'published' && styles.statusTextPublished]}>
-                        {diary.status === 'draft' ? '📝 Bozza' : '🌍 Pubblicato'}
+                        {diary.status === 'draft' ? `📝 ${t('profile.status_draft')}` : `🌍 ${t('profile.status_published')}`}
                       </Text>
                     </View>
                     <View style={styles.diaryStats}>
@@ -182,11 +199,11 @@ export default function ProfileScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
-              <Text style={styles.modalCancel}>Annulla</Text>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Modifica Profilo</Text>
+            <Text style={styles.modalTitle}>{t('profile.edit_profile')}</Text>
             <TouchableOpacity onPress={handleSaveProfile} disabled={profileLoading}>
-              <Text style={[styles.modalSave, profileLoading && { opacity: 0.5 }]}>Salva</Text>
+              <Text style={[styles.modalSave, profileLoading && { opacity: 0.5 }]}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -203,37 +220,37 @@ export default function ProfileScreen() {
                     <Ionicons name="camera" size={16} color="#fff" />
                  </View>
               </View>
-              <Text style={styles.changeAvatarText}>Cambia Foto Profilo</Text>
+              <Text style={styles.changeAvatarText}>{t('profile.change_avatar')}</Text>
             </TouchableOpacity>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nome Visualizzato</Text>
+              <Text style={styles.label}>{t('profile.display_name')}</Text>
               <TextInput
                 style={styles.input}
                 value={editForm.display_name}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, display_name: text }))}
-                placeholder="Il tuo nome"
+                placeholder={t('profile.display_name')}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>{t('profile.username')}</Text>
               <TextInput
                 style={styles.input}
                 value={editForm.username}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-z0-9_]/g, '') }))}
-                placeholder="username"
+                placeholder={t('profile.username')}
                 autoCapitalize="none"
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Bio</Text>
+              <Text style={styles.label}>{t('profile.bio')}</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={editForm.bio}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, bio: text }))}
-                placeholder="Racconta qualcosa di te..."
+                placeholder={t('profile.bio_placeholder')}
                 multiline
                 numberOfLines={4}
               />
@@ -268,6 +285,31 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     padding: 4,
+    position: 'relative',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#FF3B30',
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
   },
   scrollView: {
     flex: 1,

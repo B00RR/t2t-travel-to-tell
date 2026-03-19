@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Modal, ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { DayEntry } from '@/types/dayEntry';
 
 interface EditEntryModalProps {
@@ -17,16 +18,17 @@ interface EditEntryModalProps {
 export function EditEntryModal({
   entry, value, onChangeText, onSave, onClose, saving,
 }: EditEntryModalProps) {
+  const { t } = useTranslation();
   const typeLabel =
-    entry?.type === 'tip' ? 'Consiglio'
-    : entry?.type === 'location' ? 'Luogo'
-    : 'Testo';
+    entry?.type === 'tip' ? t('day.type_tip')
+    : entry?.type === 'location' ? t('day.type_location')
+    : t('day.type_text');
 
   return (
     <Modal visible={!!entry} transparent animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.title}>Modifica {typeLabel}</Text>
+          <Text style={styles.title}>{t('day.edit_title', { type: typeLabel })}</Text>
           <TextInput
             style={styles.input}
             multiline={entry?.type !== 'location'}
@@ -37,7 +39,7 @@ export function EditEntryModal({
           />
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelText}>Annulla</Text>
+              <Text style={styles.cancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.saveBtn, !value.trim() && styles.saveBtnDisabled]}
@@ -46,7 +48,7 @@ export function EditEntryModal({
             >
               {saving
                 ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.saveText}>Salva</Text>}
+                : <Text style={styles.saveText}>{t('common.save')}</Text>}
             </TouchableOpacity>
           </View>
         </View>

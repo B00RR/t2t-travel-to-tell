@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -30,6 +31,7 @@ export default function DiaryDetailScreen() {
   const [diary, setDiary] = useState<Diary | null>(null);
   const [days, setDays] = useState<DiaryDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // Social UI state
@@ -76,22 +78,22 @@ export default function DiaryDetailScreen() {
 
   function handleOptions() {
     Alert.alert(
-      'Opzioni Diario',
-      'Cosa vuoi fare?',
+      t('diary.options'),
+      t('diary.what_to_do'),
       [
-        { text: 'Annulla', style: 'cancel' },
-        { text: 'Elimina Diario', style: 'destructive', onPress: confirmDelete },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('diary.delete_diary'), style: 'destructive', onPress: confirmDelete },
       ]
     );
   }
 
   function confirmDelete() {
     Alert.alert(
-      'Sei sicuro?',
-      'Questa azione è irreversibile e cancellerà tutte le giornate e le foto associate.',
+      t('diary.confirm_delete_title'),
+      t('diary.confirm_delete_msg'),
       [
-        { text: 'Annulla', style: 'cancel' },
-        { text: 'Elimina definitamente', style: 'destructive', onPress: deleteDiary },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('diary.delete_permanently'), style: 'destructive', onPress: deleteDiary },
       ]
     );
   }
@@ -103,7 +105,7 @@ export default function DiaryDetailScreen() {
       .eq('id', id);
 
     if (error) {
-      Alert.alert('Errore', 'Impossibile eliminare il diario.');
+      Alert.alert(t('common.error'), t('diary.err_delete_failed'));
     } else {
       router.replace('/');
     }
@@ -120,9 +122,9 @@ export default function DiaryDetailScreen() {
   if (!diary) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Diario non trovato.</Text>
+        <Text style={styles.errorText}>{t('diary.not_found')}</Text>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Torna indietro</Text>
+          <Text style={styles.backButtonText}>{t('diary.go_back')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -149,7 +151,7 @@ export default function DiaryDetailScreen() {
               disabled={followLoading}
             >
               <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-                {isFollowing ? 'Segui già' : 'Segui'}
+                {isFollowing ? t('profile.following_button') : t('profile.follow')}
               </Text>
             </TouchableOpacity>
           )}
@@ -172,20 +174,20 @@ export default function DiaryDetailScreen() {
         <View style={styles.divider} />
 
         <View style={styles.daysHeader}>
-          <Text style={styles.sectionTitle}>Giornate</Text>
+          <Text style={styles.sectionTitle}>{t('diary.days')}</Text>
           <TouchableOpacity 
             style={styles.addDayButton}
             onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
           >
             <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addDayText}>Aggiungi</Text>
+            <Text style={styles.addDayText}>{t('diary.add')}</Text>
           </TouchableOpacity>
         </View>
 
         {days.length === 0 ? (
           <View style={styles.emptyDays}>
-            <Text style={styles.emptyDaysText}>Ancora nessuna giornata in questo diario.</Text>
-            <Text style={styles.emptyDaysSub}>Inizia ad aggiungere i ricordi del tuo viaggio!</Text>
+            <Text style={styles.emptyDaysText}>{t('diary.no_days')}</Text>
+            <Text style={styles.emptyDaysSub}>{t('diary.start_adding')}</Text>
           </View>
         ) : (
           <View style={styles.daysList}>
@@ -199,7 +201,7 @@ export default function DiaryDetailScreen() {
                   <Text style={styles.dayIconText}>{day.day_number}</Text>
                 </View>
                 <View style={styles.dayContent}>
-                  <Text style={styles.dayTitle}>Giorno {day.day_number}{day.title ? `: ${day.title}` : ''}</Text>
+                  <Text style={styles.dayTitle}>{t('diary.day_label', { number: day.day_number })}{day.title ? `: ${day.title}` : ''}</Text>
                   {day.date && <Text style={styles.dayDate}>{day.date}</Text>}
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#ccc" />

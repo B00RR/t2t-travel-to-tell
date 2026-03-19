@@ -1,5 +1,6 @@
+```javascript
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,15 @@ export default function RegisterScreen() {
   async function signUpWithEmail() {
     setLoading(true);
     try {
+      if (!email || !password) {
+        Alert.alert(t('common.error'), t('auth.err_invalid_email'));
+        return;
+      }
+      if (password.length < 6) {
+        Alert.alert(t('common.error'), t('auth.err_pass_too_short'));
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -28,84 +38,97 @@ export default function RegisterScreen() {
       });
 
       if (error) {
-        Alert.alert('Errore Registrazione', error.message);
+        Alert.alert(t('common.error'), error.message);
       } else {
-        Alert.alert('Fatto!', 'Ti sei registrato con successo.');
+        Alert.alert(t('common.success'), t('auth.register_success'));
         router.replace('/');
       }
     } catch (e: any) {
-      Alert.alert('Errore Registrazione', e.message);
+      Alert.alert(t('common.error'), e.message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Unisciti a T2T</Text>
-      
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="#666"
-          onChangeText={(text) => setUsername(text)}
-          value={username}
-          autoCapitalize="none"
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#666"
-          onChangeText={(text) => setEmail(text)}
-          value={email}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="Password"
-            placeholderTextColor="#666"
-            onChangeText={(text) => setPassword(text)}
-            value={password}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-          />
-          <TouchableOpacity 
-            style={styles.eyeIcon} 
-            onPress={() => setShowPassword(!showPassword)}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t('common.register')}</Text>
+          <Text style={styles.subtitle}>{t('auth.register_welcome')}</Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{t('profile.username')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t('profile.username_placeholder')}
+              placeholderTextColor="#666"
+              onChangeText={(text) => setUsername(text)}
+              value={username}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{t('auth.email')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="email@example.com"
+              placeholderTextColor="#666"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{t('auth.password')}</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="••••••••"
+                placeholderTextColor="#666"
+                onChangeText={(text) => setPassword(text)}
+                value={password}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={signUpWithEmail}
+            disabled={loading}
           >
-            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>{t('common.register')}</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.linkText}>{t('auth.have_account')}</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      
-      <TouchableOpacity 
-        style={[styles.button, loading && styles.buttonDisabled]} 
-        disabled={loading} 
-        onPress={signUpWithEmail}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Registrati</Text>
-        )}
-      </TouchableOpacity>
-
-      <View style={styles.footerRow}>
-        <Text style={styles.footerText}>Hai già un account? </Text>
-        <Link href="/(auth)/login" asChild>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>Accedi</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
+import { useTranslation } from 'react-i18next';
+import { useNotifications } from '@/hooks/useNotifications';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function HomeScreen() {
@@ -13,7 +15,9 @@ export default function HomeScreen() {
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   
   // Comment modal state
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
@@ -67,12 +71,12 @@ export default function HomeScreen() {
   function formatDate(dateStr: string | null): string {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   function renderDiaryCard({ item }: { item: FeedDiary }) {
     const author = item.profiles;
-    const authorName = author?.display_name || author?.username || 'Anonimo';
+    const authorName = author?.display_name || author?.username || t('common.anonymous');
 
     return (
       <TouchableOpacity
@@ -150,8 +154,16 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>T2T</Text>
-        <TouchableOpacity style={styles.headerIcon}>
+        <TouchableOpacity 
+          style={styles.headerIcon} 
+          onPress={() => router.push('/(app)/notifications')}
+        >
           <Ionicons name="notifications-outline" size={24} color="#1a1a1a" />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -162,9 +174,9 @@ export default function HomeScreen() {
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="globe-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyTitle}>Nessun diario nel feed</Text>
+          <Text style={styles.emptyTitle}>{t('home.no_diaries')}</Text>
           <Text style={styles.emptySub}>
-            Quando i viaggiatori pubblicheranno i loro diari, li vedrai qui!
+            {t('home.no_diaries_sub')}
           </Text>
         </View>
       ) : (
@@ -215,6 +227,26 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     padding: 4,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#FF3B30',
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
   },
   loadingContainer: {
     flex: 1,

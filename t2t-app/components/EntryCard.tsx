@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -17,6 +18,7 @@ interface EntryCardProps {
 }
 
 export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
+  const { t } = useTranslation();
   // --- MOOD ---
   if (entry.type === 'mood') {
     return (
@@ -26,7 +28,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
         delayLongPress={600}
       >
         <Text style={styles.moodEmoji}>{entry.content}</Text>
-        <Text style={styles.moodLabel}>{entry.metadata?.label || 'Mood'}</Text>
+        <Text style={styles.moodLabel}>{entry.metadata?.label || t('day.type_mood')}</Text>
       </TouchableOpacity>
     );
   }
@@ -154,7 +156,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
           color={entry.type === 'tip' ? '#FF9500' : '#007AFF'}
         />
         <Text style={[styles.entryType, entry.type === 'tip' && styles.entryTypeTip]}>
-          {entry.type === 'tip' ? 'Consiglio' : 'Testo'}
+          {entry.type === 'tip' ? t('day.type_tip') : t('day.type_text')}
         </Text>
         <Ionicons name="pencil" size={14} color="#bbb" style={{ marginLeft: 'auto' }} />
       </View>

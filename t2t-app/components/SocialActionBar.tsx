@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDiarySocial } from '@/hooks/useDiarySocial';
@@ -13,6 +14,7 @@ interface SocialActionBarProps {
 }
 
 export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPress, onSharePress }: SocialActionBarProps) {
+  const { t } = useTranslation();
   const defaultCounters = { like_count: 0, comment_count: 0, save_count: 0 };
   const { hasLiked, hasSaved, counters, toggleLike, toggleSave } = useDiarySocial({
     diaryId,
@@ -28,6 +30,7 @@ export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPre
             name={hasLiked ? 'heart' : 'heart-outline'} 
             size={26} 
             color={hasLiked ? '#FF3B30' : '#4a4a4a'} 
+            accessibilityLabel={t('social.like')}
           />
           <Text style={styles.actionText}>{counters.like_count > 0 ? counters.like_count : ''}</Text>
         </TouchableOpacity>

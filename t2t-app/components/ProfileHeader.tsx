@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { Profile } from '@/types/supabase';
@@ -20,7 +21,8 @@ export function ProfileHeader({
   onFollowToggle,
   onEditPress,
 }: ProfileHeaderProps) {
-  const displayName = profile?.display_name || profile?.username || 'Utente';
+  const { t } = useTranslation();
+  const displayName = profile?.display_name || profile?.username || t('common.anonymous');
   const username = profile?.username || '';
   const stats = profile?.stats as { countries?: number; followers?: number; following?: number } | null;
 
@@ -42,15 +44,15 @@ export function ProfileHeader({
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{diaryCount}</Text>
-            <Text style={styles.statLabel}>Diari</Text>
+            <Text style={styles.statLabel}>{t('profile.diaries')}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{stats?.followers || 0}</Text>
-            <Text style={styles.statLabel}>Follower</Text>
+            <Text style={styles.statLabel}>{t('profile.followers')}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{stats?.following || 0}</Text>
-            <Text style={styles.statLabel}>Seguiti</Text>
+            <Text style={styles.statLabel}>{t('profile.following')}</Text>
           </View>
         </View>
       </View>
@@ -71,7 +73,7 @@ export function ProfileHeader({
       <View style={styles.actionRow}>
         {isOwnProfile ? (
           <TouchableOpacity style={styles.editBtn} onPress={onEditPress}>
-            <Text style={styles.editBtnText}>Modifica Profilo</Text>
+            <Text style={styles.editBtnText}>{t('profile.edit_profile')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity 
@@ -79,7 +81,7 @@ export function ProfileHeader({
             onPress={onFollowToggle}
           >
             <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-              {isFollowing ? 'Segui già' : 'Segui'}
+              {isFollowing ? t('profile.following_button') : t('profile.follow')}
             </Text>
           </TouchableOpacity>
         )}

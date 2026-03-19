@@ -1,19 +1,21 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MapScreen() {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconCircle}>
           <Ionicons name="map-outline" size={48} color="#34C759" />
         </View>
-        <Text style={styles.title}>Mappa</Text>
+        <Text style={styles.title}>{t('map.title')}</Text>
         <Text style={styles.subtitle}>
-          Visualizza tutti i luoghi che hai visitato su una mappa interattiva. I tuoi viaggi, in un colpo d{"'"}occhio.
+          {t('map.subtitle')}
         </Text>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Coming Soon</Text>
+          <Text style={styles.badgeText}>{t('map.coming_soon')}</Text>
         </View>
       </View>
     </View>

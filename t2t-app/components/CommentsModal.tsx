@@ -4,6 +4,7 @@ import {
   FlatList, TextInput, KeyboardAvoidingView, Platform,
   ActivityIndicator, Keyboard
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useComments } from '@/hooks/useComments';
 import { CommentItem } from './CommentItem';
@@ -16,6 +17,7 @@ interface CommentsModalProps {
 }
 
 export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsModalProps) {
+  const { t } = useTranslation();
   const { comments, loading, submitting, fetchComments, addComment, deleteComment } = useComments();
   const [inputText, setInputText] = useState('');
 
@@ -40,7 +42,7 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
         <View style={styles.container}>
           
           <View style={styles.header}>
-            <Text style={styles.title}>Commenti ({comments.length})</Text>
+            <Text style={styles.title}>{t('social.comments')} ({comments.length})</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Ionicons name="close-circle" size={28} color="#ccc" />
             </TouchableOpacity>
@@ -65,7 +67,7 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <Ionicons name="chatbubbles-outline" size={48} color="#ddd" />
-                  <Text style={styles.emptyText}>Nessun commento ancora. Sii il primo!</Text>
+                  <Text style={styles.emptyText}>{t('social.no_comments')}</Text>
                 </View>
               }
             />
@@ -75,7 +77,7 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder={userId ? "Scrivi un commento..." : "Accedi per commentare"}
+                placeholder={userId ? t('social.add_comment') : t('social.login_to_comment')}
                 editable={!!userId && !submitting}
                 value={inputText}
                 onChangeText={setInputText}

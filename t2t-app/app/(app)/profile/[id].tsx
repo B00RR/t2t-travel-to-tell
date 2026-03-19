@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useState, useEffect, useCallback } from 'react';
@@ -10,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { Diary } from '@/types/supabase';
 
 export default function PublicProfileScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user: currentUser } = useAuth();
@@ -72,7 +74,7 @@ export default function PublicProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profilo</Text>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -93,7 +95,7 @@ export default function PublicProfileScreen() {
           !loadingDiaries ? (
             <View style={styles.empty}>
               <Ionicons name="journal-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyText}>Nessun diario pubblico trovato.</Text>
+              <Text style={styles.emptyText}>{t('profile.no_public_diaries')}</Text>
             </View>
           ) : null
         }

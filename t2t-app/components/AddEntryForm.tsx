@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 type AddableType = 'text' | 'tip' | 'location';
@@ -38,17 +39,21 @@ const CONFIG: Record<AddableType, { icon: string; color: string; title: string; 
 };
 
 export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, saving }: AddEntryFormProps) {
+  const { t } = useTranslation();
   const cfg = CONFIG[type];
+
+  const title = t(`day.new_${type}`);
+  const placeholder = t(`day.placeholder_${type}`);
 
   return (
     <View style={[styles.form, type === 'tip' && styles.formTip, type === 'location' && styles.formLocation]}>
       <View style={styles.header}>
         <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
-        <Text style={styles.title}>{cfg.title}</Text>
+        <Text style={styles.title}>{title}</Text>
       </View>
       <TextInput
         style={[styles.input, type === 'location' && { minHeight: 48 }]}
-        placeholder={cfg.placeholder}
+        placeholder={placeholder}
         placeholderTextColor="#999"
         value={value}
         onChangeText={onChangeText}
@@ -59,7 +64,7 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
       />
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelText}>Annulla</Text>
+          <Text style={styles.cancelText}>{t('common.cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.saveBtn, !value.trim() && styles.saveBtnDisabled]}
@@ -68,7 +73,7 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
         >
           {saving
             ? <ActivityIndicator color="#fff" size="small" />
-            : <Text style={styles.saveText}>Salva</Text>}
+            : <Text style={styles.saveText}>{t('common.save')}</Text>}
         </TouchableOpacity>
       </View>
     </View>

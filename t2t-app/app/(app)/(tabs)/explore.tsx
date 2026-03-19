@@ -3,12 +3,14 @@ import {
   View, Text, StyleSheet, TextInput, FlatList,
   TouchableOpacity, ActivityIndicator, Image, RefreshControl
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function DiscoveryScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
@@ -75,7 +77,7 @@ export default function DiscoveryScreen() {
       <View style={styles.cardOverlay}>
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
         <TouchableOpacity onPress={() => router.push(`/profile/${item.author_id}`)}>
-          <Text style={styles.cardAuthor}>di {item.profiles?.display_name || item.profiles?.username || 'Anonimo'}</Text>
+          <Text style={styles.cardAuthor}>{t('profile.follow')} {item.profiles?.display_name || item.profiles?.username || t('common.anonymous')}</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -84,12 +86,12 @@ export default function DiscoveryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Esplora</Text>
+        <Text style={styles.headerTitle}>{t('explore.title')}</Text>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cerca destinazioni o diari..."
+            placeholder={t('explore.search_placeholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
@@ -122,7 +124,7 @@ export default function DiscoveryScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="search-outline" size={64} color="#ddd" />
-              <Text style={styles.emptyText}>Nessun risultato trovato per "{searchQuery}"</Text>
+              <Text style={styles.emptyText}>{t('explore.no_results', { query: searchQuery })}</Text>
             </View>
           }
         />

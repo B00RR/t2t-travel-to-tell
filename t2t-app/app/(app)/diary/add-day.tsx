@@ -1,10 +1,11 @@
-import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AddDayScreen() {
+  const { t } = useTranslation();
   const { diary_id } = useLocalSearchParams();
   const router = useRouter();
 
@@ -26,7 +27,7 @@ export default function AddDayScreen() {
       .limit(1);
 
     if (countError) {
-      Alert.alert('Errore', 'Impossibile calcolare il numero del giorno.');
+      Alert.alert(t('common.error'), t('diary.err_calc_day'));
       setLoading(false);
       return;
     }
@@ -48,7 +49,7 @@ export default function AddDayScreen() {
       .insert({
         diary_id: diary_id,
         day_number: nextDayNumber,
-        title: title || `Giorno ${nextDayNumber}`,
+        title: title || t('diary.day_label', { number: nextDayNumber }),
         date: parsedDate || null,
         sort_order: nextDayNumber,
       })
@@ -59,7 +60,7 @@ export default function AddDayScreen() {
 
     if (insertError) {
       console.error('Insert Error:', insertError);
-      Alert.alert('Errore', `Impossibile aggiungere la giornata.\nDettaglio: ${insertError.message}`);
+      Alert.alert(t('common.error'), `${t('diary.err_add_day')}\nDettaglio: ${insertError.message}`);
     } else {
       router.back();
     }
@@ -71,16 +72,16 @@ export default function AddDayScreen() {
         <TouchableOpacity style={styles.backIcon} onPress={() => router.back()} disabled={loading}>
           <Ionicons name="close" size={28} color="#1a1a1a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nuova Giornata</Text>
+        <Text style={styles.headerTitle}>{t('diary.new_day_title')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
       <View style={styles.content}>
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Titolo della giornata (opzionale)</Text>
+          <Text style={styles.label}>{t('diary.day_title_label')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Es. Arrivo a Ubud e Templi"
+            placeholder={t('diary.day_title_placeholder')}
             placeholderTextColor="#999"
             value={title}
             onChangeText={setTitle}
@@ -88,10 +89,10 @@ export default function AddDayScreen() {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Data (GG/MM/AAAA)</Text>
+          <Text style={styles.label}>{t('diary.date_label')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Es. 15/08/2026"
+            placeholder={t('diary.date_placeholder')}
             placeholderTextColor="#999"
             value={dateStr}
             onChangeText={setDateStr}
@@ -107,7 +108,7 @@ export default function AddDayScreen() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Aggiungi al Diario</Text>
+            <Text style={styles.buttonText}>{t('diary.add_to_diary')}</Text>
           )}
         </TouchableOpacity>
       </View>

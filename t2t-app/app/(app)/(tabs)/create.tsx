@@ -1,9 +1,9 @@
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
-// import { Ionicons } from '@expo/vector-icons'; // Useremo questo più avanti per le immagini
 
 export default function CreateDiaryScreen() {
   const { t } = useTranslation();

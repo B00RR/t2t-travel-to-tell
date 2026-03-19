@@ -48,7 +48,7 @@ export function useUserProfile(profileId: string | undefined) {
       return { success: true };
     } catch (err: any) {
       console.error('Update profile error:', err);
-      Alert.alert('Errore', 'Impossibile aggiornare il profilo. Riprova più tardi.');
+      Alert.alert('Errore', 'Impossibile aggiornare il profilo: ' + err.message);
       return { success: false, error: err.message };
     } finally {
       setLoading(false);

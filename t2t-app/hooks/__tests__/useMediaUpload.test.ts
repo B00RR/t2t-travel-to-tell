@@ -178,4 +178,56 @@ describe('useMediaUpload', () => {
       })
     }));
   });
+
+  it('continues upload when thumbnail generation fails', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: true });
+    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file://video.mp4', width: 1080, height: 1920, type: 'video', duration: 15 }],
+    });
+
+    // Mock thumbnail extraction to fail
+    (VideoThumbnails.getThumbnailAsync as jest.Mock).mockRejectedValue(new Error('Thumbnail generation failed'));
+
+    const mockUpload = jest.fn().mockResolvedValue({ error: null });
+    (supabase.storage.from as jest.Mock).mockReturnValue({ upload: mockUpload });
+
+    const mockInsert = jest.fn().mockResolvedValue({ error: null });
+    (supabase.from as jest.Mock).mockReturnValue({ insert: mockInsert });
+
+    const mockOnUploadComplete = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useMediaUpload({
+      userId: 'user-1',
+      diaryId: 'diary-1',
+      dayId: 'day-1',
+      getNextSortOrder: () => 1,
+      onUploadComplete: mockOnUploadComplete,
+    }));
+
+    await act(async () => {
+      await result.current.pickAndUploadMedia();
+    });
+
+    expect(VideoThumbnails.getThumbnailAsync).toHaveBeenCalled();
+
+    // Warning should have been logged
+    expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to generate thumbnail', expect.any(Error));
+
+    // Only once for the video, since thumbnail failed
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'video',
+      content: null,
+      metadata: expect.objectContaining({
+        duration: 15,
+        storagePath: expect.stringContaining('.mp4'),
+        thumbnailStoragePath: '' // Thumbnail path should be empty
+      })
+    }));
+
+    consoleWarnSpy.mockRestore();
+  });
 });

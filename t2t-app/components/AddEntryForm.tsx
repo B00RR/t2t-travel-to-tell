@@ -17,7 +17,7 @@ interface AddEntryFormProps {
   saving: boolean;
 }
 
-const CONFIG: Record<AddableType, { icon: string; color: string; title: string; placeholder: string }> = {
+const CONFIG: Record<AddableType, { icon: keyof typeof Ionicons.glyphMap; color: string; title: string; placeholder: string }> = {
   text: {
     icon: 'document-text',
     color: '#007AFF',
@@ -48,7 +48,7 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
   return (
     <View style={[styles.form, type === 'tip' && styles.formTip, type === 'location' && styles.formLocation]}>
       <View style={styles.header}>
-        <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
+        <Ionicons name={cfg.icon} size={20} color={cfg.color} />
         <Text style={styles.title}>{title}</Text>
       </View>
       <TextInput

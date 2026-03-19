@@ -117,7 +117,7 @@ export function useMediaUpload({
           thumbnailUri = uri;
           thumbnailStoragePath = `${userId}/${dId}/${daId}/${timestamp}_thumb.jpg`;
         } catch (e) {
-          console.warn("Failed to generate thumbnail, uploading without it", e);
+          // Failed to generate thumbnail, uploading without it
         }
       }
 
@@ -131,7 +131,7 @@ export function useMediaUpload({
       if (thumbnailUri) {
         uploadPromises.push(
           uploadFileToSupabase(thumbnailUri, thumbnailStoragePath, 'image/jpeg').then(({ error }) => {
-            if (error) console.warn("Failed to upload thumbnail", error);
+            // Failed to upload thumbnail, uploading without it
           })
         );
       }

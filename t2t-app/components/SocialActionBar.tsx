@@ -25,27 +25,46 @@ export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPre
   return (
     <View style={styles.container}>
       <View style={styles.leftActions}>
-        <TouchableOpacity style={styles.actionBtn} onPress={toggleLike}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={toggleLike}
+          accessibilityRole="button"
+          accessibilityLabel={hasLiked ? t('social.unlike') : t('social.like')}
+        >
           <Ionicons 
             name={hasLiked ? 'heart' : 'heart-outline'} 
             size={26} 
             color={hasLiked ? '#FF3B30' : '#4a4a4a'} 
-            accessibilityLabel={t('social.like')}
           />
           <Text style={styles.actionText}>{counters.like_count > 0 ? counters.like_count : ''}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={onCommentPress}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={onCommentPress}
+          accessibilityRole="button"
+          accessibilityLabel={t('social.comment_action')}
+        >
           <Ionicons name="chatbubble-outline" size={24} color="#4a4a4a" />
           <Text style={styles.actionText}>{counters.comment_count > 0 ? counters.comment_count : ''}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={onSharePress}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={onSharePress}
+          accessibilityRole="button"
+          accessibilityLabel={t('social.share')}
+        >
           <Ionicons name="share-outline" size={24} color="#4a4a4a" />
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.actionBtn} onPress={toggleSave}>
+      <TouchableOpacity
+        style={styles.actionBtn}
+        onPress={toggleSave}
+        accessibilityRole="button"
+        accessibilityLabel={hasSaved ? t('social.unsave') : t('social.save')}
+      >
         <Ionicons 
           name={hasSaved ? 'bookmark' : 'bookmark-outline'} 
           size={24} 

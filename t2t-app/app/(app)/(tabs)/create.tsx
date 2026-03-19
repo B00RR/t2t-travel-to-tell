@@ -43,7 +43,6 @@ export default function CreateDiaryScreen() {
 
     if (error) {
       Alert.alert(t('common.error'), t('create.err_create_failed'));
-      console.error(error);
     } else {
       Alert.alert(t('create.success_title'), t('create.success_msg'));
       setTitle('');

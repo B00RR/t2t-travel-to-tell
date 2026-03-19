@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/hooks/useAuth';
+import { useFollow } from '@/hooks/useFollow';
+import { SocialActionBar } from '@/components/SocialActionBar';
+import { CommentsModal } from '@/components/CommentsModal';
 
 type Diary = {
   id: string;
@@ -26,6 +30,13 @@ export default function DiaryDetailScreen() {
   const [diary, setDiary] = useState<Diary | null>(null);
   const [days, setDays] = useState<DiaryDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  // Social UI state
+  const [showComments, setShowComments] = useState(false);
+
+  // Follow logic (Mocking target profile ID as diary.author_id)
+  const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, (diary as any)?.author_id);
 
   useFocusEffect(
     useCallback(() => {
@@ -129,7 +140,20 @@ export default function DiaryDetailScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{diary.title}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{diary.title}</Text>
+          {user?.id !== (diary as any)?.author_id && (
+            <TouchableOpacity 
+              style={[styles.followBtn, isFollowing && styles.followingBtn]} 
+              onPress={toggleFollow}
+              disabled={followLoading}
+            >
+              <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
+                {isFollowing ? 'Segui già' : 'Segui'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
         
         {diary.destinations && diary.destinations.length > 0 && (
           <View style={styles.pillContainer}>
@@ -185,6 +209,25 @@ export default function DiaryDetailScreen() {
         )}
 
       </ScrollView>
+
+      {/* Sticky Social Actions */}
+      <SocialActionBar
+        diaryId={id as string}
+        userId={user?.id}
+        initialCounters={{
+          like_count: (diary as any).like_count || 0,
+          comment_count: (diary as any).comment_count || 0,
+          save_count: (diary as any).save_count || 0,
+        }}
+        onCommentPress={() => setShowComments(true)}
+      />
+
+      <CommentsModal
+        visible={showComments}
+        diaryId={id as string}
+        userId={user?.id}
+        onClose={() => setShowComments(false)}
+      />
     </View>
   );
 }
@@ -217,11 +260,37 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
   title: {
-    fontSize: 32,
+    flex: 1,
+    fontSize: 28,
     fontWeight: '800',
     color: '#1a1a1a',
-    marginBottom: 16,
+    marginRight: 10,
+  },
+  followBtn: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  followingBtn: {
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  followBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  followingBtnText: {
+    color: '#666',
   },
   pillContainer: {
     flexDirection: 'row',

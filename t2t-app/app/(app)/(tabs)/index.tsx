@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase';
 import { useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/hooks/useAuth';
+import { SocialActionBar } from '@/components/SocialActionBar';
+import { CommentsModal } from '@/components/CommentsModal';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function HomeScreen() {
@@ -10,6 +13,10 @@ export default function HomeScreen() {
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
+  
+  // Comment modal state
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -119,21 +126,17 @@ export default function HomeScreen() {
             <Text style={styles.cardDescription} numberOfLines={2}>{item.description}</Text>
           ) : null}
 
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Ionicons name="heart-outline" size={18} color="#666" />
-              <Text style={styles.statText}>{item.like_count || 0}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Ionicons name="chatbubble-outline" size={17} color="#666" />
-              <Text style={styles.statText}>{item.comment_count || 0}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Ionicons name="bookmark-outline" size={17} color="#666" />
-              <Text style={styles.statText}>{item.save_count || 0}</Text>
-            </View>
-          </View>
+          {/* Social Actions */}
+          <SocialActionBar
+            diaryId={item.id}
+            userId={user?.id}
+            initialCounters={{
+              like_count: item.like_count || 0,
+              comment_count: item.comment_count || 0,
+              save_count: item.save_count || 0,
+            }}
+            onCommentPress={() => setSelectedDiaryId(item.id)}
+          />
         </View>
       </TouchableOpacity>
     );
@@ -173,6 +176,14 @@ export default function HomeScreen() {
           }
         />
       )}
+
+      {/* Modals */}
+      <CommentsModal
+        visible={!!selectedDiaryId}
+        diaryId={selectedDiaryId || ''}
+        userId={user?.id}
+        onClose={() => setSelectedDiaryId(null)}
+      />
     </View>
   );
 }

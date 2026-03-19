@@ -83,8 +83,7 @@ export function useUserProfile(profileId: string | undefined) {
       await updateProfile({ avatar_url: publicUrl });
       return { success: true, url: publicUrl };
     } catch (err: any) {
-      console.error('Upload avatar error:', err);
-      Alert.alert('Errore Upload', 'Impossibile caricare l\'avatar. Riprova più tardi.');
+      Alert.alert('Errore Upload', 'Impossibile caricare l\'avatar: ' + err.message);
       return { success: false };
     } finally {
       setLoading(false);

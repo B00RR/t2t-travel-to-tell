@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "t2t-app": "file:t2t-app",
-    "validator": "^13.15.26"
-  }
-}

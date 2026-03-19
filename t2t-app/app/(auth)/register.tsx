@@ -1,11 +1,10 @@
-
+```javascript
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import validator from 'validator';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -19,36 +18,21 @@ export default function RegisterScreen() {
   async function signUpWithEmail() {
     setLoading(true);
     try {
-      const safeEmail = email.trim();
-      const safeUsername = username.trim();
-
-      if (!safeEmail || !password) {
+      if (!email || !password) {
         Alert.alert(t('common.error'), t('auth.err_invalid_email'));
         return;
       }
-
-      if (!validator.isEmail(safeEmail)) {
-        Alert.alert(t('common.error'), t('auth.err_invalid_email'));
-        return;
-      }
-
       if (password.length < 6) {
         Alert.alert(t('common.error'), t('auth.err_pass_too_short'));
         return;
       }
 
-      // Add basic constraints for username, could be further expanded.
-      if (safeUsername.length > 30) {
-        Alert.alert(t('common.error'), "Username too long"); // We don't have a translation for this, but could be added later. Alternatively, just truncate it or block it.
-        return;
-      }
-
       const { data, error } = await supabase.auth.signUp({
-        email: safeEmail,
+        email,
         password,
         options: {
           data: {
-            username: safeUsername,
+            username,
           }
         }
       });
@@ -149,36 +133,11 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
   container: {
     flex: 1,
     padding: 24,
     backgroundColor: '#fff',
     justifyContent: 'center',
-  },
-  header: {
-    marginBottom: 40,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  form: {
-    width: '100%',
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
   },
   title: {
     fontSize: 28,
@@ -225,15 +184,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  linkButton: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
   },

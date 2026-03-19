@@ -1,11 +1,10 @@
-
+```javascript
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import validator from 'validator';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -18,22 +17,14 @@ export default function LoginScreen() {
   async function handleLogin() { // Renamed from signInWithEmail
     setLoading(true);
 
-    const safeEmail = email.trim();
-
-    if (!safeEmail || !password) {
+    if (!email || !password) {
       Alert.alert(t('common.error'), t('auth.err_invalid_email_or_password')); // Changed from err_invalid_email to be more general
       setLoading(false);
       return;
     }
 
-    if (!validator.isEmail(safeEmail)) {
-      Alert.alert(t('common.error'), t('auth.err_invalid_email'));
-      setLoading(false);
-      return;
-    }
-
     const { error } = await supabase.auth.signInWithPassword({
-      email: safeEmail,
+      email,
       password,
     });
 
@@ -132,27 +123,6 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#fff',
     justifyContent: 'center',
-  },
-  header: {
-    marginBottom: 40,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  form: {
-    width: '100%',
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
   },
   title: {
     fontSize: 28,

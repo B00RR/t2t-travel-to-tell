@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { useMediaUpload } from '../useMediaUpload';
 import { supabase } from '@/lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
@@ -229,5 +230,38 @@ describe('useMediaUpload', () => {
     }));
 
     consoleWarnSpy.mockRestore();
+  });
+
+  it('handles upload errors and shows an alert', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, 'alert');
+
+    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: true });
+    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file://original.jpg', width: 4000, height: 3000, type: 'image' }],
+    });
+
+    // Mock manipulate to reject with an error
+    (ImageManipulator.manipulateAsync as jest.Mock).mockRejectedValue(new Error('Manipulation failed'));
+
+    const mockOnUploadComplete = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useMediaUpload({
+      userId: 'user-1',
+      diaryId: 'diary-1',
+      dayId: 'day-1',
+      getNextSortOrder: () => 1,
+      onUploadComplete: mockOnUploadComplete,
+    }));
+
+    await act(async () => {
+      await result.current.pickAndUploadMedia();
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Errore Upload:', expect.any(Error));
+    expect(alertSpy).toHaveBeenCalledWith('Errore Upload', 'Si è verificato un errore durante il caricamento del file. Riprova più tardi.');
+
+    consoleErrorSpy.mockRestore();
+    alertSpy.mockRestore();
   });
 });

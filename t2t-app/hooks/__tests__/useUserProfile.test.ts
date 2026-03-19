@@ -125,6 +125,26 @@ describe('useUserProfile', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('should handle upload avatar error', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    (supabase.storage.from as jest.Mock).mockReturnValue({
+      upload: jest.fn().mockResolvedValue({ error: { message: 'Network error' } }),
+      getPublicUrl: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useUserProfile(mockProfileId));
+
+    await act(async () => {
+      const res = await result.current.uploadAvatar('file://test.jpg');
+      expect(res.success).toBe(false);
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('Errore Upload', 'Impossibile caricare l\'avatar. Riprova più tardi.');
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('should check username uniqueness', async () => {
     (supabase.from as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({

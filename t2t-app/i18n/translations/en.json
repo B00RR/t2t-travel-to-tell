@@ -155,6 +155,7 @@
     "no_account": "Don't have an account? Register",
     "have_account": "Already have an account? Login",
     "err_invalid_email": "Invalid email address.",
+    "err_invalid_credentials": "Email or password incorrect.",
     "err_pass_too_short": "Password must be at least 6 characters.",
     "err_register_failed": "Registration failed. Please try again later.",
     "err_login_failed": "Login failed. Please try again later."

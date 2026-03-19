@@ -17,7 +17,7 @@ export default function LoginScreen() {
     setLoading(true);
 
     if (!email || !password) {
-      Alert.alert(t('common.error'), t('auth.err_invalid_email_or_password')); // Changed from err_invalid_email to be more general
+      Alert.alert(t('common.error'), t('auth.err_invalid_email')); // Changed from err_invalid_email to be more general
       setLoading(false);
       return;
     }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
@@ -32,16 +32,7 @@ export default function DiaryDetailScreen() {
   // Follow logic (Mocking target profile ID as diary.author_id)
   const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (id) {
-        fetchDiaryDetails();
-        fetchDiaryDays();
-      }
-    }, [id])
-  );
-
-  async function fetchDiaryDetails() {
+  const fetchDiaryDetails = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('diaries')
@@ -52,9 +43,9 @@ export default function DiaryDetailScreen() {
     if (!error && data) {
       setDiary(data);
     }
-  }
+  }, [id]);
 
-  async function fetchDiaryDays() {
+  const fetchDiaryDays = useCallback(async () => {
     setLoading(true); // Se vogliamo mostrare il loader anche durante il reload dei giorni
     const { data, error } = await supabase
       .from('diary_days')
@@ -66,7 +57,16 @@ export default function DiaryDetailScreen() {
       setDays(data);
     }
     setLoading(false);
-  }
+  }, [id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchDiaryDetails();
+        fetchDiaryDays();
+      }
+    }, [id, fetchDiaryDetails, fetchDiaryDays])
+  );
 
   function handleOptions() {
     Alert.alert(

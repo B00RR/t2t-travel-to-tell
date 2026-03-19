@@ -44,7 +44,7 @@ export default function AddDayScreen() {
     }
 
     // 2. Insert new day
-    const { data: insertData, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('diary_days')
       .insert({
         diary_id: diary_id,

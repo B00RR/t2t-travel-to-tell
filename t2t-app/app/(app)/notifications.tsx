@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 
 export default function NotificationsScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications();
 

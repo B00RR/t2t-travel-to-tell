@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
-import type { Profile, Diary } from '@/types/supabase';
+import type { Diary } from '@/types/supabase';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -28,15 +28,7 @@ export default function ProfileScreen() {
     bio: '',
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      if (user) {
-        fetchDiaries();
-      }
-    }, [user])
-  );
-
-  async function fetchDiaries() {
+  const fetchDiaries = useCallback(async () => {
     if (!user) return;
     setLoadingDiaries(true);
     const { data, error } = await supabase
@@ -47,7 +39,15 @@ export default function ProfileScreen() {
 
     if (!error && data) setDiaries(data);
     setLoadingDiaries(false);
-  }
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        fetchDiaries();
+      }
+    }, [user, fetchDiaries])
+  );
 
   const handleEditPress = () => {
     setEditForm({

@@ -17,18 +17,12 @@ export default function PublicProfileScreen() {
   const router = useRouter();
   const { user: currentUser } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile(id);
-  const { isFollowing, toggleFollow, loading: followLoading } = useFollow(currentUser?.id, id);
+  const { isFollowing, toggleFollow } = useFollow(currentUser?.id, id);
   
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const [loadingDiaries, setLoadingDiaries] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchPublicDiaries();
-    }
-  }, [id]);
-
-  async function fetchPublicDiaries() {
+  const fetchPublicDiaries = useCallback(async () => {
     setLoadingDiaries(true);
     const { data, error } = await supabase
       .from('diaries')
@@ -42,7 +36,13 @@ export default function PublicProfileScreen() {
       setDiaries(data);
     }
     setLoadingDiaries(false);
-  }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchPublicDiaries();
+    }
+  }, [id, fetchPublicDiaries]);
 
   const renderDiaryCard = useCallback(
     ({ item }: { item: Diary }) => <ProfileDiaryCard item={item} />,

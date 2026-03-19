@@ -1,10 +1,9 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
-import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -19,21 +18,15 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   
   // Comment modal state
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchFeed();
-    }, [])
-  );
-
-  async function fetchFeed() {
-    if (!refreshing) setLoading(true);
+  const fetchFeed = useCallback(async (isRefreshing = false) => {
+    if (!isRefreshing) setLoading(true);
 
     const { data, error } = await supabase
       .from('diaries')
@@ -57,12 +50,18 @@ export default function HomeScreen() {
       setErrorVisible(true);
     }
     setLoading(false);
-    setRefreshing(false);
-  }
+    if (isRefreshing) setRefreshing(false);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchFeed(false);
+    }, [fetchFeed])
+  );
 
   function onRefresh() {
     setRefreshing(true);
-    fetchFeed();
+    fetchFeed(true);
   }
 
   const renderDiaryCard = useCallback(

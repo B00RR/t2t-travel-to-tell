@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList,
-  TouchableOpacity, ActivityIndicator, Image, RefreshControl
+  TouchableOpacity, ActivityIndicator, RefreshControl
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
+import { sanitizePostgRESTQuery } from '@/utils/querySanitizer';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,8 +35,13 @@ export default function DiscoveryScreen() {
       .order('created_at', { ascending: false });
 
     if (query.trim()) {
-      // Simple text search on title, description or destinations
-      baseQuery = baseQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%,destinations.cs.{${query}}`);
+      // Sanitize the query to prevent PostgREST injection
+      const sanitizedQuery = sanitizePostgRESTQuery(query);
+
+      if (sanitizedQuery) {
+        // Simple text search on title, description or destinations
+        baseQuery = baseQuery.or(`title.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%,destinations.cs.{${sanitizedQuery}}`);
+      }
     }
 
     const { data, error } = await baseQuery.limit(50);

@@ -56,6 +56,26 @@ describe('useUserProfile', () => {
     expect(result.current.loading).toBe(false);
   });
 
+  it('should handle fetch profile error', async () => {
+    const errorMessage = 'Failed to fetch profile';
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn().mockResolvedValue({ data: null, error: { message: errorMessage } }),
+        })),
+      })),
+    });
+
+    const { result } = renderHook(() => useUserProfile(mockProfileId));
+
+    // Wait for the effect
+    await act(async () => {});
+
+    expect(result.current.profile).toBeNull();
+    expect(result.current.error).toBe(errorMessage);
+    expect(result.current.loading).toBe(false);
+  });
+
   it('should handle update profile', async () => {
     (supabase.from as jest.Mock).mockReturnValue({
       update: jest.fn(() => ({

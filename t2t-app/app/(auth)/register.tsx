@@ -37,13 +37,15 @@ export default function RegisterScreen() {
       });
 
       if (error) {
-        Alert.alert(t('common.error'), error.message);
+        console.error('Registration error:', error);
+        Alert.alert(t('common.error'), t('auth.err_register_failed'));
       } else {
         Alert.alert(t('common.success'), t('auth.register_success'));
         router.replace('/');
       }
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.message);
+      console.error('Registration exception:', e);
+      Alert.alert(t('common.error'), t('auth.err_register_failed'));
     } finally {
       setLoading(false);
     }

@@ -29,7 +29,7 @@ describe('EntryCard', () => {
       <EntryCard entry={entry} onPress={mockOnPress} onLongPress={mockOnLongPress} />
     );
 
-    expect(getByText('Testo')).toBeTruthy();
+    expect(getByText('day.type_text')).toBeTruthy();
     expect(getByText('Hello World')).toBeTruthy();
   });
 
@@ -46,7 +46,7 @@ describe('EntryCard', () => {
       <EntryCard entry={entry} onPress={mockOnPress} onLongPress={mockOnLongPress} />
     );
 
-    expect(getByText('Consiglio')).toBeTruthy();
+    expect(getByText('day.type_tip')).toBeTruthy();
     expect(getByText('Pro Tip')).toBeTruthy();
   });
 
@@ -76,7 +76,7 @@ describe('EntryCard', () => {
       sort_order: 5,
     };
 
-    const { getByTestId, root } = render(
+    const { root } = render(
       <EntryCard entry={entry} onPress={mockOnPress} onLongPress={mockOnLongPress} />
     );
     

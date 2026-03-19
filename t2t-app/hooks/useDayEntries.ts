@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { useTranslation } from 'react-i18next';
 import type { DayEntry, DayInfo } from '@/types/dayEntry';
 
 /**
@@ -8,6 +9,7 @@ import type { DayEntry, DayInfo } from '@/types/dayEntry';
  * Handles fetch, add (text/tip/location/mood), edit, delete, and sort ordering.
  */
 export function useDayEntries(dayId: string | string[]) {
+  const { t } = useTranslation();
   const [dayInfo, setDayInfo] = useState<DayInfo | null>(null);
   const [entries, setEntries] = useState<DayEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,14 +103,15 @@ export function useDayEntries(dayId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert('Errore', `Impossibile aggiungere.\n${error.message}`);
+        Alert.alert(t('common.error'), t('day.err_add_failed'));
+        console.error('Error adding entry:', error);
         return false;
       }
 
       await fetchEntries();
       return true;
     },
-    [id, getNextSortOrder, fetchEntries]
+    [id, getNextSortOrder, fetchEntries, t]
   );
 
   const addMood = useCallback(
@@ -126,14 +129,15 @@ export function useDayEntries(dayId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert('Errore', error.message);
+        Alert.alert(t('common.error'), t('day.err_add_failed'));
+        console.error('Error adding mood:', error);
         return false;
       }
 
       await fetchEntries();
       return true;
     },
-    [id, getNextSortOrder, fetchEntries]
+    [id, getNextSortOrder, fetchEntries, t]
   );
 
   const updateEntry = useCallback(
@@ -149,23 +153,24 @@ export function useDayEntries(dayId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert('Errore', error.message);
+        Alert.alert(t('common.error'), t('day.err_update_failed'));
+        console.error('Error updating entry:', error);
         return false;
       }
 
       await fetchEntries();
       return true;
     },
-    [fetchEntries]
+    [fetchEntries, t]
   );
 
   const deleteEntry = useCallback(
     async (entryId: string) => {
       return new Promise<void>((resolve) => {
-        Alert.alert('Elimina', 'Vuoi eliminare questo blocco?', [
-          { text: 'Annulla', style: 'cancel', onPress: () => resolve() },
+        Alert.alert(t('day.delete_entry_title'), t('day.delete_entry_msg'), [
+          { text: t('common.cancel'), style: 'cancel', onPress: () => resolve() },
           {
-            text: 'Elimina',
+            text: t('day.delete_entry_btn'),
             style: 'destructive',
             onPress: async () => {
               const entry = entries.find(e => e.id === entryId);
@@ -199,7 +204,8 @@ export function useDayEntries(dayId: string | string[]) {
               if (!error) {
                 await fetchEntries();
               } else {
-                Alert.alert('Errore', 'Impossibile eliminare.');
+                Alert.alert(t('common.error'), t('day.err_delete_failed'));
+                console.error('Error deleting entry:', error);
               }
               resolve();
             },
@@ -207,7 +213,7 @@ export function useDayEntries(dayId: string | string[]) {
         ]);
       });
     },
-    [entries, fetchEntries]
+    [entries, fetchEntries, t]
   );
 
   return {

@@ -78,6 +78,33 @@ describe('useUserProfile', () => {
     expect(result.current.profile?.display_name).toBe('New Name');
   });
 
+  it('should handle update profile error', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    (supabase.from as jest.Mock).mockReturnValue({
+      update: jest.fn(() => ({
+        eq: jest.fn().mockResolvedValue({ error: { message: 'Network error' } }),
+      })),
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn().mockResolvedValue({ data: { id: mockProfileId }, error: null }),
+        })),
+      })),
+    });
+
+    const { result } = renderHook(() => useUserProfile(mockProfileId));
+
+    await act(async () => {
+      const res = await result.current.updateProfile({ display_name: 'New Name' });
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Network error');
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('Errore', 'Impossibile aggiornare il profilo: Network error');
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('should check username uniqueness', async () => {
     (supabase.from as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({

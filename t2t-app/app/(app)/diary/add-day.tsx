@@ -59,8 +59,9 @@ export default function AddDayScreen() {
     setLoading(false);
 
     if (insertError) {
+      // 🛡️ Sentinel: Log securely, don't expose DB details to user
       console.error('Insert Error:', insertError);
-      Alert.alert(t('common.error'), `${t('diary.err_add_day')}\nDettaglio: ${insertError.message}`);
+      Alert.alert(t('common.error'), t('diary.err_add_day'));
     } else {
       router.back();
     }

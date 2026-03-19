@@ -97,7 +97,13 @@ export function useMediaUpload({
       }
 
       // 2. Prepare Storage Paths
-      const fileExt = isVideo ? (asset.uri.split('.').pop()?.toLowerCase() || 'mp4') : 'jpg';
+      const ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v'];
+      let fileExt = 'jpg';
+      if (isVideo) {
+        const extractedExt = asset.uri.split('.').pop()?.toLowerCase() || 'mp4';
+        fileExt = ALLOWED_VIDEO_EXTENSIONS.includes(extractedExt) ? extractedExt : 'mp4';
+      }
+
       const mainStoragePath = `${userId}/${dId}/${daId}/${timestamp}.${fileExt}`;
       const contentType = isVideo ? `video/${fileExt}` : 'image/jpeg';
 

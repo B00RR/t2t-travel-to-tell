@@ -80,6 +80,25 @@ describe('useFollow', () => {
     expect(result.current.isFollowing).toBe(true);
   });
 
+  it('should handle error when checking follow status', async () => {
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockRejectedValue(new Error('Network error')),
+          })),
+        })),
+      })),
+    });
+
+    const { result } = renderHook(() => useFollow(currentUserId, targetProfileId));
+
+    await act(async () => {});
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.isFollowing).toBe(false);
+  });
+
   it('should require authentication to follow', async () => {
     const { result } = renderHook(() => useFollow(undefined, targetProfileId));
 

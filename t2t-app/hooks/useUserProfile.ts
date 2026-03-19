@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/supabase';
 import { Alert } from 'react-native';
@@ -8,13 +8,7 @@ export function useUserProfile(profileId: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (profileId) {
-      fetchProfile();
-    }
-  }, [profileId]);
-
-  async function fetchProfile() {
+  const fetchProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -31,7 +25,13 @@ export function useUserProfile(profileId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [profileId]);
+
+  useEffect(() => {
+    if (profileId) {
+      fetchProfile();
+    }
+  }, [profileId, fetchProfile]);
 
   async function updateProfile(updates: Partial<Profile>) {
     setLoading(true);
@@ -67,7 +67,7 @@ export function useUserProfile(profileId: string | undefined) {
         type: 'image/jpeg',
       } as any);
 
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, formData, {
           contentType: 'image/jpeg',
@@ -108,6 +108,7 @@ export function useUserProfile(profileId: string | undefined) {
     error,
     refresh: fetchProfile,
     updateProfile,
+    uploadAvatar,
     checkUsernameUnique,
   };
 }

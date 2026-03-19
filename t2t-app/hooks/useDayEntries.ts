@@ -191,8 +191,9 @@ export function useDayEntries(dayId: string | string[]) {
                   await supabase.storage
                     .from('diary-media')
                     .remove(pathsToRemove);
-                } catch (_) {
+                } catch (e) {
                   // Best-effort cleanup
+                  console.warn('Failed to cleanup media', e);
                 }
               }
 

@@ -82,11 +82,7 @@ describe('useUserProfile', () => {
     (supabase.from as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
-          not: jest.fn(() => ({
-            count: 'exact',
-            head: true,
-            then: (cb: any) => cb({ count: 0, error: null }),
-          })),
+          not: jest.fn().mockResolvedValue({ count: 0, error: null }),
           single: jest.fn().mockResolvedValue({ data: {}, error: null }),
         })),
       })),
@@ -94,10 +90,9 @@ describe('useUserProfile', () => {
 
     const { result } = renderHook(() => useUserProfile(mockProfileId));
     
-    let isUnique;
     await act(async () => {
-      // Manual implementation check since we mocked heavily
-      // This is a bit complex with the current mock style, but let's assume it works if called
+      const isUnique = await result.current.checkUsernameUnique('newuser');
+      expect(isUnique).toBe(true);
     });
   });
 });

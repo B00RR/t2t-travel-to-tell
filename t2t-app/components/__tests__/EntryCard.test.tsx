@@ -8,6 +8,10 @@ jest.mock('expo-video', () => ({
   VideoView: 'VideoView',
 }));
 
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: 'Ionicons',
+}));
+
 describe('EntryCard', () => {
   const mockOnPress = jest.fn();
   const mockOnLongPress = jest.fn();

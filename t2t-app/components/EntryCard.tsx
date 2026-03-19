@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 import type { DayEntry } from '@/types/social';
 import type { PhotoDayEntry, VideoDayEntry } from '@/types/dayEntry';
 
@@ -61,7 +63,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
       p.loop = false;
     });
 
-    const [isLoaded, setIsLoaded] = React.useState(false);
+    const [isStarted, setIsStarted] = React.useState(false);
     
     const ar =
       videoEntry.metadata?.width && videoEntry.metadata?.height
@@ -70,32 +72,49 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 
     const thumbnailUrl = (videoEntry.metadata as any)?.thumbnailUrl;
 
+    const longPressGesture = Gesture.LongPress()
+      .minDuration(600)
+      .onEnd((event, success) => {
+        if (success) {
+          runOnJS(onLongPress)(entry.id);
+        }
+      });
+
+    const handleInitialPlay = () => {
+      player.play();
+      setIsStarted(true);
+    };
+
     return (
       <View style={styles.photoCard}>
         <View style={{ width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden' }}>
-          <VideoView
-            player={player}
-            style={StyleSheet.absoluteFill}
-            nativeControls={true}
-            contentFit="cover"
-          />
+          <GestureDetector gesture={longPressGesture}>
+            <VideoView
+              player={player}
+              style={StyleSheet.absoluteFill}
+              nativeControls={isStarted}
+              contentFit="cover"
+            />
+          </GestureDetector>
           
-          {thumbnailUrl && !isLoaded && (
+          {thumbnailUrl && !isStarted && (
             <Image
               source={{ uri: thumbnailUrl }}
               style={StyleSheet.absoluteFill}
               resizeMode="cover"
-              onLoad={() => setIsLoaded(true)}
             />
           )}
-          
-          {/* Transparent overlay for long press since VideoView might swallow it */}
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            onLongPress={() => onLongPress(entry.id)}
-            delayLongPress={600}
-            activeOpacity={1}
-          />
+
+          {!isStarted && (
+            <TouchableOpacity 
+              style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.1)' }]}
+              onPress={handleInitialPlay}
+              onLongPress={() => onLongPress(entry.id)}
+              delayLongPress={600}
+            >
+               <Ionicons name="play-circle" size={80} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
         
         {videoEntry.metadata?.caption ? (

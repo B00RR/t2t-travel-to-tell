@@ -33,7 +33,8 @@ export default function LoginScreen() {
         Alert.alert(t('common.error'), t('auth.err_invalid_credentials'));
       } else {
         // General error handling
-        Alert.alert(t('common.error'), error.message);
+        console.error('Login error:', error);
+        Alert.alert(t('common.error'), t('auth.err_login_failed'));
       }
     } else {
       router.replace('/');

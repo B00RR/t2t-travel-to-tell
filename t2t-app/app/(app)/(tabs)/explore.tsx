@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
-import { sanitizePostgRESTQuery } from '@/utils/querySanitizer';
 import type { FeedDiary } from '@/types/supabase';
 
 export default function DiscoveryScreen() {
@@ -20,28 +19,37 @@ export default function DiscoveryScreen() {
   const fetchDiscovery = useCallback(async (query = '') => {
     setLoading(true);
     
-    let baseQuery = supabase
-      .from('diaries')
-      .select(`
-        *,
-        profiles!diaries_author_id_fkey (
-          username,
-          display_name,
-          avatar_url
-        )
-      `)
-      .eq('status', 'published')
-      .eq('visibility', 'public')
-      .order('created_at', { ascending: false });
+    let baseQuery;
 
     if (query.trim()) {
-      // Sanitize the query to prevent PostgREST injection
-      const sanitizedQuery = sanitizePostgRESTQuery(query);
-
-      if (sanitizedQuery) {
-        // Simple text search on title, description or destinations
-        baseQuery = baseQuery.or(`title.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%,destinations.cs.{${sanitizedQuery}}`);
-      }
+      // Use dedicated RPC to prevent PostgREST injection while searching
+      baseQuery = supabase
+        .rpc('search_diaries', { search_query: query.trim() })
+        .select(`
+          *,
+          profiles!diaries_author_id_fkey (
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('status', 'published')
+        .eq('visibility', 'public')
+        .order('created_at', { ascending: false });
+    } else {
+      baseQuery = supabase
+        .from('diaries')
+        .select(`
+          *,
+          profiles!diaries_author_id_fkey (
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('status', 'published')
+        .eq('visibility', 'public')
+        .order('created_at', { ascending: false });
     }
 
     const { data, error } = await baseQuery.limit(50);

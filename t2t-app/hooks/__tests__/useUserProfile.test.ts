@@ -98,7 +98,6 @@ describe('useUserProfile', () => {
     expect(result.current.profile?.display_name).toBe('New Name');
   });
 
-
   it('should handle update profile error', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 

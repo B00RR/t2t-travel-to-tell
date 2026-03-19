@@ -74,7 +74,9 @@ export default function DiscoveryScreen() {
       )}
       <View style={styles.cardOverlay}>
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.cardAuthor}>di {item.profiles?.display_name || item.profiles?.username || 'Anonimo'}</Text>
+        <TouchableOpacity onPress={() => router.push(`/profile/${item.author_id}`)}>
+          <Text style={styles.cardAuthor}>di {item.profiles?.display_name || item.profiles?.username || 'Anonimo'}</Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

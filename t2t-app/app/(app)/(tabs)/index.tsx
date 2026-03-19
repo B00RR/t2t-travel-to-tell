@@ -92,7 +92,10 @@ export default function HomeScreen() {
         {/* Content */}
         <View style={styles.cardBody}>
           {/* Author Row */}
-          <View style={styles.authorRow}>
+          <TouchableOpacity 
+            style={styles.authorRow}
+            onPress={() => router.push(`/profile/${item.author_id}`)}
+          >
             {author?.avatar_url ? (
               <Image source={{ uri: author.avatar_url }} style={styles.avatar} />
             ) : (
@@ -104,7 +107,7 @@ export default function HomeScreen() {
               <Text style={styles.authorName}>{authorName}</Text>
               <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* Title & Destinations */}
           <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>

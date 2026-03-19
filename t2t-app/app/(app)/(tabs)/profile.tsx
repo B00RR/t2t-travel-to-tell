@@ -1,41 +1,40 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { ProfileHeader } from '@/components/ProfileHeader';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import type { Profile, Diary } from '@/types/supabase';
 
 export default function ProfileScreen() {
   const { user } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { profile, loading: profileLoading, updateProfile, uploadAvatar, checkUsernameUnique } = useUserProfile(user?.id);
   const [diaries, setDiaries] = useState<Diary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingDiaries, setLoadingDiaries] = useState(true);
+
+  // Edit State
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editForm, setEditForm] = useState({
+    display_name: '',
+    username: '',
+    bio: '',
+  });
 
   useFocusEffect(
     useCallback(() => {
       if (user) {
-        fetchProfile();
         fetchDiaries();
       }
     }, [user])
   );
 
-  async function fetchProfile() {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (!error && data) setProfile(data);
-  }
-
   async function fetchDiaries() {
     if (!user) return;
-    setLoading(true);
+    setLoadingDiaries(true);
     const { data, error } = await supabase
       .from('diaries')
       .select('*')
@@ -43,13 +42,51 @@ export default function ProfileScreen() {
       .order('created_at', { ascending: false });
 
     if (!error && data) setDiaries(data);
-    setLoading(false);
+    setLoadingDiaries(false);
   }
 
-  function getInitials(name: string | null | undefined): string {
-    if (!name) return '?';
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  }
+  const handleEditPress = () => {
+    setEditForm({
+      display_name: profile?.display_name || '',
+      username: profile?.username || '',
+      bio: profile?.bio || '',
+    });
+    setIsEditModalVisible(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editForm.username.trim()) {
+      Alert.alert('Errore', 'Lo username è obbligatorio');
+      return;
+    }
+
+    // Check username uniqueness if changed
+    if (editForm.username !== profile?.username) {
+      const isUnique = await checkUsernameUnique(editForm.username);
+      if (!isUnique) {
+        Alert.alert('Errore', 'Questo username è già in uso');
+        return;
+      }
+    }
+
+    const { success } = await updateProfile(editForm);
+    if (success) {
+      setIsEditModalVisible(false);
+    }
+  };
+
+  const handlePickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      await uploadAvatar(result.assets[0].uri);
+    }
+  };
 
   function handleLogout() {
     Alert.alert(
@@ -62,10 +99,6 @@ export default function ProfileScreen() {
     );
   }
 
-  const displayName = profile?.display_name || profile?.username || user?.email?.split('@')[0] || 'Utente';
-  const username = profile?.username || user?.email?.split('@')[0] || '';
-  const stats = profile?.stats as { countries?: number; diaries?: number; followers?: number; following?: number } | null;
-
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -77,45 +110,12 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarLarge}>
-              <Text style={styles.avatarLargeText}>{getInitials(displayName)}</Text>
-            </View>
-            <Text style={styles.displayName}>{displayName}</Text>
-            <Text style={styles.username}>@{username}</Text>
-            {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
-            {profile?.travel_style ? (
-              <View style={styles.travelStylePill}>
-                <Text style={styles.travelStyleText}>✈️ {profile.travel_style}</Text>
-              </View>
-            ) : null}
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{diaries.length}</Text>
-              <Text style={styles.statLabel}>Diari</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats?.countries || 0}</Text>
-              <Text style={styles.statLabel}>Paesi</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats?.followers || 0}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats?.following || 0}</Text>
-              <Text style={styles.statLabel}>Seguiti</Text>
-            </View>
-          </View>
-        </View>
+        <ProfileHeader
+          profile={profile}
+          diaryCount={diaries.length}
+          isOwnProfile={true}
+          onEditPress={handleEditPress}
+        />
 
         {/* Section: My Diaries */}
         <View style={styles.sectionHeader}>
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {loading ? (
+        {loadingDiaries ? (
           <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 32 }} />
         ) : diaries.length === 0 ? (
           <View style={styles.emptyState}>
@@ -172,6 +172,75 @@ export default function ProfileScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={isEditModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
+              <Text style={styles.modalCancel}>Annulla</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Modifica Profilo</Text>
+            <TouchableOpacity onPress={handleSaveProfile} disabled={profileLoading}>
+              <Text style={[styles.modalSave, profileLoading && { opacity: 0.5 }]}>Salva</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalBody}>
+            {/* Avatar Edit */}
+            <TouchableOpacity style={styles.avatarEdit} onPress={handlePickAvatar}>
+              <View style={styles.avatarLarge}>
+                 {profile?.avatar_url ? (
+                   <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
+                 ) : (
+                   <Ionicons name="person" size={40} color="#fff" />
+                 )}
+                 <View style={styles.avatarEditBadge}>
+                    <Ionicons name="camera" size={16} color="#fff" />
+                 </View>
+              </View>
+              <Text style={styles.changeAvatarText}>Cambia Foto Profilo</Text>
+            </TouchableOpacity>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nome Visualizzato</Text>
+              <TextInput
+                style={styles.input}
+                value={editForm.display_name}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, display_name: text }))}
+                placeholder="Il tuo nome"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Username</Text>
+              <TextInput
+                style={styles.input}
+                value={editForm.username}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-z0-9_]/g, '') }))}
+                placeholder="username"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Bio</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={editForm.bio}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, bio: text }))}
+                placeholder="Racconta qualcosa di te..."
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -179,7 +248,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
@@ -204,7 +273,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Profile Card
+  // Profile Card (These styles are now mostly handled by ProfileHeader, but some might be reused or overridden)
   profileCard: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
@@ -222,18 +291,31 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   avatarLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    position: 'relative',
   },
-  avatarLargeText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 28,
+  avatarImg: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#007AFF',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   displayName: {
     fontSize: 22,

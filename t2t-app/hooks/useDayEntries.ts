@@ -44,7 +44,7 @@ export function useDayEntries(dayId: string | string[]) {
     if (!error && data) {
       // For photo entries: resolve signed URLs from storagePath
       const resolved = await Promise.all(
-        data.map(async (entry: any) => {
+        data.map(async (entry: DayEntry) => {
           if (entry.type === 'photo' && entry.metadata?.storagePath) {
             const { data: urlData } = await supabase.storage
               .from('diary-media')
@@ -176,13 +176,13 @@ export function useDayEntries(dayId: string | string[]) {
               const entry = entries.find(e => e.id === entryId);
 
               const pathsToRemove: string[] = [];
-              if (entry?.type === 'photo' && (entry.metadata as any)?.storagePath) {
-                pathsToRemove.push((entry.metadata as any).storagePath);
+              if (entry?.type === 'photo' && entry.metadata?.storagePath) {
+                pathsToRemove.push(entry.metadata.storagePath);
               }
-              if (entry?.type === 'video' && (entry.metadata as any)?.storagePath) {
-                pathsToRemove.push((entry.metadata as any).storagePath);
-                if ((entry.metadata as any).thumbnailStoragePath) {
-                  pathsToRemove.push((entry.metadata as any).thumbnailStoragePath);
+              if (entry?.type === 'video' && entry.metadata?.storagePath) {
+                pathsToRemove.push(entry.metadata.storagePath);
+                if (entry.metadata.thumbnailStoragePath) {
+                  pathsToRemove.push(entry.metadata.thumbnailStoragePath);
                 }
               }
 

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
+import * as Location from 'expo-location';
 import type { DayEntry, DayInfo } from '@/types/dayEntry';
 
 /**
@@ -97,12 +98,26 @@ export function useDayEntries(dayId: string | string[]) {
       if (!content.trim()) return false;
       setSaving(true);
 
-      const metadata =
-        type === 'tip'
-          ? { category: 'general' }
-          : type === 'location'
-            ? { place_name: content.trim() }
-            : null;
+      let metadata: Record<string, any> | null = null;
+
+      if (type === 'tip') {
+        metadata = { category: 'general' };
+      } else if (type === 'location') {
+        metadata = { place_name: content.trim() };
+
+        // Geocode the location name to get coordinates
+        try {
+          const results = await Location.geocodeAsync(content.trim());
+          if (results.length > 0) {
+            metadata.coordinates = {
+              lat: results[0].latitude,
+              lng: results[0].longitude,
+            };
+          }
+        } catch (e) {
+          console.warn('Geocoding failed, saving without coordinates:', e);
+        }
+      }
 
       const { error } = await supabase.from('day_entries').insert({
         day_id: id,
@@ -112,14 +127,38 @@ export function useDayEntries(dayId: string | string[]) {
         sort_order: getNextSortOrder(),
       });
 
-      setSaving(false);
-
       if (error) {
+        setSaving(false);
         Alert.alert(t('common.error'), t('day.err_add_failed'));
         console.error('Error adding entry:', error);
         return false;
       }
 
+      // For location entries with coordinates, also save to diary_locations
+      if (type === 'location' && metadata?.coordinates) {
+        try {
+          // Get diary_id from the day
+          const { data: dayData } = await supabase
+            .from('diary_days')
+            .select('diary_id')
+            .eq('id', id)
+            .single();
+
+          if (dayData?.diary_id) {
+            const { lat, lng } = metadata.coordinates;
+            await supabase.from('diary_locations').insert({
+              diary_id: dayData.diary_id,
+              day_id: id,
+              name: content.trim(),
+              coordinates: `POINT(${lng} ${lat})`,
+            });
+          }
+        } catch (e) {
+          console.warn('Failed to save to diary_locations:', e);
+        }
+      }
+
+      setSaving(false);
       await fetchEntries();
       return true;
     },

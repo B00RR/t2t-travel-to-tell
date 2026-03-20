@@ -22,11 +22,9 @@ module.exports = {
         },
       },
     },
-    plugins: [
-      ...(config.plugins || []).filter(
-        (p) => !Array.isArray(p) || p[0] !== 'react-native-maps'
-      ),
-      ['react-native-maps', { googleMapsApiKey }],
-    ],
+    plugins: (config.plugins || []).filter(
+      (p) =>
+        !(Array.isArray(p) ? p[0] === 'react-native-maps' : p === 'react-native-maps')
+    ),
   },
 };

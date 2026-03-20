@@ -59,17 +59,14 @@ export function useUserProfile(profileId: string | undefined) {
     setLoading(true);
     try {
       const fileName = `${profileId}/avatar_${Date.now()}.jpg`;
-      
-      const formData = new FormData();
-      formData.append('file', {
-        uri,
-        name: 'avatar.jpg',
-        type: 'image/jpeg',
-      } as any);
+
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, formData, {
+        .upload(fileName, arrayBuffer, {
           contentType: 'image/jpeg',
           upsert: true,
         });

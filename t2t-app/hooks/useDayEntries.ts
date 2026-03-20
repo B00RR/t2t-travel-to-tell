@@ -75,6 +75,10 @@ export function useDayEntries(dayId: string | string[]) {
         })
       );
       setEntries(resolved);
+    } else if (error) {
+      setEntries([]);
+      Alert.alert(t('common.error'), t('common.error_generic'));
+      console.error('Error fetching entries:', error);
     }
 
     setLoading(false);

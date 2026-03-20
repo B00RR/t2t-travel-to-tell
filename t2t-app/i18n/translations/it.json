@@ -27,7 +27,11 @@
   "explore": {
     "title": "Esplora",
     "search_placeholder": "Cerca destinazioni o diari...",
-    "no_results": "Nessun risultato trovato per \"{{query}}\""
+    "no_results": "Nessun risultato trovato per \"{{query}}\"",
+    "empty_browse": "Scopri i diari di viaggio da tutto il mondo",
+    "trending": "In tendenza",
+    "all_diaries": "Tutti i diari",
+    "error_fetch": "Impossibile caricare i diari. Riprova più tardi."
   },
   "profile": {
     "title": "Profilo",

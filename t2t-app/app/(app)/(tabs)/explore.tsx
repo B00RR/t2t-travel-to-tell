@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, FlatList,
-  TouchableOpacity, ActivityIndicator, RefreshControl
+  View, Text, StyleSheet, TextInput, FlatList, ScrollView,
+  TouchableOpacity, ActivityIndicator, RefreshControl, Alert
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
@@ -9,50 +9,37 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import type { FeedDiary } from '@/types/supabase';
 
+const PAGE_SIZE = 20;
+
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
+  const [trendingDiaries, setTrendingDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchDiscovery = useCallback(async (query = '') => {
-    setLoading(true);
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
-    if (query.trim()) {
-      // RPC results don't support foreign-key join syntax, so we fetch profiles separately
-      const { data: rpcData, error: rpcError } = await supabase
-        .rpc('search_diaries', { search_query: query.trim() })
-        .eq('status', 'published')
-        .eq('visibility', 'public')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (rpcError || !rpcData || rpcData.length === 0) {
-        if (!rpcError) setDiaries([]);
-        setLoading(false);
-        setRefreshing(false);
-        return;
-      }
-
-      const authorIds: string[] = [...new Set<string>(rpcData.map((d: any) => d.author_id))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, username, display_name, avatar_url')
-        .in('id', authorIds);
-
-      const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
-
-      const merged: FeedDiary[] = rpcData.map((diary: any) => ({
-        ...diary,
-        profiles: profileMap.get(diary.author_id) ?? { username: null, display_name: null, avatar_url: null },
-      }));
-
-      setDiaries(merged);
-      setLoading(false);
-      setRefreshing(false);
-      return;
+  const fetchBrowse = useCallback(async (pageNum: number, refresh = false) => {
+    if (pageNum === 0) {
+      if (refresh) setRefreshing(true);
+      else setLoading(true);
+    } else {
+      setLoadingMore(true);
     }
+
+    const from = pageNum * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
     const { data, error } = await supabase
       .from('diaries')
@@ -67,33 +54,152 @@ export default function DiscoveryScreen() {
       .eq('status', 'published')
       .eq('visibility', 'public')
       .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      Alert.alert(t('common.error'), t('explore.error_fetch'));
+    } else if (data) {
+      setDiaries(prev => pageNum === 0 ? data as FeedDiary[] : [...prev, ...data as FeedDiary[]]);
+      setHasMore(data.length === PAGE_SIZE);
+    }
+
+    setLoading(false);
+    setLoadingMore(false);
+    setRefreshing(false);
+  }, [t]);
+
+  const fetchSearch = useCallback(async (query: string) => {
+    setLoading(true);
+    setHasMore(false);
+
+    const { data: rpcData, error: rpcError } = await supabase
+      .rpc('search_diaries', { search_query: query.trim() })
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
       .limit(50);
 
-    if (!error && data) {
-      setDiaries(data as FeedDiary[]);
+    if (rpcError || !rpcData || rpcData.length === 0) {
+      if (!rpcError) setDiaries([]);
+      setLoading(false);
+      return;
     }
+
+    const authorIds: string[] = [...new Set<string>(rpcData.map((d: any) => d.author_id))];
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, avatar_url')
+      .in('id', authorIds);
+
+    const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+    const merged: FeedDiary[] = rpcData.map((diary: any) => ({
+      ...diary,
+      profiles: profileMap.get(diary.author_id) ?? { username: null, display_name: null, avatar_url: null },
+    }));
+
+    setDiaries(merged);
     setLoading(false);
-    setRefreshing(false);
   }, []);
 
+  const fetchTrending = useCallback(async () => {
+    const { data } = await supabase
+      .from('diaries')
+      .select(`
+        *,
+        profiles!diaries_author_id_fkey (
+          username,
+          display_name,
+          avatar_url
+        )
+      `)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .order('like_count', { ascending: false })
+      .limit(10);
+
+    if (data) setTrendingDiaries(data as FeedDiary[]);
+  }, []);
+
+  // Initial load
   useEffect(() => {
-    // Initial fetch
-    fetchDiscovery();
-  }, [fetchDiscovery]);
+    fetchBrowse(0);
+    fetchTrending();
+  }, [fetchBrowse, fetchTrending]);
 
-  const handleSearch = () => {
-    fetchDiscovery(searchQuery);
-  };
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchDiscovery(searchQuery);
-  };
+    if (!text.trim()) {
+      // Back to browse mode
+      setPage(0);
+      setHasMore(true);
+      fetchBrowse(0);
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      setPage(0);
+      fetchSearch(text);
+    }, 300);
+  }, [fetchSearch, fetchBrowse]);
+
+  const onRefresh = useCallback(() => {
+    setPage(0);
+    setHasMore(true);
+    if (searchQuery.trim()) {
+      fetchSearch(searchQuery);
+    } else {
+      fetchBrowse(0, true);
+    }
+  }, [searchQuery, fetchSearch, fetchBrowse]);
+
+  const handleEndReached = useCallback(() => {
+    if (!loading && !loadingMore && hasMore && !searchQuery.trim()) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchBrowse(nextPage);
+    }
+  }, [loading, loadingMore, hasMore, searchQuery, page, fetchBrowse]);
 
   const renderItem = useCallback(
     ({ item }: { item: FeedDiary }) => <ExploreDiaryCard item={item} />,
     []
   );
+
+  const ListHeader = useCallback(() => {
+    if (searchQuery.trim() || trendingDiaries.length === 0) return null;
+    return (
+      <View>
+        <Text style={styles.sectionTitle}>{t('explore.trending')}</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.trendingList}
+        >
+          {trendingDiaries.map(item => (
+            <View key={`trending-${item.id}`} style={styles.trendingCardWrapper}>
+              <ExploreDiaryCard item={item} />
+            </View>
+          ))}
+        </ScrollView>
+        <Text style={styles.sectionTitle}>{t('explore.all_diaries')}</Text>
+      </View>
+    );
+  }, [searchQuery, trendingDiaries, t]);
+
+  const ListFooter = useCallback(() => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#007AFF" />
+      </View>
+    );
+  }, [loadingMore]);
+
+  const emptyText = searchQuery.trim()
+    ? t('explore.no_results', { query: searchQuery })
+    : t('explore.empty_browse');
 
   return (
     <View style={styles.container}>
@@ -105,12 +211,11 @@ export default function DiscoveryScreen() {
             style={styles.searchInput}
             placeholder={t('explore.search_placeholder')}
             value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearch}
+            onChangeText={handleSearchChange}
             returnKeyType="search"
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => { setSearchQuery(''); fetchDiscovery(''); }}>
+            <TouchableOpacity onPress={() => handleSearchChange('')}>
               <Ionicons name="close-circle" size={20} color="#ccc" />
             </TouchableOpacity>
           )}
@@ -130,13 +235,17 @@ export default function DiscoveryScreen() {
           contentContainerStyle={styles.listContent}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={ListHeader}
+          ListFooterComponent={ListFooter}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#007AFF" />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="search-outline" size={64} color="#ddd" />
-              <Text style={styles.emptyText}>{t('explore.no_results', { query: searchQuery })}</Text>
+              <Text style={styles.emptyText}>{emptyText}</Text>
             </View>
           }
         />
@@ -179,6 +288,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    paddingHorizontal: 10,
+    paddingTop: 16,
+    paddingBottom: 10,
+  },
+  trendingList: {
+    paddingHorizontal: 10,
+    gap: 10,
+  },
+  trendingCardWrapper: {
+    width: 160,
+  },
   listContent: {
     padding: 10,
   },
@@ -202,5 +326,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });

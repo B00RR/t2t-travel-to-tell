@@ -27,7 +27,11 @@
   "explore": {
     "title": "Explore",
     "search_placeholder": "Search destinations or diaries...",
-    "no_results": "No results found for \"{{query}}\""
+    "no_results": "No results found for \"{{query}}\"",
+    "empty_browse": "Discover travel diaries from around the world",
+    "trending": "Trending",
+    "all_diaries": "All Diaries",
+    "error_fetch": "Unable to load diaries. Please try again."
   },
   "profile": {
     "title": "Profile",

@@ -11,13 +11,13 @@
     "ios": {
       "supportsTablet": true,
       "config": {
-        "googleMapsApiKey": "AIzaSyC98xTwfdrH9r8ecZv4iK8boIbnmMDGdb4"
+        "googleMapsApiKey": "REPLACE_VIA_ENV"
       }
     },
     "android": {
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyC98xTwfdrH9r8ecZv4iK8boIbnmMDGdb4"
+          "apiKey": "REPLACE_VIA_ENV"
         }
       },
       "adaptiveIcon": {
@@ -51,7 +51,7 @@
       [
         "react-native-maps",
         {
-          "googleMapsApiKey": "AIzaSyC98xTwfdrH9r8ecZv4iK8boIbnmMDGdb4"
+          "googleMapsApiKey": "REPLACE_VIA_ENV"
         }
       ]
     ],

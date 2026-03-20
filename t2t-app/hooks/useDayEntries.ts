@@ -29,59 +29,67 @@ export function useDayEntries(dayId: string | string[]) {
       .select('id, day_number, title, date')
       .eq('id', id)
       .single();
-    if (!error && data) setDayInfo(data);
+    if (error) {
+      console.error('fetchDayInfo failed', error);
+      return;
+    }
+    if (data) setDayInfo(data);
   }, [id]);
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from('day_entries')
-      .select('id, type, content, metadata, sort_order')
-      .eq('day_id', id)
-      .order('sort_order', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('day_entries')
+        .select('id, type, content, metadata, sort_order')
+        .eq('day_id', id)
+        .order('sort_order', { ascending: true });
 
-    if (!error && data) {
-      // For photo entries: resolve signed URLs from storagePath
-      const resolved = await Promise.all(
-        data.map(async (entry: DayEntry) => {
-          if (entry.type === 'photo' && entry.metadata?.storagePath) {
-            const { data: urlData } = await supabase.storage
-              .from('diary-media')
-              .createSignedUrl(entry.metadata.storagePath, 60 * 60); // 1 hour
-            return {
-              ...entry,
-              content: urlData?.signedUrl ?? entry.content,
-            } as DayEntry;
-          }
-          if (entry.type === 'video' && entry.metadata?.storagePath) {
-            const [urlData, thumbUrlData] = await Promise.all([
-              supabase.storage.from('diary-media').createSignedUrl(entry.metadata.storagePath, 60 * 60),
-              entry.metadata.thumbnailStoragePath
-                ? supabase.storage.from('diary-media').createSignedUrl(entry.metadata.thumbnailStoragePath, 60 * 60)
-                : Promise.resolve({ data: null })
-            ]);
-            return {
-              ...entry,
-              content: urlData.data?.signedUrl ?? entry.content,
-              metadata: {
-                 ...entry.metadata,
-                 // injecting temporary signed URL into metadata for UI access
-                 thumbnailUrl: thumbUrlData.data?.signedUrl 
-              }
-            } as DayEntry;
-          }
-          return entry as DayEntry;
-        })
-      );
-      setEntries(resolved);
-    } else if (error) {
-      setEntries([]);
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('Error fetching entries:', error);
+      if (!error && data) {
+        // For photo entries: resolve signed URLs from storagePath
+        const resolved = await Promise.all(
+          data.map(async (entry: DayEntry) => {
+            if (entry.type === 'photo' && entry.metadata?.storagePath) {
+              const { data: urlData } = await supabase.storage
+                .from('diary-media')
+                .createSignedUrl(entry.metadata.storagePath, 60 * 60); // 1 hour
+              return {
+                ...entry,
+                content: urlData?.signedUrl ?? entry.content,
+              } as DayEntry;
+            }
+            if (entry.type === 'video' && entry.metadata?.storagePath) {
+              const [urlData, thumbUrlData] = await Promise.all([
+                supabase.storage.from('diary-media').createSignedUrl(entry.metadata.storagePath, 60 * 60),
+                entry.metadata.thumbnailStoragePath
+                  ? supabase.storage.from('diary-media').createSignedUrl(entry.metadata.thumbnailStoragePath, 60 * 60)
+                  : Promise.resolve({ data: null })
+              ]);
+              return {
+                ...entry,
+                content: urlData.data?.signedUrl ?? entry.content,
+                metadata: {
+                   ...entry.metadata,
+                   // injecting temporary signed URL into metadata for UI access
+                   thumbnailUrl: thumbUrlData.data?.signedUrl
+                }
+              } as DayEntry;
+            }
+            return entry as DayEntry;
+          })
+        );
+        setEntries(resolved);
+      } else if (error) {
+        setEntries([]);
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        console.error('Error fetching entries:', error);
+      }
+    } catch (e) {
+      console.error('fetchEntries failed', e);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [id]);
 
   const addEntry = useCallback(

@@ -80,6 +80,74 @@ describe('useDayEntries', () => {
     expect(result.current.entries[0].content).toBe('https://mock.url');
   });
 
+  it('logs error and keeps dayInfo null when fetchDayInfo fails', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } })
+        })
+      })
+    });
+
+    const { result } = renderHook(() => useDayEntries('day-1'));
+
+    await act(async () => {
+      await result.current.fetchDayInfo();
+    });
+
+    expect(result.current.dayInfo).toBeNull();
+    expect(consoleSpy).toHaveBeenCalledWith('fetchDayInfo failed', expect.objectContaining({ message: 'Not found' }));
+
+    consoleSpy.mockRestore();
+  });
+
+  it('sets loading to false when fetchEntries returns a Supabase error', async () => {
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          order: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } })
+        })
+      })
+    });
+
+    const { result } = renderHook(() => useDayEntries('day-1'));
+
+    await act(async () => {
+      await result.current.fetchEntries();
+    });
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.entries).toEqual([]);
+  });
+
+  it('sets loading to false when createSignedUrl throws inside fetchEntries', async () => {
+    const mockEntries = [
+      { id: '1', type: 'photo', content: null, metadata: { storagePath: 'test.jpg' }, sort_order: 1 },
+    ];
+
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          order: jest.fn().mockResolvedValue({ data: mockEntries, error: null })
+        })
+      })
+    });
+
+    (supabase.storage.from as jest.Mock).mockReturnValue({
+      createSignedUrl: jest.fn().mockRejectedValue(new Error('Storage error'))
+    });
+
+    const { result } = renderHook(() => useDayEntries('day-1'));
+
+    await act(async () => {
+      await result.current.fetchEntries();
+    });
+
+    expect(result.current.loading).toBe(false);
+  });
+
   it('adds an entry and refreshes data', async () => {
     const mockInsert = jest.fn().mockResolvedValue({ error: null });
     

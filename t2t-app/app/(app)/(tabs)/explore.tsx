@@ -18,41 +18,56 @@ export default function DiscoveryScreen() {
 
   const fetchDiscovery = useCallback(async (query = '') => {
     setLoading(true);
-    
-    let baseQuery;
 
     if (query.trim()) {
-      // Use dedicated RPC to prevent PostgREST injection while searching
-      baseQuery = supabase
+      // RPC results don't support foreign-key join syntax, so we fetch profiles separately
+      const { data: rpcData, error: rpcError } = await supabase
         .rpc('search_diaries', { search_query: query.trim() })
-        .select(`
-          *,
-          profiles!diaries_author_id_fkey (
-            username,
-            display_name,
-            avatar_url
-          )
-        `)
         .eq('status', 'published')
         .eq('visibility', 'public')
-        .order('created_at', { ascending: false });
-    } else {
-      baseQuery = supabase
-        .from('diaries')
-        .select(`
-          *,
-          profiles!diaries_author_id_fkey (
-            username,
-            display_name,
-            avatar_url
-          )
-        `)
-        .eq('status', 'published')
-        .eq('visibility', 'public')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (rpcError || !rpcData || rpcData.length === 0) {
+        if (!rpcError) setDiaries([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const authorIds: string[] = [...new Set<string>(rpcData.map((d: any) => d.author_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, avatar_url')
+        .in('id', authorIds);
+
+      const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+
+      const merged: FeedDiary[] = rpcData.map((diary: any) => ({
+        ...diary,
+        profiles: profileMap.get(diary.author_id) ?? { username: null, display_name: null, avatar_url: null },
+      }));
+
+      setDiaries(merged);
+      setLoading(false);
+      setRefreshing(false);
+      return;
     }
 
-    const { data, error } = await baseQuery.limit(50);
+    const { data, error } = await supabase
+      .from('diaries')
+      .select(`
+        *,
+        profiles!diaries_author_id_fkey (
+          username,
+          display_name,
+          avatar_url
+        )
+      `)
+      .eq('status', 'published')
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+      .limit(50);
 
     if (!error && data) {
       setDiaries(data as FeedDiary[]);

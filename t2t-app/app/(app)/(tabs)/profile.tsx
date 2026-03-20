@@ -238,7 +238,7 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 value={editForm.username}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-z0-9_]/g, '') }))}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
                 placeholder={t('profile.username')}
                 autoCapitalize="none"
               />

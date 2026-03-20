@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import type { FeedDiary } from '@/types/supabase';
@@ -13,6 +14,7 @@ const PAGE_SIZE = 20;
 
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [trendingDiaries, setTrendingDiaries] = useState<FeedDiary[]>([]);
@@ -41,7 +43,7 @@ export default function DiscoveryScreen() {
     const from = pageNum * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('diaries')
       .select(`
         *,
@@ -51,10 +53,17 @@ export default function DiscoveryScreen() {
           avatar_url
         )
       `)
-      .eq('status', 'published')
-      .eq('visibility', 'public')
       .order('created_at', { ascending: false })
       .range(from, to);
+
+    if (user?.id) {
+      // Show public published diaries OR user's own diaries (any status)
+      query = query.or(`and(status.eq.published,visibility.eq.public),author_id.eq.${user.id}`);
+    } else {
+      query = query.eq('status', 'published').eq('visibility', 'public');
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       Alert.alert(t('common.error'), t('explore.error_fetch'));
@@ -66,18 +75,24 @@ export default function DiscoveryScreen() {
     setLoading(false);
     setLoadingMore(false);
     setRefreshing(false);
-  }, [t]);
+  }, [t, user?.id]);
 
   const fetchSearch = useCallback(async (query: string) => {
     setLoading(true);
     setHasMore(false);
 
-    const { data: rpcData, error: rpcError } = await supabase
+    let searchQ = supabase
       .rpc('search_diaries', { search_query: query.trim() })
-      .eq('status', 'published')
-      .eq('visibility', 'public')
       .order('created_at', { ascending: false })
       .limit(50);
+
+    if (user?.id) {
+      searchQ = searchQ.or(`and(status.eq.published,visibility.eq.public),author_id.eq.${user.id}`);
+    } else {
+      searchQ = searchQ.eq('status', 'published').eq('visibility', 'public');
+    }
+
+    const { data: rpcData, error: rpcError } = await searchQ;
 
     if (rpcError || !rpcData || rpcData.length === 0) {
       if (!rpcError) setDiaries([]);
@@ -99,7 +114,7 @@ export default function DiscoveryScreen() {
 
     setDiaries(merged);
     setLoading(false);
-  }, []);
+  }, [user?.id]);
 
   const fetchTrending = useCallback(async () => {
     const { data } = await supabase

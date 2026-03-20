@@ -47,13 +47,7 @@
           }
         }
       ],
-      "expo-video",
-      [
-        "react-native-maps",
-        {
-          "googleMapsApiKey": "REPLACE_VIA_ENV"
-        }
-      ]
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

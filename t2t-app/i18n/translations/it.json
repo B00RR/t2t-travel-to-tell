@@ -156,6 +156,18 @@
     "tap_to_open": "Tocca per aprire il diario",
     "center_on_me": "Centra su di me"
   },
+  "cover": {
+    "title": "Immagine di Copertina",
+    "add_cover": "Aggiungi copertina",
+    "from_gallery": "Scegli dalla galleria",
+    "stock_images": "Immagini gratuite",
+    "search_placeholder": "Cerca immagini per destinazione...",
+    "uploading": "Caricamento...",
+    "no_stock_results": "Nessuna immagine trovata. Prova un'altra ricerca.",
+    "err_set_failed": "Impossibile impostare la copertina.",
+    "err_upload_failed": "Impossibile caricare l'immagine.",
+    "permission_denied": "Devi consentire l'accesso alla galleria."
+  },
   "auth": {
     "login_welcome": "Bentornato! Continua le tue avventure.",
     "register_welcome": "Inizia a raccontare i tuoi viaggi oggi stesso.",

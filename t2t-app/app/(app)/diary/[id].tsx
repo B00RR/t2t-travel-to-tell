@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFollow } from '@/hooks/useFollow';
 import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
+import { CoverImagePicker } from '@/components/CoverImagePicker';
 import { Diary } from '@/types/supabase';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 type DiaryDay = {
   id: string;
@@ -28,6 +31,7 @@ export default function DiaryDetailScreen() {
 
   // Social UI state
   const [showComments, setShowComments] = useState(false);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
 
   // Follow logic (Mocking target profile ID as diary.author_id)
   const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
@@ -134,7 +138,30 @@ export default function DiaryDetailScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.titleRow}>
+        {/* Cover Image */}
+        <TouchableOpacity
+          style={styles.coverContainer}
+          onPress={() => user?.id === diary.author_id && setShowCoverPicker(true)}
+          activeOpacity={user?.id === diary.author_id ? 0.8 : 1}
+        >
+          {diary.cover_image_url ? (
+            <Image source={{ uri: diary.cover_image_url }} style={styles.coverImage} />
+          ) : (
+            <View style={styles.coverPlaceholder}>
+              <Ionicons name="image-outline" size={40} color="#ccc" />
+              {user?.id === diary.author_id && (
+                <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
+              )}
+            </View>
+          )}
+          {user?.id === diary.author_id && diary.cover_image_url && (
+            <View style={styles.coverEditBadge}>
+              <Ionicons name="camera" size={16} color="#fff" />
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <View style={[styles.titleRow, styles.contentPadding]}>
           <Text style={styles.title}>{diary.title}</Text>
           {user?.id !== diary.author_id && (
             <TouchableOpacity 
@@ -150,7 +177,7 @@ export default function DiaryDetailScreen() {
         </View>
         
         {diary.destinations && diary.destinations.length > 0 && (
-          <View style={styles.pillContainer}>
+          <View style={[styles.pillContainer, styles.contentPadding]}>
             {diary.destinations.map((dest, idx) => (
               <View key={idx} style={styles.pill}>
                 <Text style={styles.pillText}>📍 {dest}</Text>
@@ -160,12 +187,12 @@ export default function DiaryDetailScreen() {
         )}
 
         {diary.description ? (
-          <Text style={styles.description}>{diary.description}</Text>
+          <Text style={[styles.description, styles.contentPadding]}>{diary.description}</Text>
         ) : null}
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, styles.contentPadding]} />
 
-        <View style={styles.daysHeader}>
+        <View style={[styles.daysHeader, styles.contentPadding]}>
           <Text style={styles.sectionTitle}>{t('diary.days')}</Text>
           <TouchableOpacity 
             style={styles.addDayButton}
@@ -177,12 +204,12 @@ export default function DiaryDetailScreen() {
         </View>
 
         {days.length === 0 ? (
-          <View style={styles.emptyDays}>
+          <View style={[styles.emptyDays, styles.contentPadding]}>
             <Text style={styles.emptyDaysText}>{t('diary.no_days')}</Text>
             <Text style={styles.emptyDaysSub}>{t('diary.start_adding')}</Text>
           </View>
         ) : (
-          <View style={styles.daysList}>
+          <View style={[styles.daysList, styles.contentPadding]}>
             {days.map((day) => (
               <TouchableOpacity
                 key={day.id}
@@ -222,6 +249,15 @@ export default function DiaryDetailScreen() {
         userId={user?.id}
         onClose={() => setShowComments(false)}
       />
+
+      <CoverImagePicker
+        visible={showCoverPicker}
+        diaryId={id as string}
+        userId={user?.id}
+        destinations={diary.destinations || []}
+        onCoverSet={(url) => setDiary(prev => prev ? { ...prev, cover_image_url: url } : prev)}
+        onClose={() => setShowCoverPicker(false)}
+      />
     </View>
   );
 }
@@ -252,7 +288,43 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   content: {
-    padding: 24,
+    paddingBottom: 24,
+  },
+  coverContainer: {
+    width: SCREEN_WIDTH,
+    height: 200,
+    marginBottom: 20,
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  coverPlaceholder: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  coverPlaceholderText: {
+    fontSize: 14,
+    color: '#999',
+    fontWeight: '500',
+  },
+  contentPadding: {
+    paddingHorizontal: 24,
+  },
+  coverEditBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleRow: {
     flexDirection: 'row',

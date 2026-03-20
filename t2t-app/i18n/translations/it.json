@@ -149,7 +149,12 @@
   "map": {
     "title": "Mappa",
     "subtitle": "Visualizza tutti i luoghi che hai visitato su una mappa interattiva. I tuoi viaggi, in un colpo d'occhio.",
-    "coming_soon": "Coming Soon"
+    "coming_soon": "Coming Soon",
+    "my_map": "La mia mappa",
+    "no_locations": "Nessuna posizione ancora.\nAggiungi entries di tipo luogo ai tuoi diari per vederle qui.",
+    "location_permission_denied": "Il permesso di localizzazione è necessario per mostrare la tua posizione sulla mappa.",
+    "tap_to_open": "Tocca per aprire il diario",
+    "center_on_me": "Centra su di me"
   },
   "auth": {
     "login_welcome": "Bentornato! Continua le tue avventure.",

@@ -149,7 +149,12 @@
   "map": {
     "title": "Map",
     "subtitle": "Visualize all the places you've visited on an interactive map. Your trips, at a glance.",
-    "coming_soon": "Coming Soon"
+    "coming_soon": "Coming Soon",
+    "my_map": "My Map",
+    "no_locations": "No locations yet.\nAdd location entries to your diary days to see them here.",
+    "location_permission_denied": "Location permission is required to show your position on the map.",
+    "tap_to_open": "Tap to open diary",
+    "center_on_me": "Center on my location"
   },
   "auth": {
     "login_welcome": "Welcome back! Continue your adventures.",

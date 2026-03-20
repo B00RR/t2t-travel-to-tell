@@ -2,11 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
 import type { DayEntry } from '@/types/social';
 import type { VideoDayEntry } from '@/types/dayEntry';
+import { VideoEntryCard } from './VideoEntryCard';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
@@ -19,16 +17,6 @@ interface EntryCardProps {
 
 export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   const { t } = useTranslation();
-
-  const isVideo = entry.type === 'video';
-  const videoContent = isVideo ? entry.content || '' : '';
-  const player = useVideoPlayer(videoContent, (p) => {
-    if (isVideo) {
-      p.loop = false;
-    }
-  });
-
-  const [isVideoStarted, setIsVideoStarted] = React.useState(false);
 
   // --- MOOD ---
   if (entry.type === 'mood') {
@@ -70,66 +58,8 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   }
 
   // --- VIDEO ---
-  if (isVideo) {
-    const videoEntry = entry as VideoDayEntry;
-    
-    const ar =
-      videoEntry.metadata?.width && videoEntry.metadata?.height
-        ? videoEntry.metadata.width / videoEntry.metadata.height
-        : 16 / 9;
-
-    const thumbnailUrl = (videoEntry.metadata as any)?.thumbnailUrl;
-
-    const longPressGesture = Gesture.LongPress()
-      .minDuration(600)
-      .onEnd((event, success) => {
-        if (success) {
-          runOnJS(onLongPress)(entry.id);
-        }
-      });
-
-    const handleInitialPlay = () => {
-      player.play();
-      setIsVideoStarted(true);
-    };
-
-    return (
-      <View style={styles.photoCard}>
-        <View style={{ width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden' }}>
-          <GestureDetector gesture={longPressGesture}>
-            <VideoView
-              player={player}
-              style={StyleSheet.absoluteFill}
-              nativeControls={isVideoStarted}
-              contentFit="cover"
-            />
-          </GestureDetector>
-          
-          {thumbnailUrl && !isVideoStarted && (
-            <Image
-              source={{ uri: thumbnailUrl }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            />
-          )}
-
-          {!isVideoStarted && (
-            <TouchableOpacity 
-              style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.1)' }]}
-              onPress={handleInitialPlay}
-              onLongPress={() => onLongPress(entry.id)}
-              delayLongPress={600}
-            >
-               <Ionicons name="play-circle" size={80} color="#fff" />
-            </TouchableOpacity>
-          )}
-        </View>
-        
-        {videoEntry.metadata?.caption ? (
-          <Text style={styles.photoCaption}>{videoEntry.metadata.caption}</Text>
-        ) : null}
-      </View>
-    );
+  if (entry.type === 'video') {
+    return <VideoEntryCard entry={entry as VideoDayEntry} onLongPress={onLongPress} />;
   }
 
   // --- LOCATION ---

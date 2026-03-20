@@ -156,6 +156,18 @@
     "tap_to_open": "Tap to open diary",
     "center_on_me": "Center on my location"
   },
+  "cover": {
+    "title": "Cover Image",
+    "add_cover": "Add cover image",
+    "from_gallery": "Choose from gallery",
+    "stock_images": "Free stock images",
+    "search_placeholder": "Search images by destination...",
+    "uploading": "Uploading...",
+    "no_stock_results": "No images found. Try a different search.",
+    "err_set_failed": "Unable to set cover image.",
+    "err_upload_failed": "Unable to upload image.",
+    "permission_denied": "You need to allow access to the gallery."
+  },
   "auth": {
     "login_welcome": "Welcome back! Continue your adventures.",
     "register_welcome": "Start telling your travels today.",

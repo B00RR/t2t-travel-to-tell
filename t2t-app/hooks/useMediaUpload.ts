@@ -174,6 +174,32 @@ export function useMediaUpload({
       if (entryError) {
         throw new Error(entryError.message);
       } else {
+        // Auto-set cover image if diary doesn't have one yet
+        if (!isVideo) {
+          try {
+            const { data: diaryData } = await supabase
+              .from('diaries')
+              .select('cover_image_url')
+              .eq('id', dId)
+              .single();
+
+            if (diaryData && !diaryData.cover_image_url) {
+              const { data: urlData } = await supabase.storage
+                .from('diary-media')
+                .createSignedUrl(mainStoragePath, 60 * 60 * 24 * 365); // 1 year
+
+              if (urlData?.signedUrl) {
+                await supabase
+                  .from('diaries')
+                  .update({ cover_image_url: urlData.signedUrl })
+                  .eq('id', dId);
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to auto-set cover image:', e);
+          }
+        }
+
         await onUploadComplete();
       }
     } catch (e: any) {

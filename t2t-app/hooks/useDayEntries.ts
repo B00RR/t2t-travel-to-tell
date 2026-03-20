@@ -134,10 +134,9 @@ export function useDayEntries(dayId: string | string[]) {
         return false;
       }
 
-      // For location entries with coordinates, also save to diary_locations
+      // For location entries with coordinates, also save to diary_locations via RPC
       if (type === 'location' && metadata?.coordinates) {
         try {
-          // Get diary_id from the day
           const { data: dayData } = await supabase
             .from('diary_days')
             .select('diary_id')
@@ -146,12 +145,14 @@ export function useDayEntries(dayId: string | string[]) {
 
           if (dayData?.diary_id) {
             const { lat, lng } = metadata.coordinates;
-            await supabase.from('diary_locations').insert({
-              diary_id: dayData.diary_id,
-              day_id: id,
-              name: content.trim(),
-              coordinates: `POINT(${lng} ${lat})`,
+            const { error: locError } = await supabase.rpc('insert_diary_location', {
+              p_diary_id: dayData.diary_id,
+              p_day_id: id,
+              p_name: content.trim(),
+              p_lat: lat,
+              p_lng: lng,
             });
+            if (locError) console.warn('Failed to save diary_location:', locError);
           }
         } catch (e) {
           console.warn('Failed to save to diary_locations:', e);

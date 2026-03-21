@@ -8,6 +8,7 @@ const config = require('./app.json').expo;
 module.exports = {
   expo: {
     ...config,
+    owner: 'b00r',
     ios: {
       ...config.ios,
       config: {

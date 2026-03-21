@@ -24,8 +24,13 @@
   },
   "home": {
     "title": "T2T",
+    "tab_discover": "Discover",
+    "tab_following": "Following",
     "no_diaries": "No diaries in feed",
-    "no_diaries_sub": "When travelers publish their diaries, you'll see them here!"
+    "no_diaries_sub": "When travelers publish their diaries, you'll see them here!",
+    "no_following": "Nothing from people you follow",
+    "no_following_sub": "Follow other travelers to see their diaries here.",
+    "explore_people": "Explore travelers"
   },
   "explore": {
     "title": "Explore",
@@ -70,7 +75,10 @@
     "following": "Following",
     "follow": "Follow",
     "unfollow": "Unfollow",
-    "following_button": "Following"
+    "following_button": "Following",
+    "saved_diaries": "Saved",
+    "no_saved": "No saved diaries yet.",
+    "explore_diaries": "Explore diaries"
   },
   "social": {
     "comments": "Comments",
@@ -297,6 +305,7 @@
     "none_yet": "No badges yet. Publish your first diary!",
     "more": "+{{count}} to unlock",
     "next_level": "{{xp}} XP to next level",
+    "next_badge": "Next badge",
     "lvl_1": "Tourist",
     "lvl_2": "Traveler",
     "lvl_3": "Explorer",

@@ -15,7 +15,8 @@ const THUMB_SIZE = (SCREEN_WIDTH - 48 - 16) / 3;
 
 interface CoverImagePickerProps {
   visible: boolean;
-  diaryId: string;
+  itemId: string;
+  table?: 'diaries' | 'trip_plans';
   userId: string | undefined;
   destinations: string[];
   onCoverSet: (url: string) => void;
@@ -23,7 +24,7 @@ interface CoverImagePickerProps {
 }
 
 export function CoverImagePicker({
-  visible, diaryId, userId, destinations, onCoverSet, onClose,
+  visible, itemId, table = 'diaries', userId, destinations, onCoverSet, onClose,
 }: CoverImagePickerProps) {
   const { t } = useTranslation();
   const { images, loading: stockLoading, searchImages } = useStockImages();
@@ -53,9 +54,9 @@ export function CoverImagePicker({
     setUploading(true);
     try {
       const { error } = await supabase
-        .from('diaries')
+        .from(table)
         .update({ cover_image_url: url })
-        .eq('id', diaryId);
+        .eq('id', itemId);
 
       if (error) throw error;
       onCoverSet(url);
@@ -96,7 +97,7 @@ export function CoverImagePicker({
 
       // Upload to Supabase storage
       const timestamp = Date.now();
-      const path = `${userId}/covers/${diaryId}/${timestamp}.jpg`;
+      const path = `${userId}/covers/${itemId}/${timestamp}.jpg`;
 
       const response = await fetch(manipResult.uri);
       const blob = await response.blob();
@@ -116,9 +117,9 @@ export function CoverImagePicker({
       if (!urlData?.signedUrl) throw new Error('Failed to get signed URL');
 
       const { error: updateError } = await supabase
-        .from('diaries')
+        .from(table)
         .update({ cover_image_url: urlData.signedUrl })
-        .eq('id', diaryId);
+        .eq('id', itemId);
 
       if (updateError) throw updateError;
 

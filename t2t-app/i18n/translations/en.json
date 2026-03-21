@@ -294,7 +294,10 @@
     "just_now": "just now",
     "minutes_ago": "{{count}}m ago",
     "hours_ago": "{{count}}h ago",
-    "days_ago": "{{count}}d ago"
+    "days_ago": "{{count}}d ago",
+    "group_today": "Today",
+    "group_yesterday": "Yesterday",
+    "group_older": "Earlier"
   },
   "settings": {
     "title": "Settings",

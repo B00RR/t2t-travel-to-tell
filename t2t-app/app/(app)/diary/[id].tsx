@@ -324,7 +324,7 @@ export default function DiaryDetailScreen() {
 
       <CoverImagePicker
         visible={showCoverPicker}
-        diaryId={id as string}
+        itemId={id as string}
         userId={user?.id}
         destinations={diary.destinations || []}
         onCoverSet={(url) => setDiary(prev => prev ? { ...prev, cover_image_url: url } : prev)}

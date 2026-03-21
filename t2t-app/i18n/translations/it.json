@@ -294,7 +294,10 @@
     "just_now": "proprio ora",
     "minutes_ago": "{{count}} min fa",
     "hours_ago": "{{count}} ore fa",
-    "days_ago": "{{count}} giorni fa"
+    "days_ago": "{{count}} giorni fa",
+    "group_today": "Oggi",
+    "group_yesterday": "Ieri",
+    "group_older": "Precedenti"
   },
   "settings": {
     "title": "Impostazioni",

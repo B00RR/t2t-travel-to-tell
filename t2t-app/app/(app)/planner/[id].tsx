@@ -13,6 +13,7 @@ import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
 import { TripPlanStopItem } from '@/components/TripPlanStopItem';
 import { ChecklistSection } from '@/components/ChecklistSection';
 import { BudgetSection } from '@/components/BudgetSection';
+import { CoverImagePicker } from '@/components/CoverImagePicker';
 import type { TripPlanStop, TripPlan } from '@/types/tripPlan';
 
 type Visibility = TripPlan['visibility'];
@@ -35,6 +36,8 @@ export default function TripPlanDetailScreen() {
   const { creating, clonePlan } = useCreateTripPlan(user?.id);
 
   const isOwner = plan?.author_id === user?.id;
+
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
 
   // Edit metadata modal state
   const [editVisible, setEditVisible] = useState(false);
@@ -204,13 +207,26 @@ export default function TripPlanDetailScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* Cover */}
-        {plan.cover_image_url ? (
-          <Image source={{ uri: plan.cover_image_url }} style={styles.cover} />
-        ) : (
-          <View style={styles.coverPlaceholder}>
-            <Ionicons name="map-outline" size={48} color="#ccc" />
-          </View>
-        )}
+        <TouchableOpacity
+          activeOpacity={isOwner ? 0.8 : 1}
+          onPress={() => isOwner && setShowCoverPicker(true)}
+        >
+          {plan.cover_image_url ? (
+            <Image source={{ uri: plan.cover_image_url }} style={styles.cover} />
+          ) : (
+            <View style={styles.coverPlaceholder}>
+              <Ionicons name="map-outline" size={48} color="#ccc" />
+              {isOwner && (
+                <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
+              )}
+            </View>
+          )}
+          {isOwner && plan.cover_image_url && (
+            <View style={styles.coverEditBadge}>
+              <Ionicons name="camera" size={16} color="#fff" />
+            </View>
+          )}
+        </TouchableOpacity>
 
         <View style={styles.padded}>
           {/* Title */}
@@ -301,6 +317,16 @@ export default function TripPlanDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      <CoverImagePicker
+        visible={showCoverPicker}
+        itemId={id as string}
+        table="trip_plans"
+        userId={user?.id}
+        destinations={plan.destinations || []}
+        onCoverSet={(url) => updatePlan({ cover_image_url: url })}
+        onClose={() => setShowCoverPicker(false)}
+      />
 
       {/* Edit Metadata Modal */}
       <Modal visible={editVisible} animationType="slide" presentationStyle="pageSheet">
@@ -456,6 +482,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+  },
+  coverPlaceholderText: {
+    fontSize: 14,
+    color: '#aaa',
+    fontWeight: '500',
+  },
+  coverEditBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: 14,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 14,
+    padding: 6,
   },
   content: {
     paddingBottom: 40,

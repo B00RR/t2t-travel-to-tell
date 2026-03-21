@@ -128,15 +128,41 @@ interface BadgesSectionProps {
   isOwnProfile?: boolean;
 }
 
+/** Returns how many more units are needed to unlock a badge, and which stat drives it. */
+function badgeHint(badge: BadgeDefinition, stats: BadgeStats): string | null {
+  const id = badge.id;
+  if (id === 'storyteller')     return `${Math.max(0, 5  - stats.diaries)} diari`;
+  if (id === 'elite_traveler')  return `${Math.max(0, 20 - stats.diaries)} diari`;
+  if (id === 'globetrotter')    return `${Math.max(0, 5  - stats.countries)} destinazioni`;
+  if (id === 'marco_polo')      return `${Math.max(0, 20 - stats.countries)} destinazioni`;
+  if (id === 'explorer')        return `${Math.max(0, 10 - stats.countries)} destinazioni`;
+  if (id === 'popular')         return `${Math.max(0, 50  - stats.totalLikes)} like`;
+  if (id === 'influencer')      return `${Math.max(0, 500 - stats.totalLikes)} like`;
+  if (id === 'social_butterfly')return `${Math.max(0, 50  - stats.followers)} follower`;
+  return null;
+}
+
 export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
   const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
 
-  const { earned, locked, level, xp, nextXp } = useMemo(() => {
+  const { earned, locked, level, xp, nextXp, nextBadge } = useMemo(() => {
     const earned = BADGE_DEFS.filter(b => b.check(stats));
     const locked = BADGE_DEFS.filter(b => !b.check(stats));
     const { level, xp, nextXp } = computeLevel(stats);
-    return { earned, locked, level, xp, nextXp };
+    // Badge più vicino = quello con il hint numerico più basso
+    let nextBadge: { badge: BadgeDefinition; hint: string } | null = null;
+    let minGap = Infinity;
+    for (const b of locked) {
+      const hint = badgeHint(b, stats);
+      if (!hint) continue;
+      const gap = parseInt(hint, 10);
+      if (!isNaN(gap) && gap < minGap) {
+        minGap = gap;
+        nextBadge = { badge: b, hint };
+      }
+    }
+    return { earned, locked, level, xp, nextXp, nextBadge };
   }, [stats]);
 
   const levelTitle = t(`badges.lvl_${Math.min(level, 10)}`);
@@ -158,6 +184,18 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
         </View>
         {level < 10 && (
           <Text style={styles.nextLevelText}>{t('badges.next_level', { xp: nextXp - xp })}</Text>
+        )}
+        {nextBadge && (
+          <View style={styles.nextBadgeRow}>
+            <Text style={styles.nextBadgeEmoji}>{nextBadge.badge.emoji}</Text>
+            <View style={styles.nextBadgeInfo}>
+              <Text style={styles.nextBadgeLabel}>{t('badges.next_badge')}</Text>
+              <Text style={styles.nextBadgeName}>{t(nextBadge.badge.titleKey)}</Text>
+            </View>
+            <View style={styles.nextBadgeHintPill}>
+              <Text style={styles.nextBadgeHintText}>-{nextBadge.hint}</Text>
+            </View>
+          </View>
         )}
       </View>
 
@@ -289,6 +327,45 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 6,
     textAlign: 'right',
+  },
+  nextBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#d4e8ff',
+    gap: 10,
+  },
+  nextBadgeEmoji: {
+    fontSize: 22,
+  },
+  nextBadgeInfo: {
+    flex: 1,
+  },
+  nextBadgeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#99b8e0',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  nextBadgeName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2a6db5',
+    marginTop: 1,
+  },
+  nextBadgeHintPill: {
+    backgroundColor: '#d4e8ff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  nextBadgeHintText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1a5fa8',
   },
   badgesRow: {
     flexDirection: 'row',

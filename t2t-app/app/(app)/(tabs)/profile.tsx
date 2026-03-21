@@ -276,45 +276,56 @@ export default function ProfileScreen() {
             )}
           </View>
         ) : (
-          <View style={styles.diariesList}>
+          <View style={styles.diariesGrid}>
             {(activeDiaries as (Diary | FeedDiary)[]).map((diary) => {
               const isFeed = diaryTab === 'saved';
               const authorProfile = isFeed ? (diary as FeedDiary).profiles : null;
+              const hasCover = !!diary.cover_image_url;
               return (
                 <TouchableOpacity
                   key={diary.id}
-                  style={styles.diaryCard}
+                  style={styles.diaryGridCard}
                   onPress={() => router.push(`/diary/${diary.id}`)}
+                  activeOpacity={0.85}
                 >
-                  <View style={styles.diaryCardContent}>
-                    <Text style={styles.diaryTitle} numberOfLines={1}>{diary.title}</Text>
+                  {/* Cover image or placeholder */}
+                  <View style={styles.diaryGridCover}>
+                    {hasCover ? (
+                      <Image source={{ uri: diary.cover_image_url! }} style={styles.diaryGridCoverImg} />
+                    ) : (
+                      <View style={styles.diaryGridCoverPlaceholder}>
+                        <Ionicons name="image-outline" size={28} color="#d0d0d0" />
+                      </View>
+                    )}
+                    {diaryTab === 'mine' && (
+                      <View style={[styles.gridStatusBadge, diary.status === 'published' && styles.gridStatusPublished]}>
+                        <Text style={[styles.gridStatusText, diary.status === 'published' && styles.gridStatusTextPublished]}>
+                          {diary.status === 'draft' ? t('profile.status_draft') : t('profile.status_published')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Info below cover */}
+                  <View style={styles.diaryGridInfo}>
+                    <Text style={styles.diaryGridTitle} numberOfLines={2}>{diary.title}</Text>
                     {isFeed && authorProfile && (
-                      <Text style={styles.diaryAuthor} numberOfLines={1}>
+                      <Text style={styles.diaryGridAuthor} numberOfLines={1}>
                         @{authorProfile.username || authorProfile.display_name}
                       </Text>
                     )}
                     {diary.destinations && diary.destinations.length > 0 && (
-                      <Text style={styles.diaryDest} numberOfLines={1}>
-                        📍 {diary.destinations.join(', ')}
+                      <Text style={styles.diaryGridDest} numberOfLines={1}>
+                        📍 {diary.destinations[0]}{diary.destinations.length > 1 ? ` +${diary.destinations.length - 1}` : ''}
                       </Text>
                     )}
-                    <View style={styles.diaryMeta}>
-                      {diaryTab === 'mine' && (
-                        <View style={[styles.statusBadge, diary.status === 'published' && styles.statusPublished]}>
-                          <Text style={[styles.statusText, diary.status === 'published' && styles.statusTextPublished]}>
-                            {diary.status === 'draft' ? `📝 ${t('profile.status_draft')}` : `🌍 ${t('profile.status_published')}`}
-                          </Text>
-                        </View>
-                      )}
-                      <View style={styles.diaryStats}>
-                        <Ionicons name="heart" size={14} color="#ccc" />
-                        <Text style={styles.diaryStatNum}>{diary.like_count || 0}</Text>
-                        <Ionicons name="eye" size={14} color="#ccc" style={{ marginLeft: 8 }} />
-                        <Text style={styles.diaryStatNum}>{diary.view_count || 0}</Text>
-                      </View>
+                    <View style={styles.diaryGridStats}>
+                      <Ionicons name="heart" size={12} color="#bbb" />
+                      <Text style={styles.diaryGridStatNum}>{diary.like_count || 0}</Text>
+                      <Ionicons name="eye" size={12} color="#bbb" style={{ marginLeft: 6 }} />
+                      <Text style={styles.diaryGridStatNum}>{diary.view_count || 0}</Text>
                     </View>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#ccc" />
                 </TouchableOpacity>
               );
             })}
@@ -590,74 +601,88 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
   },
-  diariesList: {
-    marginHorizontal: 16,
-  },
-  diaryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
+  diariesGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  diaryGridCard: {
+    width: '47.5%',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  diaryCardContent: {
+  diaryGridCover: {
+    height: 120,
+    backgroundColor: '#f5f5f5',
+    position: 'relative',
+  },
+  diaryGridCoverImg: {
+    width: '100%',
+    height: '100%',
+  },
+  diaryGridCoverPlaceholder: {
     flex: 1,
-    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
-  diaryTitle: {
-    fontSize: 17,
+  gridStatusBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(240,240,240,0.92)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  gridStatusPublished: {
+    backgroundColor: 'rgba(52,199,89,0.18)',
+  },
+  gridStatusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#666',
+  },
+  gridStatusTextPublished: {
+    color: '#22a045',
+  },
+  diaryGridInfo: {
+    padding: 10,
+  },
+  diaryGridTitle: {
+    fontSize: 13,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 2,
-  },
-  diaryAuthor: {
-    fontSize: 13,
-    color: '#007AFF',
-    fontWeight: '600',
+    lineHeight: 18,
     marginBottom: 4,
   },
-  diaryDest: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 8,
-  },
-  diaryMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  statusPublished: {
-    backgroundColor: '#e8faf0',
-  },
-  statusText: {
-    fontSize: 12,
+  diaryGridAuthor: {
+    fontSize: 11,
+    color: '#007AFF',
     fontWeight: '600',
-    color: '#666',
+    marginBottom: 3,
   },
-  statusTextPublished: {
-    color: '#34C759',
+  diaryGridDest: {
+    fontSize: 11,
+    color: '#888',
+    marginBottom: 6,
   },
-  diaryStats: {
+  diaryGridStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
   },
-  diaryStatNum: {
-    fontSize: 12,
-    color: '#ccc',
+  diaryGridStatNum: {
+    fontSize: 11,
+    color: '#bbb',
     fontWeight: '600',
+    marginLeft: 2,
   },
 
   // Modal

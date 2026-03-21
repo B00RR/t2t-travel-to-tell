@@ -305,6 +305,7 @@
     "none_yet": "No badges yet. Publish your first diary!",
     "more": "+{{count}} to unlock",
     "next_level": "{{xp}} XP to next level",
+    "next_badge": "Next badge",
     "lvl_1": "Tourist",
     "lvl_2": "Traveler",
     "lvl_3": "Explorer",

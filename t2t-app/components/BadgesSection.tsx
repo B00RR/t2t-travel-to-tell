@@ -131,6 +131,7 @@ interface BadgesSectionProps {
 /** Returns how many more units are needed to unlock a badge, and which stat drives it. */
 function badgeHint(badge: BadgeDefinition, stats: BadgeStats): string | null {
   const id = badge.id;
+  if (id === 'first_journey')   return `${Math.max(0, 1  - stats.diaries)} diari`;
   if (id === 'storyteller')     return `${Math.max(0, 5  - stats.diaries)} diari`;
   if (id === 'elite_traveler')  return `${Math.max(0, 20 - stats.diaries)} diari`;
   if (id === 'globetrotter')    return `${Math.max(0, 5  - stats.countries)} destinazioni`;
@@ -235,7 +236,7 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
       )}
 
       {/* All badges modal */}
-      <Modal visible={showAll} animationType="slide" transparent>
+      <Modal visible={showAll} animationType="slide" transparent onRequestClose={() => setShowAll(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>

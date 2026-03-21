@@ -284,10 +284,11 @@ export default function ProfileScreen() {
               return (
                 <TouchableOpacity
                   key={diary.id}
-                  style={styles.diaryGridCard}
+                  style={styles.diaryGridCardShadow}
                   onPress={() => router.push(`/diary/${diary.id}`)}
                   activeOpacity={0.85}
                 >
+                  <View style={styles.diaryGridCard}>
                   {/* Cover image or placeholder */}
                   <View style={styles.diaryGridCover}>
                     {hasCover ? (
@@ -325,6 +326,7 @@ export default function ProfileScreen() {
                       <Ionicons name="eye" size={12} color="#bbb" style={{ marginLeft: 6 }} />
                       <Text style={styles.diaryGridStatNum}>{diary.view_count || 0}</Text>
                     </View>
+                  </View>
                   </View>
                 </TouchableOpacity>
               );
@@ -370,17 +372,20 @@ export default function ProfileScreen() {
           >
             {/* Avatar */}
             <TouchableOpacity style={styles.avatarEdit} onPress={handlePickAvatar} activeOpacity={0.8}>
-              <View style={styles.avatarLargeRing}>
-                <View style={styles.avatarLarge}>
-                  {profile?.avatar_url ? (
-                    <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
-                  ) : (
-                    <Ionicons name="person" size={40} color="#fff" />
-                  )}
+              {/* Wrapper a dimensione fissa: il badge assoluto è relativo a questo */}
+              <View style={styles.avatarEditWrapper}>
+                <View style={styles.avatarLargeRing}>
+                  <View style={styles.avatarLarge}>
+                    {profile?.avatar_url ? (
+                      <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
+                    ) : (
+                      <Ionicons name="person" size={40} color="#fff" />
+                    )}
+                  </View>
                 </View>
-              </View>
-              <View style={styles.avatarEditBadge}>
-                <Ionicons name="camera" size={14} color="#fff" />
+                <View style={styles.avatarEditBadge}>
+                  <Ionicons name="camera" size={14} color="#fff" />
+                </View>
               </View>
               <Text style={styles.changeAvatarText}>{t('profile.change_avatar')}</Text>
             </TouchableOpacity>
@@ -607,16 +612,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 10,
   },
-  diaryGridCard: {
+  diaryGridCardShadow: {
     width: '47.5%',
-    backgroundColor: '#fff',
     borderRadius: 14,
-    overflow: 'hidden',
+    backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 3,
+  },
+  diaryGridCard: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
   },
   diaryGridCover: {
     height: 120,
@@ -725,6 +734,10 @@ const styles = StyleSheet.create({
   avatarEdit: {
     alignItems: 'center',
     marginBottom: 28,
+  },
+  avatarEditWrapper: {
+    width: 96,
+    height: 96,
     position: 'relative',
   },
   avatarLargeRing: {
@@ -753,9 +766,8 @@ const styles = StyleSheet.create({
   },
   avatarEditBadge: {
     position: 'absolute',
-    bottom: 22,
-    right: '50%',
-    transform: [{ translateX: 28 }],
+    bottom: 2,
+    right: 2,
     backgroundColor: '#007AFF',
     width: 26,
     height: 26,
@@ -786,6 +798,7 @@ const styles = StyleSheet.create({
     color: '#888',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+    marginBottom: 6,
   },
   charCount: {
     fontSize: 12,

@@ -17,7 +17,8 @@
     "error": "Error",
     "error_generic": "Oops! Something went wrong. Please try again later.",
     "retry": "Retry",
-    "upload_error": "Upload Error"
+    "upload_error": "Upload Error",
+    "success": "Success"
   },
   "home": {
     "title": "T2T",
@@ -188,7 +189,11 @@
     "err_invalid_credentials": "Email or password incorrect.",
     "err_pass_too_short": "Password must be at least 6 characters.",
     "err_register_failed": "Registration failed. Please try again later.",
-    "err_login_failed": "Login failed. Please try again later."
+    "err_login_failed": "Login failed. Please try again later.",
+    "register_now": "Register",
+    "email_placeholder": "email@example.com",
+    "password_placeholder": "••••••••",
+    "register_success": "Registration complete! Check your email."
   },
   "planner": {
     "tab": "Planner",

@@ -17,7 +17,8 @@
     "error": "Errore",
     "error_generic": "Ops! Qualcosa è andato storto. Riprova più tardi.",
     "retry": "Riprova",
-    "upload_error": "Errore Caricamento"
+    "upload_error": "Errore Caricamento",
+    "success": "Successo"
   },
   "home": {
     "title": "T2T",
@@ -188,7 +189,11 @@
     "err_invalid_credentials": "Email o password non validi.",
     "err_pass_too_short": "La password deve contenere almeno 6 caratteri.",
     "err_register_failed": "Registrazione fallita. Riprova più tardi.",
-    "err_login_failed": "Accesso fallito. Riprova più tardi."
+    "err_login_failed": "Accesso fallito. Riprova più tardi.",
+    "register_now": "Registrati",
+    "email_placeholder": "email@example.com",
+    "password_placeholder": "••••••••",
+    "register_success": "Registrazione completata! Controlla la tua email."
   },
   "planner": {
     "tab": "Planner",

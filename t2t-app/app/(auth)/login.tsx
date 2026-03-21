@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -100,14 +100,13 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            <View style={styles.footerRow}> {/* Re-added footerRow for consistency */}
-              <Text style={styles.footerText}>{t('auth.no_account')}</Text>
-              <Link href="/(auth)/register" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.footerLink}>{t('auth.register_now')}</Text> {/* Changed to register_now */}
-                </TouchableOpacity>
-              </Link>
-            </View>
+            <TouchableOpacity
+              style={styles.footerRow}
+              onPress={() => router.push('/(auth)/register')}
+            >
+              <Text style={styles.footerText}>{t('auth.no_account')} </Text>
+              <Text style={styles.footerLink}>{t('auth.register_now')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

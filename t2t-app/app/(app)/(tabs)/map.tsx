@@ -10,7 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useMapLocations } from '@/hooks/useMapLocations';
-import { usePublicMapLocations } from '@/hooks/usePublicMapLocations';
+import { usePublicMapLocations, type PublicMapLocation } from '@/hooks/usePublicMapLocations';
 
 type MapMode = 'mine' | 'discover';
 
@@ -32,6 +32,7 @@ export default function MapScreen() {
 
   const mapRef = useRef<MapView>(null);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
+  const fittedModesRef = useRef<Set<MapMode>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
@@ -62,13 +63,14 @@ export default function MapScreen() {
   const loading = mode === 'mine' ? myLoading : publicLoading;
 
   useEffect(() => {
-    if (locations.length > 0 && mapRef.current) {
+    if (locations.length > 0 && mapRef.current && !fittedModesRef.current.has(mode)) {
+      fittedModesRef.current.add(mode);
       mapRef.current.fitToCoordinates(
         locations.map(l => ({ latitude: l.lat, longitude: l.lng })),
         { edgePadding: { top: 80, right: 40, bottom: 80, left: 40 }, animated: true }
       );
     }
-  }, [locations]);
+  }, [locations, mode]);
 
   const centerOnMe = useCallback(async () => {
     if (!locationPermission) {
@@ -128,9 +130,9 @@ export default function MapScreen() {
             <Callout onPress={() => router.push(`/diary/${loc.diary_id}`)}>
               <View style={styles.callout}>
                 <Text style={styles.calloutTitle} numberOfLines={1}>{loc.diary_title}</Text>
-                {mode === 'discover' && (loc as any).author_display_name && (
+                {mode === 'discover' && (loc as PublicMapLocation).author_display_name && (
                   <Text style={styles.calloutAuthor} numberOfLines={1}>
-                    @{(loc as any).author_username || (loc as any).author_display_name}
+                    @{(loc as PublicMapLocation).author_username || (loc as PublicMapLocation).author_display_name}
                   </Text>
                 )}
                 <Text style={styles.calloutSubtitle} numberOfLines={1}>{loc.name}</Text>

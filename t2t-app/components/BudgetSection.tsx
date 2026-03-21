@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ScrollView
 } from 'react-native';
@@ -103,8 +103,10 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
 
   const draftTotal = Object.values(draft.breakdown || {}).reduce((s, v) => s + (v || 0), 0);
 
-  const fmt = (n: number) =>
-    n.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const fmt = useCallback((n: number) =>
+    n.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+    [locale]
+  );
 
   return (
     <View>

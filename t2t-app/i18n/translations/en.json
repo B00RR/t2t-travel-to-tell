@@ -54,9 +54,12 @@
     "change_avatar": "Change Profile Picture",
     "display_name": "Display Name",
     "username": "Username",
+    "username_placeholder": "e.g. travel_explorer",
     "bio": "Bio",
     "bio_placeholder": "Tell something about yourself...",
     "username_required": "Username is required",
+    "err_update_failed": "Unable to update profile.",
+    "err_avatar_failed": "Unable to upload profile picture. Please try again.",
     "username_taken": "This username is already taken",
     "status_draft": "Draft",
     "status_published": "Published",
@@ -178,9 +181,14 @@
     "search_placeholder": "Search images by destination...",
     "uploading": "Uploading...",
     "no_stock_results": "No images found. Try a different search.",
+    "api_key_missing": "Stock image search is not configured. You can still upload a photo from your gallery.",
     "err_set_failed": "Unable to set cover image.",
     "err_upload_failed": "Unable to upload image.",
     "permission_denied": "You need to allow access to the gallery."
+  },
+  "media": {
+    "permission_denied": "You need to allow access to the gallery.",
+    "upload_failed": "An error occurred while uploading the file. Please try again."
   },
   "auth": {
     "login_welcome": "Welcome back! Continue your adventures.",

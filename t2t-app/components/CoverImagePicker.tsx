@@ -27,7 +27,7 @@ export function CoverImagePicker({
   visible, itemId, table = 'diaries', userId, destinations, onCoverSet, onClose,
 }: CoverImagePickerProps) {
   const { t } = useTranslation();
-  const { images, loading: stockLoading, searchImages } = useStockImages();
+  const { images, loading: stockLoading, searchImages, apiKeyMissing } = useStockImages();
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -189,6 +189,11 @@ export function CoverImagePicker({
         {stockLoading ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color="#007AFF" />
+          </View>
+        ) : apiKeyMissing ? (
+          <View style={styles.center}>
+            <Ionicons name="images-outline" size={48} color="#ddd" />
+            <Text style={styles.emptyText}>{t('cover.api_key_missing')}</Text>
           </View>
         ) : images.length === 0 ? (
           <View style={styles.center}>

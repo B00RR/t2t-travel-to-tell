@@ -12,6 +12,7 @@ const PEXELS_API_KEY = process.env.EXPO_PUBLIC_PEXELS_API_KEY || '';
 export function useStockImages() {
   const [images, setImages] = useState<StockImage[]>([]);
   const [loading, setLoading] = useState(false);
+  const apiKeyMissing = !PEXELS_API_KEY;
 
   const searchImages = useCallback(async (query: string) => {
     if (!query.trim() || !PEXELS_API_KEY) {
@@ -45,5 +46,5 @@ export function useStockImages() {
     }
   }, []);
 
-  return { images, loading, searchImages };
+  return { images, loading, searchImages, apiKeyMissing };
 }

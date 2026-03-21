@@ -54,9 +54,12 @@
     "change_avatar": "Cambia Foto Profilo",
     "display_name": "Nome Visualizzato",
     "username": "Username",
+    "username_placeholder": "es. viaggiatore_curioso",
     "bio": "Bio",
     "bio_placeholder": "Racconta qualcosa di te...",
     "username_required": "Lo username è obbligatorio",
+    "err_update_failed": "Impossibile aggiornare il profilo.",
+    "err_avatar_failed": "Impossibile caricare la foto profilo. Riprova più tardi.",
     "username_taken": "Questo username è già in uso",
     "status_draft": "Bozza",
     "status_published": "Pubblicato",
@@ -178,9 +181,14 @@
     "search_placeholder": "Cerca immagini per destinazione...",
     "uploading": "Caricamento...",
     "no_stock_results": "Nessuna immagine trovata. Prova un'altra ricerca.",
+    "api_key_missing": "La ricerca di immagini stock non è configurata. Puoi comunque caricare una foto dalla galleria.",
     "err_set_failed": "Impossibile impostare la copertina.",
     "err_upload_failed": "Impossibile caricare l'immagine.",
     "permission_denied": "Devi consentire l'accesso alla galleria."
+  },
+  "media": {
+    "permission_denied": "Devi consentire l'accesso alla galleria.",
+    "upload_failed": "Si è verificato un errore durante il caricamento del file. Riprova più tardi."
   },
   "auth": {
     "login_welcome": "Bentornato! Continua le tue avventure.",

@@ -10,6 +10,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useMapLocations } from '@/hooks/useMapLocations';
+import { usePublicMapLocations } from '@/hooks/usePublicMapLocations';
+
+type MapMode = 'mine' | 'discover';
 
 const DEFAULT_REGION: Region = {
   latitude: 41.9028,
@@ -22,15 +25,19 @@ export default function MapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
-  const { locations, loading, refresh } = useMapLocations(user?.id);
+  const [mode, setMode] = useState<MapMode>('mine');
+
+  const { locations: myLocations, loading: myLoading, refresh: myRefresh } = useMapLocations(user?.id);
+  const { locations: publicLocations, loading: publicLoading, refresh: publicRefresh } = usePublicMapLocations();
+
   const mapRef = useRef<MapView>(null);
-  const [region, setRegion] = useState<Region>(DEFAULT_REGION);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      refresh();
-    }, [refresh])
+      myRefresh();
+      publicRefresh();
+    }, [myRefresh, publicRefresh])
   );
 
   useEffect(() => {
@@ -38,20 +45,12 @@ export default function MapScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       const granted = status === 'granted';
       setLocationPermission(granted);
-
-      if (granted) {
-        const pos = await Location.getCurrentPositionAsync({});
-        setRegion({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          latitudeDelta: 10,
-          longitudeDelta: 10,
-        });
-      }
     })();
   }, []);
 
-  // Once locations are loaded, fit the map to show all pins
+  const locations = mode === 'mine' ? myLocations : publicLocations;
+  const loading = mode === 'mine' ? myLoading : publicLoading;
+
   useEffect(() => {
     if (locations.length > 0 && mapRef.current) {
       mapRef.current.fitToCoordinates(
@@ -75,16 +74,38 @@ export default function MapScreen() {
     }, 500);
   }, [locationPermission, t]);
 
+  const emptyText = mode === 'mine' ? t('map.no_locations') : t('map.no_public_locations');
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('map.my_map')}</Text>
+        <View style={styles.toggle}>
+          <TouchableOpacity
+            style={[styles.toggleBtn, mode === 'mine' && styles.toggleBtnActive]}
+            onPress={() => setMode('mine')}
+          >
+            <Ionicons name="person" size={14} color={mode === 'mine' ? '#fff' : '#555'} />
+            <Text style={[styles.toggleText, mode === 'mine' && styles.toggleTextActive]}>
+              {t('map.my_map')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleBtn, mode === 'discover' && styles.toggleBtnActive]}
+            onPress={() => setMode('discover')}
+          >
+            <Ionicons name="globe-outline" size={14} color={mode === 'discover' ? '#fff' : '#555'} />
+            <Text style={[styles.toggleText, mode === 'discover' && styles.toggleTextActive]}>
+              {t('map.discover')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <MapView
         ref={mapRef}
         style={styles.map}
-        initialRegion={region}
+        initialRegion={DEFAULT_REGION}
         showsUserLocation={locationPermission === true}
         showsMyLocationButton={false}
       >
@@ -92,11 +113,16 @@ export default function MapScreen() {
           <Marker
             key={loc.id}
             coordinate={{ latitude: loc.lat, longitude: loc.lng }}
-            pinColor="#007AFF"
+            pinColor={mode === 'mine' ? '#007AFF' : '#FF6B35'}
           >
             <Callout onPress={() => router.push(`/diary/${loc.diary_id}`)}>
               <View style={styles.callout}>
                 <Text style={styles.calloutTitle} numberOfLines={1}>{loc.diary_title}</Text>
+                {mode === 'discover' && (loc as any).author_display_name && (
+                  <Text style={styles.calloutAuthor} numberOfLines={1}>
+                    @{(loc as any).author_username || (loc as any).author_display_name}
+                  </Text>
+                )}
                 <Text style={styles.calloutSubtitle} numberOfLines={1}>{loc.name}</Text>
                 {(loc.city || loc.country) && (
                   <Text style={styles.calloutMeta} numberOfLines={1}>
@@ -119,8 +145,8 @@ export default function MapScreen() {
       {!loading && locations.length === 0 && (
         <View style={styles.emptyOverlay} pointerEvents="none">
           <View style={styles.emptyCard}>
-            <Ionicons name="map-outline" size={32} color="#007AFF" />
-            <Text style={styles.emptyText}>{t('map.no_locations')}</Text>
+            <Ionicons name={mode === 'mine' ? 'map-outline' : 'globe-outline'} size={32} color="#007AFF" />
+            <Text style={styles.emptyText}>{emptyText}</Text>
           </View>
         </View>
       )}
@@ -144,16 +170,44 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     backgroundColor: '#fff',
     zIndex: 1,
+    gap: 12,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
     color: '#1a1a1a',
+  },
+  toggle: {
+    flexDirection: 'row',
+    backgroundColor: '#f2f2f7',
+    borderRadius: 12,
+    padding: 3,
+    gap: 3,
+  },
+  toggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  toggleBtnActive: {
+    backgroundColor: '#007AFF',
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+  },
+  toggleTextActive: {
+    color: '#fff',
   },
   map: {
     flex: 1,
@@ -166,6 +220,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  calloutAuthor: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontWeight: '600',
     marginBottom: 2,
   },
   calloutSubtitle: {

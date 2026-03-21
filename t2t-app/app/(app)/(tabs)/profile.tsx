@@ -8,6 +8,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { BadgesSection } from '@/components/BadgesSection';
+import { TravelStats } from '@/components/TravelStats';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
 import i18n from '@/i18n';
@@ -157,6 +158,9 @@ export default function ProfileScreen() {
           isOwnProfile={true}
           onEditPress={handleEditPress}
         />
+
+        {/* Section: Travel Stats */}
+        <TravelStats diaries={diaries} />
 
         {/* Section: Badges */}
         <View style={styles.sectionHeader}>

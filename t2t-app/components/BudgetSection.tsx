@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ScrollView, Alert
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import type { BudgetEstimate } from '@/types/tripPlan';
+import type { BudgetEstimate, BudgetExpense } from '@/types/tripPlan';
 
 const BUDGET_CATEGORIES = [
   { key: 'transport', icon: 'airplane-outline' },
@@ -16,6 +16,8 @@ const BUDGET_CATEGORIES = [
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD'];
 
+type Tab = 'estimated' | 'expenses';
+
 interface BudgetSectionProps {
   budget: BudgetEstimate;
   isOwner: boolean;
@@ -24,114 +26,243 @@ interface BudgetSectionProps {
 
 export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language === 'it' ? locale : 'en-US';
-  const [editing, setEditing] = useState(false);
+  const locale = i18n.language === 'it' ? 'it-IT' : 'en-US';
+  const [tab, setTab] = useState<Tab>('estimated');
+  const [editingEstimate, setEditingEstimate] = useState(false);
+  const [addingExpense, setAddingExpense] = useState(false);
   const [draft, setDraft] = useState<BudgetEstimate>({});
+  const [expenseForm, setExpenseForm] = useState({ amount: '', category: 'other', note: '' });
 
   const currency = budget.currency || 'EUR';
   const breakdown = budget.breakdown || {};
+  const expenses = budget.expenses || [];
   const computedTotal = Object.values(breakdown).reduce((sum, v) => sum + (v || 0), 0);
   const displayTotal = budget.total ?? computedTotal;
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const hasData = displayTotal > 0 || Object.keys(breakdown).length > 0;
+  const hasEstimate = displayTotal > 0 || Object.keys(breakdown).length > 0;
 
-  function openEdit() {
+  function openEditEstimate() {
     setDraft({
       currency: budget.currency || 'EUR',
       breakdown: { ...budget.breakdown },
       total: budget.total,
     });
-    setEditing(true);
+    setEditingEstimate(true);
   }
 
   function setCategory(key: string, value: string) {
     const num = parseFloat(value.replace(',', '.'));
     setDraft(prev => ({
       ...prev,
-      breakdown: {
-        ...prev.breakdown,
-        [key]: isNaN(num) ? 0 : num,
-      },
+      breakdown: { ...prev.breakdown, [key]: isNaN(num) ? 0 : num },
     }));
   }
 
-  async function handleSave() {
-    const breakdown = draft.breakdown || {};
-    const computed = Object.values(breakdown).reduce((s, v) => s + (v || 0), 0);
+  async function handleSaveEstimate() {
+    const bd = draft.breakdown || {};
+    const computed = Object.values(bd).reduce((s, v) => s + (v || 0), 0);
     const toSave: BudgetEstimate = {
       currency: draft.currency || 'EUR',
-      breakdown,
+      breakdown: bd,
       total: computed > 0 ? computed : undefined,
+      expenses: budget.expenses,
     };
     const ok = await onUpdate(toSave);
-    if (ok) setEditing(false);
+    if (ok) setEditingEstimate(false);
+  }
+
+  async function handleAddExpense() {
+    const amount = parseFloat(expenseForm.amount.replace(',', '.'));
+    if (isNaN(amount) || amount <= 0) return;
+    const newExpense: BudgetExpense = {
+      id: Date.now().toString(),
+      amount,
+      category: expenseForm.category,
+      note: expenseForm.note.trim(),
+      date: new Date().toISOString().split('T')[0],
+    };
+    const updated: BudgetEstimate = {
+      ...budget,
+      expenses: [...expenses, newExpense],
+    };
+    const ok = await onUpdate(updated);
+    if (ok) {
+      setExpenseForm({ amount: '', category: 'other', note: '' });
+      setAddingExpense(false);
+    }
+  }
+
+  async function handleDeleteExpense(id: string) {
+    const updated: BudgetEstimate = {
+      ...budget,
+      expenses: expenses.filter(e => e.id !== id),
+    };
+    await onUpdate(updated);
   }
 
   const draftTotal = Object.values(draft.breakdown || {}).reduce((s, v) => s + (v || 0), 0);
 
+  const fmt = (n: number) =>
+    n.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
   return (
     <View>
+      {/* Section header */}
       <View style={styles.sectionHeader}>
         <View style={styles.titleRow}>
           <Ionicons name="wallet-outline" size={20} color="#34C759" />
           <Text style={styles.sectionTitle}>{t('planner.budget')}</Text>
         </View>
-        {isOwner && (
-          <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
-            <Ionicons name="pencil-outline" size={15} color="#007AFF" />
-            <Text style={styles.editBtnText}>{t('planner.budget_edit')}</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
-      {!hasData ? (
-        isOwner ? (
-          <TouchableOpacity style={styles.emptyBudgetBtn} onPress={openEdit}>
-            <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-            <Text style={styles.emptyBudgetText}>{t('planner.budget_add')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.noBudgetText}>{t('planner.budget_empty')}</Text>
-        )
-      ) : (
-        <View style={styles.budgetCard}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>{t('planner.budget_total')}</Text>
-            <Text style={styles.totalAmount}>
-              {displayTotal.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {currency}
+      {/* Summary bar */}
+      {(hasEstimate || expenses.length > 0) && (
+        <View style={styles.summaryBar}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>{t('planner.budget_estimated')}</Text>
+            <Text style={styles.summaryAmount}>{fmt(displayTotal)} {currency}</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>{t('planner.budget_spent')}</Text>
+            <Text style={[styles.summaryAmount, totalSpent > displayTotal && displayTotal > 0 && styles.overBudget]}>
+              {fmt(totalSpent)} {currency}
             </Text>
           </View>
-          {Object.keys(breakdown).length > 0 && (
-            <View style={styles.breakdown}>
-              {BUDGET_CATEGORIES.filter(c => breakdown[c.key] && breakdown[c.key]! > 0).map(cat => (
-                <View key={cat.key} style={styles.breakdownRow}>
-                  <View style={styles.breakdownLeft}>
-                    <Ionicons name={cat.icon as any} size={15} color="#666" />
-                    <Text style={styles.breakdownLabel}>{t(`planner.budget_cat_${cat.key}`)}</Text>
-                  </View>
-                  <Text style={styles.breakdownAmount}>
-                    {(breakdown[cat.key] || 0).toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {currency}
-                  </Text>
-                </View>
-              ))}
-            </View>
+          {displayTotal > 0 && (
+            <>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>{t('planner.budget_remaining')}</Text>
+                <Text style={[styles.summaryAmount, totalSpent > displayTotal ? styles.overBudget : styles.underBudget]}>
+                  {fmt(displayTotal - totalSpent)} {currency}
+                </Text>
+              </View>
+            </>
           )}
         </View>
       )}
 
-      {/* Edit Modal */}
-      <Modal visible={editing} animationType="slide" transparent>
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tabBtn, tab === 'estimated' && styles.tabBtnActive]}
+          onPress={() => setTab('estimated')}
+        >
+          <Text style={[styles.tabText, tab === 'estimated' && styles.tabTextActive]}>
+            {t('planner.budget_tab_estimated')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabBtn, tab === 'expenses' && styles.tabBtnActive]}
+          onPress={() => setTab('expenses')}
+        >
+          <Text style={[styles.tabText, tab === 'expenses' && styles.tabTextActive]}>
+            {t('planner.budget_tab_expenses')} {expenses.length > 0 ? `(${expenses.length})` : ''}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ESTIMATED TAB */}
+      {tab === 'estimated' && (
+        <>
+          {!hasEstimate ? (
+            isOwner ? (
+              <TouchableOpacity style={styles.emptyBudgetBtn} onPress={openEditEstimate}>
+                <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                <Text style={styles.emptyBudgetText}>{t('planner.budget_add')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.noBudgetText}>{t('planner.budget_empty')}</Text>
+            )
+          ) : (
+            <View style={styles.budgetCard}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>{t('planner.budget_total')}</Text>
+                <View style={styles.totalRight}>
+                  <Text style={styles.totalAmount}>{fmt(displayTotal)} {currency}</Text>
+                  {isOwner && (
+                    <TouchableOpacity onPress={openEditEstimate} style={styles.editIconBtn}>
+                      <Ionicons name="pencil-outline" size={16} color="#007AFF" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+              {Object.keys(breakdown).length > 0 && (
+                <View style={styles.breakdown}>
+                  {BUDGET_CATEGORIES.filter(c => breakdown[c.key] && breakdown[c.key]! > 0).map(cat => (
+                    <View key={cat.key} style={styles.breakdownRow}>
+                      <View style={styles.breakdownLeft}>
+                        <Ionicons name={cat.icon as any} size={15} color="#666" />
+                        <Text style={styles.breakdownLabel}>{t(`planner.budget_cat_${cat.key}`)}</Text>
+                      </View>
+                      <Text style={styles.breakdownAmount}>
+                        {fmt(breakdown[cat.key] || 0)} {currency}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </>
+      )}
+
+      {/* EXPENSES TAB */}
+      {tab === 'expenses' && (
+        <>
+          {isOwner && (
+            <TouchableOpacity style={styles.addExpenseBtn} onPress={() => setAddingExpense(true)}>
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text style={styles.addExpenseBtnText}>{t('planner.expense_add')}</Text>
+            </TouchableOpacity>
+          )}
+          {expenses.length === 0 ? (
+            <Text style={styles.noBudgetText}>{t('planner.expense_empty')}</Text>
+          ) : (
+            <View style={styles.expenseList}>
+              {expenses.map(exp => {
+                const cat = BUDGET_CATEGORIES.find(c => c.key === exp.category);
+                return (
+                  <View key={exp.id} style={styles.expenseRow}>
+                    <View style={styles.expenseIconWrap}>
+                      <Ionicons name={(cat?.icon ?? 'ellipsis-horizontal-outline') as any} size={16} color="#555" />
+                    </View>
+                    <View style={styles.expenseInfo}>
+                      <Text style={styles.expenseNote} numberOfLines={1}>
+                        {exp.note || t(`planner.budget_cat_${exp.category}`)}
+                      </Text>
+                      <Text style={styles.expenseDate}>{exp.date}</Text>
+                    </View>
+                    <Text style={styles.expenseAmount}>{fmt(exp.amount)} {currency}</Text>
+                    {isOwner && (
+                      <TouchableOpacity
+                        onPress={() => handleDeleteExpense(exp.id)}
+                        style={styles.deleteExpenseBtn}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </>
+      )}
+
+      {/* Edit Estimate Modal */}
+      <Modal visible={editingEstimate} animationType="slide" transparent>
         <View style={styles.overlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('planner.budget_edit')}</Text>
-              <TouchableOpacity onPress={() => setEditing(false)}>
+              <TouchableOpacity onPress={() => setEditingEstimate(false)}>
                 <Ionicons name="close" size={24} color="#1a1a1a" />
               </TouchableOpacity>
             </View>
-
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Currency */}
               <Text style={styles.fieldLabel}>{t('planner.budget_currency')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
                 <View style={styles.currencyRow}>
@@ -148,8 +279,6 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                   ))}
                 </View>
               </ScrollView>
-
-              {/* Category inputs */}
               <Text style={styles.fieldLabel}>{t('planner.budget_breakdown')}</Text>
               {BUDGET_CATEGORIES.map(cat => (
                 <View key={cat.key} style={styles.categoryRow}>
@@ -170,21 +299,71 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                   </View>
                 </View>
               ))}
-
-              {/* Computed total */}
               {draftTotal > 0 && (
                 <View style={styles.draftTotalRow}>
                   <Text style={styles.draftTotalLabel}>{t('planner.budget_total')}</Text>
                   <Text style={styles.draftTotalAmount}>
-                    {draftTotal.toLocaleString(locale, { minimumFractionDigits: 0 })} {draft.currency || 'EUR'}
+                    {fmt(draftTotal)} {draft.currency || 'EUR'}
                   </Text>
                 </View>
               )}
-
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveEstimate}>
                 <Text style={styles.saveBtnText}>{t('common.save')}</Text>
               </TouchableOpacity>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Expense Modal */}
+      <Modal visible={addingExpense} animationType="slide" transparent>
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('planner.expense_add')}</Text>
+              <TouchableOpacity onPress={() => setAddingExpense(false)}>
+                <Ionicons name="close" size={24} color="#1a1a1a" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.fieldLabel}>{t('planner.budget_cat_label')}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+              <View style={styles.currencyRow}>
+                {BUDGET_CATEGORIES.map(cat => (
+                  <TouchableOpacity
+                    key={cat.key}
+                    style={[styles.currencyChip, expenseForm.category === cat.key && styles.currencyChipActive]}
+                    onPress={() => setExpenseForm(p => ({ ...p, category: cat.key }))}
+                  >
+                    <Text style={[styles.currencyChipText, expenseForm.category === cat.key && styles.currencyChipTextActive]}>
+                      {t(`planner.budget_cat_${cat.key}`)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+            <Text style={styles.fieldLabel}>{t('planner.expense_amount')}</Text>
+            <View style={[styles.amountInput, { marginBottom: 16 }]}>
+              <TextInput
+                style={[styles.amountField, { flex: 1 }]}
+                keyboardType="decimal-pad"
+                placeholder="0.00"
+                placeholderTextColor="#bbb"
+                value={expenseForm.amount}
+                onChangeText={v => setExpenseForm(p => ({ ...p, amount: v }))}
+              />
+              <Text style={styles.amountCurrency}>{currency}</Text>
+            </View>
+            <Text style={styles.fieldLabel}>{t('planner.expense_note')}</Text>
+            <TextInput
+              style={[styles.amountInput, { paddingVertical: 12, fontSize: 15, marginBottom: 20 }]}
+              placeholder={t('planner.expense_note_placeholder')}
+              placeholderTextColor="#bbb"
+              value={expenseForm.note}
+              onChangeText={v => setExpenseForm(p => ({ ...p, note: v }))}
+            />
+            <TouchableOpacity style={styles.saveBtn} onPress={handleAddExpense}>
+              <Text style={styles.saveBtnText}>{t('planner.expense_save')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -197,7 +376,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   titleRow: {
     flexDirection: 'row',
@@ -209,20 +388,73 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
   },
-  editBtn: {
+  summaryBar: {
     flexDirection: 'row',
+    backgroundColor: '#f8fff8',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#d4f0d4',
+  },
+  summaryItem: {
+    flex: 1,
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderRadius: 12,
   },
-  editBtnText: {
-    fontSize: 13,
-    color: '#007AFF',
+  summaryDivider: {
+    width: 1,
+    backgroundColor: '#d4f0d4',
+    marginHorizontal: 8,
+  },
+  summaryLabel: {
+    fontSize: 11,
+    color: '#888',
     fontWeight: '600',
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  summaryAmount: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    textAlign: 'center',
+  },
+  overBudget: {
+    color: '#FF3B30',
+  },
+  underBudget: {
+    color: '#34C759',
+  },
+  tabs: {
+    flexDirection: 'row',
+    backgroundColor: '#f2f2f7',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 14,
+    gap: 3,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  tabBtnActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#888',
+  },
+  tabTextActive: {
+    color: '#1a1a1a',
   },
   emptyBudgetBtn: {
     flexDirection: 'row',
@@ -265,10 +497,18 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '600',
   },
+  totalRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   totalAmount: {
     fontSize: 22,
     fontWeight: '800',
     color: '#1a1a1a',
+  },
+  editIconBtn: {
+    padding: 4,
   },
   breakdown: {
     gap: 8,
@@ -294,6 +534,63 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
+  },
+  addExpenseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  addExpenseBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  expenseList: {
+    gap: 8,
+  },
+  expenseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fafafa',
+    borderRadius: 12,
+    padding: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  expenseIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f2f2f7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expenseInfo: {
+    flex: 1,
+  },
+  expenseNote: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  expenseDate: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+  },
+  expenseAmount: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  deleteExpenseBtn: {
+    padding: 4,
   },
   overlay: {
     flex: 1,

@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/supabase';
 import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export function useUserProfile(profileId: string | undefined) {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export function useUserProfile(profileId: string | undefined) {
       return { success: true };
     } catch (err: any) {
       console.error('Update profile error:', err);
-      Alert.alert('Errore', 'Impossibile aggiornare il profilo: ' + err.message);
+      Alert.alert(t('common.error'), t('profile.err_update_failed'));
       return { success: false, error: err.message };
     } finally {
       setLoading(false);
@@ -81,7 +83,7 @@ export function useUserProfile(profileId: string | undefined) {
       return { success: true, url: publicUrl };
     } catch (err: any) {
       console.error('Upload avatar error:', err);
-      Alert.alert('Errore Upload', 'Impossibile caricare l\'avatar. Riprova più tardi.');
+      Alert.alert(t('common.upload_error'), t('profile.err_avatar_failed'));
       return { success: false };
     } finally {
       setLoading(false);

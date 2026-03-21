@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import type { VideoMetadata, PhotoMetadata } from '@/types/dayEntry';
 
@@ -21,6 +22,7 @@ export function useMediaUpload({
   getNextSortOrder,
   onUploadComplete,
 }: UseMediaUploadOptions) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
 
   const dId = Array.isArray(diaryId) ? diaryId[0] : diaryId;
@@ -44,7 +46,7 @@ export function useMediaUpload({
   const pickAndUploadMedia = useCallback(async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permesso negato', "Devi consentire l'accesso alla galleria.");
+      Alert.alert(t('common.error'), t('media.permission_denied'));
       return;
     }
 
@@ -203,8 +205,8 @@ export function useMediaUpload({
         await onUploadComplete();
       }
     } catch (e: any) {
-      console.error('Errore Upload:', e);
-      Alert.alert('Errore Upload', 'Si è verificato un errore durante il caricamento del file. Riprova più tardi.');
+      console.error('Upload error:', e);
+      Alert.alert(t('common.upload_error'), t('media.upload_failed'));
     }
 
     setUploading(false);

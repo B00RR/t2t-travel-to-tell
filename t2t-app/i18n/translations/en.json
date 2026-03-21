@@ -15,6 +15,7 @@
     "logout": "Logout",
     "logout_confirm": "Are you sure you want to log out?",
     "error": "Error",
+    "warning": "Warning",
     "error_generic": "Oops! Something went wrong. Please try again later.",
     "retry": "Retry",
     "upload_error": "Upload Error",
@@ -128,6 +129,9 @@
     "err_add_failed": "Unable to add content.",
     "err_delete_failed": "Unable to delete content.",
     "err_update_failed": "Unable to update content.",
+    "geocode_not_found": "Location not found on the map. The stop was saved but won't appear as a pin.",
+    "geocode_failed": "Could not resolve the location coordinates. The stop was saved but won't appear as a pin.",
+    "map_save_failed": "The stop was saved in your diary but could not be added to the map.",
     "moods": {
       "fantastic": "Fantastic",
       "happy": "Happy",

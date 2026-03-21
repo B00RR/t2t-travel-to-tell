@@ -33,6 +33,11 @@ export default function TripPlanDetailScreen() {
 
   const isOwner = plan?.author_id === user?.id;
 
+  const handleBudgetUpdate = useCallback(
+    (budget: object) => updatePlan({ budget_estimate: budget }),
+    [updatePlan]
+  );
+
   useFocusEffect(
     useCallback(() => {
       if (id) fetchPlan();
@@ -229,7 +234,7 @@ export default function TripPlanDetailScreen() {
           <BudgetSection
             budget={plan.budget_estimate || {}}
             isOwner={isOwner}
-            onUpdate={async (budget) => updatePlan({ budget_estimate: budget })}
+            onUpdate={handleBudgetUpdate}
           />
 
           <View style={styles.divider} />

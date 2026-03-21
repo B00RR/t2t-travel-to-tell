@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList, ScrollView,
   TouchableOpacity, ActivityIndicator, RefreshControl, Alert
@@ -163,8 +163,7 @@ export default function DiscoveryScreen() {
   }, []);
 
   useEffect(() => {
-    fetchBrowse(0, false, sortMode);
-    fetchTrending();
+    Promise.all([fetchBrowse(0, false, sortMode), fetchTrending()]);
   }, []);
 
   const handleSortChange = useCallback((mode: SortMode) => {
@@ -223,10 +222,12 @@ export default function DiscoveryScreen() {
     []
   );
 
-  // Data to display: trending mode uses trendingDiaries, else diaries (with duration filter)
-  const displayDiaries = sortMode === 'trending'
-    ? trendingDiaries.filter(d => matchesDuration(d, durationFilter))
-    : diaries.filter(d => matchesDuration(d, durationFilter));
+  const displayDiaries = useMemo(() =>
+    sortMode === 'trending'
+      ? trendingDiaries.filter(d => matchesDuration(d, durationFilter))
+      : diaries.filter(d => matchesDuration(d, durationFilter)),
+    [sortMode, durationFilter, trendingDiaries, diaries]
+  );
 
   const isSearchMode = searchQuery.trim().length > 0;
 

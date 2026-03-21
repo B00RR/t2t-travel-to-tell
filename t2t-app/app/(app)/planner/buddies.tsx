@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, Image, RefreshControl,
@@ -44,9 +44,9 @@ export default function TravelBuddiesScreen() {
 
     const myDests: string[] = [];
     (myPlans || []).forEach(p => {
-      (p.destinations || []).forEach((d: string) => {
-        const normalized = d.trim().toLowerCase();
-        if (!myDests.includes(normalized)) myDests.push(normalized);
+      (p.destinations || []).forEach((d: string | null) => {
+        const normalized = (d ?? '').trim().toLowerCase();
+        if (normalized && !myDests.includes(normalized)) myDests.push(normalized);
       });
     });
     setMyDestinations(myDests);
@@ -71,8 +71,8 @@ export default function TravelBuddiesScreen() {
     // 3. Filter matches by shared destinations
     if (myDests.length > 0) {
       const matched = plans.filter(plan =>
-        (plan.destinations || []).some((d: string) =>
-          myDests.includes(d.trim().toLowerCase())
+        (plan.destinations || []).some((d: string | null) =>
+          myDests.includes((d ?? '').trim().toLowerCase())
         )
       );
       setMatches(matched);
@@ -86,19 +86,21 @@ export default function TravelBuddiesScreen() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const displayedPlans = (() => {
-    const source = activeFilter
-      ? allPublic.filter(p => (p.destinations || []).some((d: string) =>
-          d.trim().toLowerCase() === activeFilter
-        ))
-      : matches.length > 0 ? matches : allPublic;
-    return source;
-  })();
+  const displayedPlans = useMemo(() => {
+    if (activeFilter) {
+      return allPublic.filter(p => (p.destinations || []).some((d: string | null) =>
+        (d ?? '').trim().toLowerCase() === activeFilter
+      ));
+    }
+    return matches.length > 0 ? matches : allPublic;
+  }, [activeFilter, allPublic, matches]);
 
-  // Collect all unique destinations from public plans for filter chips
-  const allDestinations = Array.from(
-    new Set(allPublic.flatMap(p => (p.destinations || []).map((d: string) => d.trim())))
-  ).slice(0, 15);
+  const allDestinations = useMemo(() =>
+    Array.from(new Set(allPublic.flatMap(p =>
+      (p.destinations || []).map((d: string | null) => (d ?? '').trim()).filter(Boolean)
+    ))).slice(0, 15),
+    [allPublic]
+  );
 
   const renderItem = ({ item }: { item: BuddyPlan }) => {
     const sharedDests = (item.destinations || []).filter((d: string) =>

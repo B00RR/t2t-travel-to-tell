@@ -68,8 +68,7 @@ export default function DiaryDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       if (id) {
-        fetchDiaryDetails();
-        fetchDiaryDays();
+        Promise.all([fetchDiaryDetails(), fetchDiaryDays()]);
       }
     }, [id, fetchDiaryDetails, fetchDiaryDays])
   );

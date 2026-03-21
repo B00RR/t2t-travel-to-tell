@@ -15,6 +15,7 @@
       }
     },
     "android": {
+      "package": "com.b00rr.t2ttraveltotell",
       "config": {
         "googleMaps": {
           "apiKey": "REPLACE_VIA_ENV"

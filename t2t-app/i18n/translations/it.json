@@ -183,7 +183,7 @@
     "register_welcome": "Inizia a raccontare i tuoi viaggi oggi stesso.",
     "email": "Email",
     "password": "Password",
-    "no_account": "Non hai un account? Registrati",
+    "no_account": "Non hai un account? Registrati ora",
     "have_account": "Hai già un account? Accedi",
     "err_invalid_email": "Indirizzo email non valido.",
     "err_invalid_credentials": "Email o password non validi.",

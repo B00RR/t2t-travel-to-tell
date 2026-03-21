@@ -25,10 +25,12 @@ interface LocationMetadata {
 export function usePublicMapLocations(enabled: boolean) {
   const [locations, setLocations] = useState<PublicMapLocation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchLocations = useCallback(async () => {
     if (!enabled) return;
     setLoading(true);
+    setError(null);
     try {
       const { data: diaries, error: dErr } = await supabase
         .from('diaries')
@@ -36,12 +38,10 @@ export function usePublicMapLocations(enabled: boolean) {
         .eq('status', 'published')
         .eq('visibility', 'public')
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(200);
 
-      if (dErr || !diaries || diaries.length === 0) {
-        setLocations([]);
-        return;
-      }
+      if (dErr) { setError(dErr.message); setLocations([]); return; }
+      if (!diaries || diaries.length === 0) { setLocations([]); return; }
 
       const diaryMap = new Map((diaries as DiaryRow[]).map(d => [d.id, d]));
       const diaryIds = diaries.map(d => d.id);
@@ -50,12 +50,10 @@ export function usePublicMapLocations(enabled: boolean) {
         .from('diary_days')
         .select('id, diary_id')
         .in('diary_id', diaryIds)
-        .limit(500);
+        .limit(1000);
 
-      if (dayErr || !days || days.length === 0) {
-        setLocations([]);
-        return;
-      }
+      if (dayErr) { setError(dayErr.message); setLocations([]); return; }
+      if (!days || days.length === 0) { setLocations([]); return; }
 
       const dayMap = new Map(days.map(d => [d.id, d.diary_id as string]));
       const dayIds = days.map(d => d.id);
@@ -65,12 +63,10 @@ export function usePublicMapLocations(enabled: boolean) {
         .select('id, day_id, metadata')
         .eq('type', 'location')
         .in('day_id', dayIds)
-        .limit(500);
+        .limit(2000);
 
-      if (eErr || !entries) {
-        setLocations([]);
-        return;
-      }
+      if (eErr) { setError(eErr.message); setLocations([]); return; }
+      if (!entries) { setLocations([]); return; }
 
       const result: PublicMapLocation[] = [];
       for (const entry of entries) {
@@ -98,6 +94,9 @@ export function usePublicMapLocations(enabled: boolean) {
       }
 
       setLocations(result);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+      setLocations([]);
     } finally {
       setLoading(false);
     }
@@ -107,5 +106,5 @@ export function usePublicMapLocations(enabled: boolean) {
     if (enabled) fetchLocations();
   }, [enabled, fetchLocations]);
 
-  return { locations, loading, refresh: fetchLocations };
+  return { locations, loading, error, refresh: fetchLocations };
 }

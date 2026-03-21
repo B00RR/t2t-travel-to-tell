@@ -19,7 +19,8 @@
     "error_generic": "Oops! Something went wrong. Please try again later.",
     "retry": "Retry",
     "upload_error": "Upload Error",
-    "success": "Success"
+    "success": "Success",
+    "delete": "Delete"
   },
   "home": {
     "title": "T2T",
@@ -279,7 +280,9 @@
     "expense_amount": "Amount",
     "expense_note": "Note (optional)",
     "expense_note_placeholder": "e.g. Dinner at restaurant",
-    "expense_save": "Add expense"
+    "expense_save": "Add expense",
+    "expense_delete_title": "Delete expense",
+    "expense_delete_confirm": "Are you sure you want to delete this expense?"
   },
   "stats": {
     "title": "Your statistics",

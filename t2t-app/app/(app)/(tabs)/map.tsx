@@ -28,7 +28,7 @@ export default function MapScreen() {
   const [mode, setMode] = useState<MapMode>('mine');
 
   const { locations: myLocations, loading: myLoading, refresh: myRefresh } = useMapLocations(user?.id);
-  const { locations: publicLocations, loading: publicLoading, refresh: publicRefresh } = usePublicMapLocations(mode === 'discover');
+  const { locations: publicLocations, loading: publicLoading, error: publicError, refresh: publicRefresh } = usePublicMapLocations(mode === 'discover');
 
   const mapRef = useRef<MapView>(null);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
@@ -91,7 +91,7 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('map.my_map')}</Text>
+        <Text style={styles.headerTitle}>{mode === 'mine' ? t('map.my_map') : t('map.discover')}</Text>
         <View style={styles.toggle}>
           <TouchableOpacity
             style={[styles.toggleBtn, mode === 'mine' && styles.toggleBtnActive]}
@@ -154,7 +154,16 @@ export default function MapScreen() {
         </View>
       )}
 
-      {!loading && locations.length === 0 && (
+      {!loading && publicError && mode === 'discover' && (
+        <View style={styles.emptyOverlay} pointerEvents="none">
+          <View style={styles.emptyCard}>
+            <Ionicons name="cloud-offline-outline" size={32} color="#FF3B30" />
+            <Text style={[styles.emptyText, { color: '#FF3B30' }]}>{t('common.error_generic')}</Text>
+          </View>
+        </View>
+      )}
+
+      {!loading && !publicError && locations.length === 0 && (
         <View style={styles.emptyOverlay} pointerEvents="none">
           <View style={styles.emptyCard}>
             <Ionicons name={mode === 'mine' ? 'map-outline' : 'globe-outline'} size={32} color="#007AFF" />

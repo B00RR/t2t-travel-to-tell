@@ -76,7 +76,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
     const amount = parseFloat(expenseForm.amount.replace(',', '.'));
     if (isNaN(amount) || amount <= 0) return;
     const newExpense: BudgetExpense = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       amount,
       category: expenseForm.category,
       note: expenseForm.note.trim(),
@@ -93,12 +93,25 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
     }
   }
 
-  async function handleDeleteExpense(id: string) {
-    const updated: BudgetEstimate = {
-      ...budget,
-      expenses: expenses.filter(e => e.id !== id),
-    };
-    await onUpdate(updated);
+  function handleDeleteExpense(id: string) {
+    Alert.alert(
+      t('planner.expense_delete_title'),
+      t('planner.expense_delete_confirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            const updated: BudgetEstimate = {
+              ...budget,
+              expenses: expenses.filter(e => e.id !== id),
+            };
+            await onUpdate(updated);
+          },
+        },
+      ]
+    );
   }
 
   const draftTotal = Object.values(draft.breakdown || {}).reduce((s, v) => s + (v || 0), 0);

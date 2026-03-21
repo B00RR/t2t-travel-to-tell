@@ -19,7 +19,8 @@
     "error_generic": "Ops! Qualcosa è andato storto. Riprova più tardi.",
     "retry": "Riprova",
     "upload_error": "Errore Caricamento",
-    "success": "Successo"
+    "success": "Successo",
+    "delete": "Elimina"
   },
   "home": {
     "title": "T2T",
@@ -279,7 +280,9 @@
     "expense_amount": "Importo",
     "expense_note": "Nota (opzionale)",
     "expense_note_placeholder": "Es. Cena al ristorante",
-    "expense_save": "Aggiungi spesa"
+    "expense_save": "Aggiungi spesa",
+    "expense_delete_title": "Elimina spesa",
+    "expense_delete_confirm": "Sei sicuro di voler eliminare questa spesa?"
   },
   "stats": {
     "title": "Le tue statistiche",

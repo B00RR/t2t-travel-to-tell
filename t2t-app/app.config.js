@@ -26,5 +26,11 @@ module.exports = {
       (p) =>
         !(Array.isArray(p) ? p[0] === 'react-native-maps' : p === 'react-native-maps')
     ),
+    extra: {
+      ...(config.extra || {}),
+      eas: {
+        projectId: '6e2b1264-ba9e-4185-9b04-57b688492d45',
+      },
+    },
   },
 };

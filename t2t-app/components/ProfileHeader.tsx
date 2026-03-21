@@ -28,10 +28,11 @@ export function ProfileHeader({
 
   const initials = displayName
     .split(' ')
+    .filter(w => w.length > 0)
     .map(w => w[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || '?';
 
   return (
     <View style={styles.container}>

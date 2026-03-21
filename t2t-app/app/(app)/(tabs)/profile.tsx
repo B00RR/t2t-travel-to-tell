@@ -12,7 +12,9 @@ import { TravelStats } from '@/components/TravelStats';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
 import i18n from '@/i18n';
-import type { Diary } from '@/types/supabase';
+import type { Diary, FeedDiary } from '@/types/supabase';
+
+type DiaryTab = 'mine' | 'saved';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -21,6 +23,8 @@ export default function ProfileScreen() {
   const { profile, loading: profileLoading, updateProfile, uploadAvatar, checkUsernameUnique } = useUserProfile(user?.id);
   const { unreadCount } = useNotifications();
   const [diaries, setDiaries] = useState<Diary[]>([]);
+  const [savedDiaries, setSavedDiaries] = useState<FeedDiary[]>([]);
+  const [diaryTab, setDiaryTab] = useState<DiaryTab>('mine');
   const langSynced = useRef(false);
 
   useEffect(() => {
@@ -30,6 +34,7 @@ export default function ProfileScreen() {
     }
   }, [profile?.preferred_language]);
   const [loadingDiaries, setLoadingDiaries] = useState(true);
+  const [loadingSaved, setLoadingSaved] = useState(false);
 
   // Edit State
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -52,12 +57,42 @@ export default function ProfileScreen() {
     setLoadingDiaries(false);
   }, [user]);
 
+  const fetchSaved = useCallback(async () => {
+    if (!user) return;
+    setLoadingSaved(true);
+    const { data, error } = await supabase
+      .from('saves')
+      .select(`
+        diary_id,
+        diaries!inner (
+          *,
+          profiles!diaries_author_id_fkey (
+            username,
+            display_name,
+            avatar_url
+          )
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (!error && data) {
+      const mapped = data
+        .map((row: any) => row.diaries)
+        .filter(Boolean) as FeedDiary[];
+      setSavedDiaries(mapped);
+    }
+    setLoadingSaved(false);
+  }, [user]);
+
   useFocusEffect(
     useCallback(() => {
       if (user) {
         fetchDiaries();
+        fetchSaved();
       }
-    }, [user, fetchDiaries])
+    }, [user, fetchDiaries, fetchSaved])
   );
 
   const handleEditPress = () => {
@@ -75,7 +110,6 @@ export default function ProfileScreen() {
       return;
     }
 
-    // Check username uniqueness if changed
     if (editForm.username !== profile?.username) {
       const isUnique = await checkUsernameUnique(editForm.username);
       if (!isUnique) {
@@ -123,6 +157,9 @@ export default function ProfileScreen() {
       ]
     );
   }
+
+  const isLoadingSection = diaryTab === 'mine' ? loadingDiaries : loadingSaved;
+  const activeDiaries = diaryTab === 'mine' ? diaries : savedDiaries;
 
   return (
     <View style={styles.container}>
@@ -177,56 +214,110 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Section: My Diaries */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('profile.my_diaries')}</Text>
-          <TouchableOpacity onPress={() => router.push('/(app)/(tabs)/create')}>
-            <Ionicons name="add-circle" size={28} color="#007AFF" />
+        {/* Diary Tabs */}
+        <View style={styles.diaryTabsRow}>
+          <TouchableOpacity
+            style={[styles.diaryTabBtn, diaryTab === 'mine' && styles.diaryTabBtnActive]}
+            onPress={() => setDiaryTab('mine')}
+          >
+            <Ionicons
+              name="journal-outline"
+              size={15}
+              color={diaryTab === 'mine' ? '#007AFF' : '#999'}
+            />
+            <Text style={[styles.diaryTabText, diaryTab === 'mine' && styles.diaryTabTextActive]}>
+              {t('profile.my_diaries')}
+            </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.diaryTabBtn, diaryTab === 'saved' && styles.diaryTabBtnActive]}
+            onPress={() => setDiaryTab('saved')}
+          >
+            <Ionicons
+              name="bookmark-outline"
+              size={15}
+              color={diaryTab === 'saved' ? '#007AFF' : '#999'}
+            />
+            <Text style={[styles.diaryTabText, diaryTab === 'saved' && styles.diaryTabTextActive]}>
+              {t('profile.saved_diaries')}
+            </Text>
+          </TouchableOpacity>
+          {diaryTab === 'mine' && (
+            <TouchableOpacity
+              style={styles.addBtn}
+              onPress={() => router.push('/(app)/(tabs)/create')}
+            >
+              <Ionicons name="add-circle" size={28} color="#007AFF" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {loadingDiaries ? (
+        {isLoadingSection ? (
           <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 32 }} />
-        ) : diaries.length === 0 ? (
+        ) : activeDiaries.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="journal-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>{t('profile.no_diaries')}</Text>
-            <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/(tabs)/create')}>
-              <Text style={styles.createBtnText}>{t('profile.create_first')}</Text>
-            </TouchableOpacity>
+            <Ionicons
+              name={diaryTab === 'mine' ? 'journal-outline' : 'bookmark-outline'}
+              size={48}
+              color="#ccc"
+            />
+            <Text style={styles.emptyText}>
+              {diaryTab === 'mine' ? t('profile.no_diaries') : t('profile.no_saved')}
+            </Text>
+            {diaryTab === 'mine' && (
+              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/(tabs)/create')}>
+                <Text style={styles.createBtnText}>{t('profile.create_first')}</Text>
+              </TouchableOpacity>
+            )}
+            {diaryTab === 'saved' && (
+              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/(tabs)/explore')}>
+                <Text style={styles.createBtnText}>{t('profile.explore_diaries')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <View style={styles.diariesList}>
-            {diaries.map((diary) => (
-              <TouchableOpacity
-                key={diary.id}
-                style={styles.diaryCard}
-                onPress={() => router.push(`/diary/${diary.id}`)}
-              >
-                <View style={styles.diaryCardContent}>
-                  <Text style={styles.diaryTitle} numberOfLines={1}>{diary.title}</Text>
-                  {diary.destinations && diary.destinations.length > 0 && (
-                    <Text style={styles.diaryDest} numberOfLines={1}>
-                      📍 {diary.destinations.join(', ')}
-                    </Text>
-                  )}
-                  <View style={styles.diaryMeta}>
-                    <View style={[styles.statusBadge, diary.status === 'published' && styles.statusPublished]}>
-                      <Text style={[styles.statusText, diary.status === 'published' && styles.statusTextPublished]}>
-                        {diary.status === 'draft' ? `📝 ${t('profile.status_draft')}` : `🌍 ${t('profile.status_published')}`}
+            {(activeDiaries as (Diary | FeedDiary)[]).map((diary) => {
+              const isFeed = diaryTab === 'saved';
+              const authorProfile = isFeed ? (diary as FeedDiary).profiles : null;
+              return (
+                <TouchableOpacity
+                  key={diary.id}
+                  style={styles.diaryCard}
+                  onPress={() => router.push(`/diary/${diary.id}`)}
+                >
+                  <View style={styles.diaryCardContent}>
+                    <Text style={styles.diaryTitle} numberOfLines={1}>{diary.title}</Text>
+                    {isFeed && authorProfile && (
+                      <Text style={styles.diaryAuthor} numberOfLines={1}>
+                        @{authorProfile.username || authorProfile.display_name}
                       </Text>
-                    </View>
-                    <View style={styles.diaryStats}>
-                      <Ionicons name="heart" size={14} color="#ccc" />
-                      <Text style={styles.diaryStatNum}>{diary.like_count || 0}</Text>
-                      <Ionicons name="eye" size={14} color="#ccc" style={{ marginLeft: 8 }} />
-                      <Text style={styles.diaryStatNum}>{diary.view_count || 0}</Text>
+                    )}
+                    {diary.destinations && diary.destinations.length > 0 && (
+                      <Text style={styles.diaryDest} numberOfLines={1}>
+                        📍 {diary.destinations.join(', ')}
+                      </Text>
+                    )}
+                    <View style={styles.diaryMeta}>
+                      {diaryTab === 'mine' && (
+                        <View style={[styles.statusBadge, diary.status === 'published' && styles.statusPublished]}>
+                          <Text style={[styles.statusText, diary.status === 'published' && styles.statusTextPublished]}>
+                            {diary.status === 'draft' ? `📝 ${t('profile.status_draft')}` : `🌍 ${t('profile.status_published')}`}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={styles.diaryStats}>
+                        <Ionicons name="heart" size={14} color="#ccc" />
+                        <Text style={styles.diaryStatNum}>{diary.like_count || 0}</Text>
+                        <Ionicons name="eye" size={14} color="#ccc" style={{ marginLeft: 8 }} />
+                        <Text style={styles.diaryStatNum}>{diary.view_count || 0}</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
-              </TouchableOpacity>
-            ))}
+                  <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 
@@ -298,6 +389,11 @@ export default function ProfileScreen() {
                 numberOfLines={4}
               />
             </View>
+
+            <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+              <Text style={styles.logoutText}>{t('common.logout')}</Text>
+            </TouchableOpacity>
           </ScrollView>
         </View>
       </Modal>
@@ -397,7 +493,37 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
   },
-
+  diaryTabsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 12,
+    gap: 8,
+  },
+  diaryTabBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f2f2f7',
+  },
+  diaryTabBtnActive: {
+    backgroundColor: '#e8f0fe',
+  },
+  diaryTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#999',
+  },
+  diaryTabTextActive: {
+    color: '#007AFF',
+  },
+  addBtn: {
+    marginLeft: 'auto',
+  },
   emptyState: {
     alignItems: 'center',
     padding: 32,
@@ -423,7 +549,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
   },
-
   diariesList: {
     marginHorizontal: 16,
   },
@@ -448,6 +573,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  diaryAuthor: {
+    fontSize: 13,
+    color: '#007AFF',
+    fontWeight: '600',
     marginBottom: 4,
   },
   diaryDest: {
@@ -486,5 +617,86 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#ccc',
     fontWeight: '600',
+  },
+
+  // Modal
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalCancel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  modalSave: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '700',
+  },
+  modalBody: {
+    flex: 1,
+    padding: 20,
+  },
+  avatarEdit: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  changeAvatarText: {
+    marginTop: 10,
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1a1a1a',
+    backgroundColor: '#fafafa',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  logoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    color: '#FF3B30',
+    fontWeight: '500',
   },
 });

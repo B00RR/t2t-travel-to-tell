@@ -24,8 +24,13 @@
   },
   "home": {
     "title": "T2T",
+    "tab_discover": "Scopri",
+    "tab_following": "Seguiti",
     "no_diaries": "Nessun diario nel feed",
-    "no_diaries_sub": "Quando i viaggiatori pubblicheranno i loro diari, li vedrai qui!"
+    "no_diaries_sub": "Quando i viaggiatori pubblicheranno i loro diari, li vedrai qui!",
+    "no_following": "Nessun diario da chi segui",
+    "no_following_sub": "Segui altri viaggiatori per vedere i loro diari qui.",
+    "explore_people": "Esplora i viaggiatori"
   },
   "explore": {
     "title": "Esplora",
@@ -70,7 +75,10 @@
     "following": "Seguiti",
     "follow": "Segui",
     "unfollow": "Non seguire più",
-    "following_button": "Seguito"
+    "following_button": "Seguito",
+    "saved_diaries": "Salvati",
+    "no_saved": "Nessun diario salvato ancora.",
+    "explore_diaries": "Esplora i diari"
   },
   "social": {
     "comments": "Commenti",

@@ -113,9 +113,12 @@ export function useDayEntries(dayId: string | string[]) {
               lat: results[0].latitude,
               lng: results[0].longitude,
             };
+          } else {
+            Alert.alert(t('common.warning'), t('day.geocode_not_found'));
           }
         } catch (e) {
           console.warn('Geocoding failed, saving without coordinates:', e);
+          Alert.alert(t('common.warning'), t('day.geocode_failed'));
         }
       }
 
@@ -152,7 +155,10 @@ export function useDayEntries(dayId: string | string[]) {
               p_lat: lat,
               p_lng: lng,
             });
-            if (locError) console.warn('Failed to save diary_location:', locError);
+            if (locError) {
+              console.error('Failed to save diary_location:', locError);
+              Alert.alert(t('common.warning'), t('day.map_save_failed'));
+            }
           }
         } catch (e) {
           console.warn('Failed to save to diary_locations:', e);

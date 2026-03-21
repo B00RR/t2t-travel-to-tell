@@ -15,9 +15,11 @@
     "logout": "Logout",
     "logout_confirm": "Are you sure you want to log out?",
     "error": "Error",
+    "warning": "Warning",
     "error_generic": "Oops! Something went wrong. Please try again later.",
     "retry": "Retry",
-    "upload_error": "Upload Error"
+    "upload_error": "Upload Error",
+    "success": "Success"
   },
   "home": {
     "title": "T2T",
@@ -52,9 +54,12 @@
     "change_avatar": "Change Profile Picture",
     "display_name": "Display Name",
     "username": "Username",
+    "username_placeholder": "e.g. travel_explorer",
     "bio": "Bio",
     "bio_placeholder": "Tell something about yourself...",
     "username_required": "Username is required",
+    "err_update_failed": "Unable to update profile.",
+    "err_avatar_failed": "Unable to upload profile picture. Please try again.",
     "username_taken": "This username is already taken",
     "status_draft": "Draft",
     "status_published": "Published",
@@ -127,6 +132,9 @@
     "err_add_failed": "Unable to add content.",
     "err_delete_failed": "Unable to delete content.",
     "err_update_failed": "Unable to update content.",
+    "geocode_not_found": "Location not found on the map. The stop was saved but won't appear as a pin.",
+    "geocode_failed": "Could not resolve the location coordinates. The stop was saved but won't appear as a pin.",
+    "map_save_failed": "The stop was saved in your diary but could not be added to the map.",
     "moods": {
       "fantastic": "Fantastic",
       "happy": "Happy",
@@ -173,22 +181,31 @@
     "search_placeholder": "Search images by destination...",
     "uploading": "Uploading...",
     "no_stock_results": "No images found. Try a different search.",
+    "api_key_missing": "Stock image search is not configured. You can still upload a photo from your gallery.",
     "err_set_failed": "Unable to set cover image.",
     "err_upload_failed": "Unable to upload image.",
     "permission_denied": "You need to allow access to the gallery."
+  },
+  "media": {
+    "permission_denied": "You need to allow access to the gallery.",
+    "upload_failed": "An error occurred while uploading the file. Please try again."
   },
   "auth": {
     "login_welcome": "Welcome back! Continue your adventures.",
     "register_welcome": "Start telling your travels today.",
     "email": "Email",
     "password": "Password",
-    "no_account": "Don't have an account? Register",
+    "no_account": "Don't have an account? Register now",
     "have_account": "Already have an account? Login",
     "err_invalid_email": "Invalid email address.",
     "err_invalid_credentials": "Email or password incorrect.",
     "err_pass_too_short": "Password must be at least 6 characters.",
     "err_register_failed": "Registration failed. Please try again later.",
-    "err_login_failed": "Login failed. Please try again later."
+    "err_login_failed": "Login failed. Please try again later.",
+    "register_now": "Register",
+    "email_placeholder": "email@example.com",
+    "password_placeholder": "••••••••",
+    "register_success": "Registration complete! Check your email."
   },
   "planner": {
     "tab": "Planner",

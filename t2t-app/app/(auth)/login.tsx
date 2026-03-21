@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '@/lib/supabase';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -9,15 +9,15 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Keep this state for potential future use or if the eye icon is re-added
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function handleLogin() { // Renamed from signInWithEmail
+  async function handleLogin() {
     setLoading(true);
 
     if (!email || !password) {
-      Alert.alert(t('common.error'), t('auth.err_invalid_email')); // Changed from err_invalid_email to be more general
+      Alert.alert(t('common.error'), t('auth.err_invalid_email'));
       setLoading(false);
       return;
     }
@@ -28,14 +28,10 @@ export default function LoginScreen() {
     });
 
     if (error) {
-      // Log raw error securely without exposing it to the user
       console.error('Login error:', error);
-
-      // Specific error handling for invalid credentials to maintain UX
       if (error.message.includes('Invalid login credentials')) {
         Alert.alert(t('common.error'), t('auth.err_invalid_credentials'));
       } else {
-        // General error handling to prevent information disclosure
         Alert.alert(t('common.error'), t('auth.err_login_failed'));
       }
     } else {
@@ -46,7 +42,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -61,7 +57,8 @@ export default function LoginScreen() {
               <Text style={styles.label}>{t('auth.email')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder={t('auth.email_placeholder')} // Changed placeholder
+                placeholder={t('auth.email_placeholder')}
+                placeholderTextColor="#999"
                 autoCapitalize="none"
                 keyboardType="email-address"
                 value={email}
@@ -71,16 +68,17 @@ export default function LoginScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('auth.password')}</Text>
-              <View style={styles.passwordContainer}> {/* Re-added password container for consistency/future eye icon */}
+              <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.passwordInput} // Changed to passwordInput
-                  placeholder={t('auth.password_placeholder')} // Changed placeholder
-                  secureTextEntry={!showPassword} // Kept secureTextEntry logic
+                  style={styles.passwordInput}
+                  placeholder={t('auth.password_placeholder')}
+                  placeholderTextColor="#999"
+                  secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity 
-                  style={styles.eyeIcon} 
+                <TouchableOpacity
+                  style={styles.eyeIcon}
                   onPress={() => setShowPassword(!showPassword)}
                 >
                   <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
@@ -88,8 +86,8 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={[styles.button, loading && styles.buttonDisabled]} 
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -100,14 +98,14 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            <View style={styles.footerRow}> {/* Re-added footerRow for consistency */}
-              <Text style={styles.footerText}>{t('auth.no_account')}</Text>
-              <Link href="/(auth)/register" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.footerLink}>{t('auth.register_now')}</Text> {/* Changed to register_now */}
-                </TouchableOpacity>
-              </Link>
-            </View>
+            <TouchableOpacity
+              style={styles.footerRow}
+              onPress={() => router.push('/(auth)/register')}
+            >
+              <Text style={styles.footerText}>
+                {t('auth.no_account')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -116,6 +114,9 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -126,15 +127,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
   },
+  header: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 40,
+    marginBottom: 8,
     textAlign: 'center',
   },
-  inputContainer: {
-    marginBottom: 16,
+  subtitle: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+  },
+  form: {
+    gap: 16,
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
   },
   input: {
     backgroundColor: '#f5f5f5',
@@ -159,12 +177,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   button: {
-    backgroundColor: '#007AFF', // Primary color for MVP
+    backgroundColor: '#007AFF',
     borderRadius: 12,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -177,13 +195,9 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 16,
   },
   footerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  footerLink: {
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',

@@ -15,9 +15,11 @@
     "logout": "Logout",
     "logout_confirm": "Vuoi davvero uscire?",
     "error": "Errore",
+    "warning": "Attenzione",
     "error_generic": "Ops! Qualcosa è andato storto. Riprova più tardi.",
     "retry": "Riprova",
-    "upload_error": "Errore Caricamento"
+    "upload_error": "Errore Caricamento",
+    "success": "Successo"
   },
   "home": {
     "title": "T2T",
@@ -52,9 +54,12 @@
     "change_avatar": "Cambia Foto Profilo",
     "display_name": "Nome Visualizzato",
     "username": "Username",
+    "username_placeholder": "es. viaggiatore_curioso",
     "bio": "Bio",
     "bio_placeholder": "Racconta qualcosa di te...",
     "username_required": "Lo username è obbligatorio",
+    "err_update_failed": "Impossibile aggiornare il profilo.",
+    "err_avatar_failed": "Impossibile caricare la foto profilo. Riprova più tardi.",
     "username_taken": "Questo username è già in uso",
     "status_draft": "Bozza",
     "status_published": "Pubblicato",
@@ -127,6 +132,9 @@
     "err_add_failed": "Impossibile aggiungere il contenuto.",
     "err_delete_failed": "Impossibile eliminare il contenuto.",
     "err_update_failed": "Impossibile aggiornare il contenuto.",
+    "geocode_not_found": "Luogo non trovato sulla mappa. La tappa è salvata nel diario ma non apparirà come pin.",
+    "geocode_failed": "Impossibile ottenere le coordinate del luogo. La tappa è salvata nel diario ma non apparirà come pin.",
+    "map_save_failed": "La tappa è salvata nel diario ma non è stato possibile aggiungerla alla mappa.",
     "moods": {
       "fantastic": "Fantastico",
       "happy": "Felice",
@@ -173,22 +181,31 @@
     "search_placeholder": "Cerca immagini per destinazione...",
     "uploading": "Caricamento...",
     "no_stock_results": "Nessuna immagine trovata. Prova un'altra ricerca.",
+    "api_key_missing": "La ricerca di immagini stock non è configurata. Puoi comunque caricare una foto dalla galleria.",
     "err_set_failed": "Impossibile impostare la copertina.",
     "err_upload_failed": "Impossibile caricare l'immagine.",
     "permission_denied": "Devi consentire l'accesso alla galleria."
+  },
+  "media": {
+    "permission_denied": "Devi consentire l'accesso alla galleria.",
+    "upload_failed": "Si è verificato un errore durante il caricamento del file. Riprova più tardi."
   },
   "auth": {
     "login_welcome": "Bentornato! Continua le tue avventure.",
     "register_welcome": "Inizia a raccontare i tuoi viaggi oggi stesso.",
     "email": "Email",
     "password": "Password",
-    "no_account": "Non hai un account? Registrati",
+    "no_account": "Non hai un account? Registrati ora",
     "have_account": "Hai già un account? Accedi",
     "err_invalid_email": "Indirizzo email non valido.",
     "err_invalid_credentials": "Email o password non validi.",
     "err_pass_too_short": "La password deve contenere almeno 6 caratteri.",
     "err_register_failed": "Registrazione fallita. Riprova più tardi.",
-    "err_login_failed": "Accesso fallito. Riprova più tardi."
+    "err_login_failed": "Accesso fallito. Riprova più tardi.",
+    "register_now": "Registrati",
+    "email_placeholder": "email@example.com",
+    "password_placeholder": "••••••••",
+    "register_success": "Registrazione completata! Controlla la tua email."
   },
   "planner": {
     "tab": "Planner",

@@ -26,89 +26,117 @@ export function ProfileHeader({
   const username = profile?.username || '';
   const stats = profile?.stats as { countries?: number; followers?: number; following?: number } | null;
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  };
+  const initials = displayName
+    .split(' ')
+    .map(w => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <View style={styles.container}>
-      <View style={styles.avatarRow}>
-        {profile?.avatar_url ? (
-          <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
+      {/* Avatar + stats row */}
+      <View style={styles.topRow}>
+        <View style={styles.avatarWrapper}>
+          <View style={styles.avatarRing}>
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              </View>
+            )}
           </View>
-        )}
-        
-        <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{diaryCount}</Text>
-            <Text style={styles.statLabel}>{t('profile.diaries')}</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats?.followers || 0}</Text>
-            <Text style={styles.statLabel}>{t('profile.followers')}</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{stats?.following || 0}</Text>
-            <Text style={styles.statLabel}>{t('profile.following')}</Text>
-          </View>
+        </View>
+
+        <View style={styles.statsRow}>
+          <StatBox value={diaryCount} label={t('profile.diaries')} />
+          <View style={styles.statDivider} />
+          <StatBox value={stats?.followers || 0} label={t('profile.followers')} />
+          <View style={styles.statDivider} />
+          <StatBox value={stats?.following || 0} label={t('profile.following')} />
         </View>
       </View>
 
+      {/* Name + username + bio */}
       <View style={styles.infoSection}>
         <Text style={styles.displayName}>{displayName}</Text>
         {username ? <Text style={styles.username}>@{username}</Text> : null}
-        
         {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
-        
         {profile?.travel_style ? (
           <View style={styles.stylePill}>
-            <Text style={styles.styleText}>✈️ {profile.travel_style}</Text>
+            <Ionicons name="airplane-outline" size={12} color="#e65100" />
+            <Text style={styles.styleText}>{profile.travel_style}</Text>
           </View>
         ) : null}
       </View>
 
+      {/* Action buttons */}
       <View style={styles.actionRow}>
         {isOwnProfile ? (
-          <TouchableOpacity style={styles.editBtn} onPress={onEditPress}>
+          <TouchableOpacity style={styles.editBtn} onPress={onEditPress} activeOpacity={0.75}>
+            <Ionicons name="pencil" size={15} color="#1a1a1a" />
             <Text style={styles.editBtnText}>{t('profile.edit_profile')}</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity 
-            style={[styles.followBtn, isFollowing && styles.followingBtn]} 
-            onPress={onFollowToggle}
-          >
-            <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-              {isFollowing ? t('profile.following_button') : t('profile.follow')}
-            </Text>
-          </TouchableOpacity>
-        )}
-        
-        {!isOwnProfile && (
-           <TouchableOpacity
-             style={styles.shareBtn}
-             accessibilityRole="button"
-             accessibilityLabel={t('social.share_profile')}
-           >
-              <Ionicons name="share-outline" size={20} color="#1a1a1a" />
-           </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.followBtn, isFollowing && styles.followingBtn]}
+              onPress={onFollowToggle}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
+                {isFollowing ? t('profile.following_button') : t('profile.follow')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t('social.share_profile')}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="share-outline" size={18} color="#1a1a1a" />
+            </TouchableOpacity>
+          </>
         )}
       </View>
     </View>
   );
 }
 
+function StatBox({ value, label }: { value: number; label: string }) {
+  return (
+    <View style={styles.statBox}>
+      <Text style={styles.statNumber}>{value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
     backgroundColor: '#fff',
   },
-  avatarRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  avatarWrapper: {
+    marginRight: 20,
+  },
+  avatarRing: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    padding: 3,
+    borderWidth: 2.5,
+    borderColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatar: {
     width: 80,
@@ -123,56 +151,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {
+  avatarInitials: {
     color: '#fff',
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '800',
+    letterSpacing: -0.5,
   },
-  statsContainer: {
+  statsRow: {
     flex: 1,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-around',
-    marginLeft: 20,
   },
   statBox: {
     alignItems: 'center',
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: '#f0f0f0',
   },
   statNumber: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#1a1a1a',
+    letterSpacing: -0.3,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#999',
     marginTop: 2,
+    fontWeight: '500',
   },
   infoSection: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   displayName: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: '#1a1a1a',
+    letterSpacing: -0.3,
   },
   username: {
     fontSize: 14,
-    color: '#999',
+    color: '#888',
     marginTop: 2,
+    fontWeight: '500',
   },
   bio: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#444',
-    lineHeight: 22,
-    marginTop: 10,
+    lineHeight: 21,
+    marginTop: 8,
   },
   stylePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
     backgroundColor: '#fff3e0',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 12,
-    marginTop: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginTop: 10,
+    gap: 4,
   },
   styleText: {
     fontSize: 12,
@@ -181,15 +223,19 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   editBtn: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 38,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#d0d0d0',
+    backgroundColor: '#fff',
   },
   editBtnText: {
     fontSize: 14,
@@ -198,14 +244,16 @@ const styles = StyleSheet.create({
   },
   followBtn: {
     flex: 1,
-    backgroundColor: '#007AFF',
-    height: 40,
+    height: 38,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#007AFF',
   },
   followingBtn: {
     backgroundColor: '#f0f0f0',
+    borderWidth: 1.5,
+    borderColor: '#d0d0d0',
   },
   followBtnText: {
     color: '#fff',
@@ -215,11 +263,13 @@ const styles = StyleSheet.create({
   followingBtnText: {
     color: '#1a1a1a',
   },
-  shareBtn: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#f0f0f0',
+  iconBtn: {
+    width: 38,
+    height: 38,
     borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#d0d0d0',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },

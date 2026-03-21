@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, Image, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, Image, Share, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +13,8 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
 import i18n from '@/i18n';
 import type { Diary, FeedDiary } from '@/types/supabase';
+
+const BIO_MAX = 160;
 
 type DiaryTab = 'mine' | 'saved';
 
@@ -38,11 +40,9 @@ export default function ProfileScreen() {
 
   // Edit State
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editForm, setEditForm] = useState({
-    display_name: '',
-    username: '',
-    bio: '',
-  });
+  const [editForm, setEditForm] = useState({ display_name: '', username: '', bio: '' });
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   const fetchDiaries = useCallback(async () => {
     if (!user) return;
@@ -101,27 +101,27 @@ export default function ProfileScreen() {
       username: profile?.username || '',
       bio: profile?.bio || '',
     });
+    setUsernameError(null);
     setIsEditModalVisible(true);
   };
 
   const handleSaveProfile = async () => {
     if (!editForm.username.trim()) {
-      Alert.alert(t('common.error'), t('profile.username_required'));
+      setUsernameError(t('profile.username_required'));
       return;
     }
 
     if (editForm.username !== profile?.username) {
       const isUnique = await checkUsernameUnique(editForm.username);
       if (!isUnique) {
-        Alert.alert(t('common.error'), t('profile.username_taken'));
+        setUsernameError(t('profile.username_taken'));
         return;
       }
     }
 
+    setUsernameError(null);
     const { success } = await updateProfile(editForm);
-    if (success) {
-      setIsEditModalVisible(false);
-    }
+    if (success) setIsEditModalVisible(false);
   };
 
   const handlePickAvatar = async () => {
@@ -205,9 +205,9 @@ export default function ProfileScreen() {
         <View style={{ marginHorizontal: 16, marginBottom: 8 }}>
           <BadgesSection
             stats={{
-              diaries: profile?.stats?.diaries ?? diaries.length,
-              countries: profile?.stats?.countries ?? 0,
-              followers: profile?.stats?.followers ?? 0,
+              diaries: (profile?.stats as any)?.diaries ?? diaries.length,
+              countries: (profile?.stats as any)?.countries ?? 0,
+              followers: (profile?.stats as any)?.followers ?? 0,
               totalLikes: diaries.reduce((sum, d) => sum + (d.like_count || 0), 0),
             }}
             isOwnProfile
@@ -329,73 +329,141 @@ export default function ProfileScreen() {
         visible={isEditModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
+        onRequestClose={() => setIsEditModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
+        <KeyboardAvoidingView
+          style={styles.modalContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
-              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
+            <TouchableOpacity onPress={() => setIsEditModalVisible(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close" size={24} color="#1a1a1a" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>{t('profile.edit_profile')}</Text>
-            <TouchableOpacity onPress={handleSaveProfile} disabled={profileLoading}>
-              <Text style={[styles.modalSave, profileLoading && { opacity: 0.5 }]}>{t('common.save')}</Text>
+            <TouchableOpacity
+              style={[styles.modalSaveBtn, profileLoading && { opacity: 0.5 }]}
+              onPress={handleSaveProfile}
+              disabled={profileLoading}
+            >
+              {profileLoading
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={styles.modalSaveBtnText}>{t('common.save')}</Text>
+              }
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalBody}>
-            {/* Avatar Edit */}
-            <TouchableOpacity style={styles.avatarEdit} onPress={handlePickAvatar}>
-              <View style={styles.avatarLarge}>
-                 {profile?.avatar_url ? (
-                   <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
-                 ) : (
-                   <Ionicons name="person" size={40} color="#fff" />
-                 )}
-                 <View style={styles.avatarEditBadge}>
-                    <Ionicons name="camera" size={16} color="#fff" />
-                 </View>
+          <ScrollView
+            style={styles.modalBody}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Avatar */}
+            <TouchableOpacity style={styles.avatarEdit} onPress={handlePickAvatar} activeOpacity={0.8}>
+              <View style={styles.avatarLargeRing}>
+                <View style={styles.avatarLarge}>
+                  {profile?.avatar_url ? (
+                    <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
+                  ) : (
+                    <Ionicons name="person" size={40} color="#fff" />
+                  )}
+                </View>
+              </View>
+              <View style={styles.avatarEditBadge}>
+                <Ionicons name="camera" size={14} color="#fff" />
               </View>
               <Text style={styles.changeAvatarText}>{t('profile.change_avatar')}</Text>
             </TouchableOpacity>
 
+            {/* Display Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('profile.display_name')}</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, focusedField === 'display_name' && styles.inputFocused]}
                 value={editForm.display_name}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, display_name: text }))}
                 placeholder={t('profile.display_name')}
+                placeholderTextColor="#bbb"
+                returnKeyType="next"
+                onFocus={() => setFocusedField('display_name')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
 
+            {/* Username */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>{t('profile.username')}</Text>
-              <TextInput
-                style={styles.input}
-                value={editForm.username}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
-                placeholder={t('profile.username')}
-                autoCapitalize="none"
-              />
+              <View style={[styles.inputWithPrefix, focusedField === 'username' && styles.inputFocused, usernameError ? styles.inputError : null]}>
+                <Text style={styles.inputPrefix}>@</Text>
+                <TextInput
+                  style={styles.inputInline}
+                  value={editForm.username}
+                  onChangeText={(text) => {
+                    setUsernameError(null);
+                    setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-9_]/g, '') }));
+                  }}
+                  placeholder={t('profile.username_placeholder')}
+                  placeholderTextColor="#bbb"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  onFocus={() => setFocusedField('username')}
+                  onBlur={() => setFocusedField(null)}
+                />
+              </View>
+              {usernameError && (
+                <View style={styles.errorRow}>
+                  <Ionicons name="alert-circle" size={13} color="#FF3B30" />
+                  <Text style={styles.errorText}>{usernameError}</Text>
+                </View>
+              )}
             </View>
 
+            {/* Bio */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('profile.bio')}</Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>{t('profile.bio')}</Text>
+                <Text style={[styles.charCount, editForm.bio.length > BIO_MAX && styles.charCountOver]}>
+                  {editForm.bio.length}/{BIO_MAX}
+                </Text>
+              </View>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, focusedField === 'bio' && styles.inputFocused]}
                 value={editForm.bio}
-                onChangeText={(text) => setEditForm(prev => ({ ...prev, bio: text }))}
+                onChangeText={(text) => {
+                  if (text.length <= BIO_MAX) setEditForm(prev => ({ ...prev, bio: text }));
+                }}
                 placeholder={t('profile.bio_placeholder')}
+                placeholderTextColor="#bbb"
                 multiline
                 numberOfLines={4}
+                textAlignVertical="top"
+                onFocus={() => setFocusedField('bio')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
 
+            {/* Save button in body */}
+            <TouchableOpacity
+              style={[styles.saveBodyBtn, profileLoading && { opacity: 0.6 }]}
+              onPress={handleSaveProfile}
+              disabled={profileLoading}
+              activeOpacity={0.8}
+            >
+              {profileLoading
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={styles.saveBodyBtnText}>{t('common.save')}</Text>
+              }
+            </TouchableOpacity>
+
+            {/* Logout */}
             <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+              <Ionicons name="log-out-outline" size={18} color="#FF3B30" />
               <Text style={styles.logoutText}>{t('common.logout')}</Text>
             </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
           </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -452,33 +520,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  avatarLarge: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  avatarImg: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  avatarEditBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#007AFF',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -634,18 +675,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
-  modalCancel: {
-    fontSize: 16,
-    color: '#666',
-  },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#1a1a1a',
   },
-  modalSave: {
-    fontSize: 16,
-    color: '#007AFF',
+  modalSaveBtn: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    minWidth: 64,
+    alignItems: 'center',
+  },
+  modalSaveBtnText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: '700',
   },
   modalBody: {
@@ -655,48 +700,156 @@ const styles = StyleSheet.create({
   avatarEdit: {
     alignItems: 'center',
     marginBottom: 28,
+    position: 'relative',
+  },
+  avatarLargeRing: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2.5,
+    borderColor: '#007AFF',
+    padding: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarLarge: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 22,
+    right: '50%',
+    transform: [{ translateX: 28 }],
+    backgroundColor: '#007AFF',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   changeAvatarText: {
     marginTop: 10,
     color: '#007AFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   inputGroup: {
     marginBottom: 20,
   },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#666',
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 6,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#888',
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#bbb',
+    fontWeight: '500',
+  },
+  charCountOver: {
+    color: '#FF3B30',
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#e5e5e5',
     borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
     fontSize: 16,
     color: '#1a1a1a',
     backgroundColor: '#fafafa',
   },
+  inputFocused: {
+    borderColor: '#007AFF',
+    backgroundColor: '#fff',
+  },
+  inputError: {
+    borderColor: '#FF3B30',
+  },
+  inputWithPrefix: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#e5e5e5',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    backgroundColor: '#fafafa',
+  },
+  inputPrefix: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: '600',
+    marginRight: 2,
+  },
+  inputInline: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1a1a1a',
+    padding: 0,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 5,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#FF3B30',
+    fontWeight: '500',
+  },
   textArea: {
-    height: 100,
+    height: 110,
     textAlignVertical: 'top',
+  },
+  saveBodyBtn: {
+    backgroundColor: '#007AFF',
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  saveBodyBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
   logoutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'center',
+    gap: 8,
     paddingVertical: 14,
-    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#FF3B30',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

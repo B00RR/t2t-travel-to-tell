@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, Image, Dimensions,
+  ActivityIndicator, Alert, Image, Dimensions, Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,6 +57,20 @@ export default function TripPlanDetailScreen() {
     );
   }
 
+  async function handleShare() {
+    if (!plan) return;
+    const dests = plan.destinations?.join(', ') || '';
+    const message = [
+      `🗺️ ${plan.title}`,
+      dests ? `📍 ${dests}` : null,
+      plan.description ? `\n${plan.description}` : null,
+      `\n✈️ Pianifica su T2T — Travel to Tell`,
+    ].filter(Boolean).join('\n');
+    try {
+      await Share.share({ message, title: plan.title });
+    } catch (_) {}
+  }
+
   async function handleClone() {
     if (!plan) return;
     const newId = await clonePlan(plan.id);
@@ -104,11 +118,15 @@ export default function TripPlanDetailScreen() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
         </TouchableOpacity>
-        {isOwner ? (
-          <TouchableOpacity style={styles.iconBtn} onPress={handleDelete}>
-            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={styles.iconBtn} onPress={handleShare}>
+            <Ionicons name="share-outline" size={24} color="#007AFF" />
           </TouchableOpacity>
-        ) : plan.visibility === 'public' ? (
+          {isOwner ? (
+            <TouchableOpacity style={styles.iconBtn} onPress={handleDelete}>
+              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          ) : plan.visibility === 'public' ? (
           <TouchableOpacity
             style={styles.cloneHeaderBtn}
             onPress={handleClone}
@@ -124,6 +142,7 @@ export default function TripPlanDetailScreen() {
             )}
           </TouchableOpacity>
         ) : null}
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>

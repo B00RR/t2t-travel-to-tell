@@ -76,13 +76,21 @@ export default function PlannerScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('planner.tab')}</Text>
-        <TouchableOpacity
-          style={styles.newBtn}
-          onPress={() => router.push('/planner/create')}
-          disabled={creating}
-        >
-          <Ionicons name="add" size={22} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={styles.buddyBtn}
+            onPress={() => router.push('/planner/buddies')}
+          >
+            <Ionicons name="people-outline" size={18} color="#007AFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.newBtn}
+            onPress={() => router.push('/planner/create')}
+            disabled={creating}
+          >
+            <Ionicons name="add" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tab selector */}
@@ -166,6 +174,16 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#1a1a1a',
     letterSpacing: -0.5,
+  },
+  buddyBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#e8f0fe',
+    borderWidth: 1,
+    borderColor: '#cce0ff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   newBtn: {
     width: 36,

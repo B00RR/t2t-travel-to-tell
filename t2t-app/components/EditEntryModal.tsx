@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { DayEntry } from '@/types/dayEntry';
+import { RichTextInput } from './RichTextInput';
 
 interface EditEntryModalProps {
   entry: DayEntry | null;
@@ -29,14 +30,22 @@ export function EditEntryModal({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>{t('day.edit_title', { type: typeLabel })}</Text>
-          <TextInput
-            style={styles.input}
-            multiline={entry?.type !== 'location'}
-            value={value}
-            onChangeText={onChangeText}
-            autoFocus
-            textAlignVertical="top"
-          />
+          {entry?.type === 'text' ? (
+            <RichTextInput
+              value={value}
+              onChangeText={onChangeText}
+              autoFocus
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              multiline={entry?.type !== 'location'}
+              value={value}
+              onChangeText={onChangeText}
+              autoFocus
+              textAlignVertical="top"
+            />
+          )}
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>{t('common.cancel')}</Text>

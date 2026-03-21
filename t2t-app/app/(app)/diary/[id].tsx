@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,6 +73,23 @@ export default function DiaryDetailScreen() {
       }
     }, [id, fetchDiaryDetails, fetchDiaryDays])
   );
+
+  async function handleShare() {
+    if (!diary) return;
+    const destinations = diary.destinations?.join(', ') || '';
+    const message = [
+      `📖 ${diary.title}`,
+      destinations ? `📍 ${destinations}` : null,
+      diary.description ? `\n${diary.description}` : null,
+      `\n🌍 Scopri T2T — Travel to Tell`,
+    ].filter(Boolean).join('\n');
+
+    try {
+      await Share.share({ message, title: diary.title });
+    } catch (e) {
+      // User dismissed share sheet — no action needed
+    }
+  }
 
   async function moveDay(dayId: string, direction: 'up' | 'down') {
     const idx = days.findIndex(d => d.id === dayId);
@@ -296,6 +313,7 @@ export default function DiaryDetailScreen() {
           save_count: diary.save_count || 0,
         }}
         onCommentPress={() => setShowComments(true)}
+        onSharePress={handleShare}
       />
 
       <CommentsModal

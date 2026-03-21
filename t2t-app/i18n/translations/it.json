@@ -256,6 +256,16 @@
     "none_yet": "Nessun badge ancora. Pubblica il tuo primo diario!",
     "more": "+{{count}} da sbloccare",
     "next_level": "{{xp}} XP al prossimo livello",
+    "lvl_1": "Turista",
+    "lvl_2": "Viaggiatore",
+    "lvl_3": "Esploratore",
+    "lvl_4": "Avventuriero",
+    "lvl_5": "Nomade",
+    "lvl_6": "Globetrotter",
+    "lvl_7": "Pioniere",
+    "lvl_8": "Leggenda",
+    "lvl_9": "Icona",
+    "lvl_10": "Maestro",
     "first_journey": "Primo Viaggio",
     "first_journey_desc": "Pubblica il tuo primo diario di viaggio.",
     "storyteller": "Narratore",
@@ -284,7 +294,10 @@
     "matches": "Compagni disponibili",
     "view_profile": "Vedi profilo",
     "going_to": "Va a",
-    "dates": "{{start}} → {{end}}"
+    "dates": "{{start}} → {{end}}",
+    "filter_all": "Tutti",
+    "filter_match": "🎯 Match ({{count}})",
+    "match_badge": "🎯 Match"
   },
   "notifications": {
     "title": "Notifiche",

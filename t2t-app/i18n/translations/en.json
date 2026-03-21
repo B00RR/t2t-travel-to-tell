@@ -256,6 +256,16 @@
     "none_yet": "No badges yet. Publish your first diary!",
     "more": "+{{count}} to unlock",
     "next_level": "{{xp}} XP to next level",
+    "lvl_1": "Tourist",
+    "lvl_2": "Traveler",
+    "lvl_3": "Explorer",
+    "lvl_4": "Adventurer",
+    "lvl_5": "Nomad",
+    "lvl_6": "Globetrotter",
+    "lvl_7": "Pioneer",
+    "lvl_8": "Legend",
+    "lvl_9": "Icon",
+    "lvl_10": "Master",
     "first_journey": "First Journey",
     "first_journey_desc": "Publish your first travel diary.",
     "storyteller": "Storyteller",
@@ -284,7 +294,10 @@
     "matches": "Available buddies",
     "view_profile": "View profile",
     "going_to": "Going to",
-    "dates": "{{start}} → {{end}}"
+    "dates": "{{start}} → {{end}}",
+    "filter_all": "All",
+    "filter_match": "🎯 Match ({{count}})",
+    "match_badge": "🎯 Match"
   },
   "notifications": {
     "title": "Notifications",

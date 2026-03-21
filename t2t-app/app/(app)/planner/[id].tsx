@@ -50,7 +50,7 @@ export default function TripPlanDetailScreen() {
     visibility: 'private' as Visibility,
   });
 
-  function openEditModal() {
+  const openEditModal = useCallback(() => {
     if (!plan) return;
     setEditForm({
       title: plan.title,
@@ -61,7 +61,7 @@ export default function TripPlanDetailScreen() {
       visibility: plan.visibility,
     });
     setEditVisible(true);
-  }
+  }, [plan]);
 
   async function handleSaveMetadata() {
     if (!editForm.title.trim()) {

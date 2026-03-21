@@ -51,17 +51,19 @@ export function PeopleToFollow({ currentUserId }: Props) {
 
   useEffect(() => { fetchSuggestions(); }, [fetchSuggestions]);
 
-  async function handleFollow(userId: string) {
+  const handleFollow = useCallback(async (userId: string) => {
     setFollowed(prev => new Set([...prev, userId]));
-    await supabase.from('follows').insert({ follower_id: currentUserId, following_id: userId });
-  }
+    const { error } = await supabase.from('follows').insert({ follower_id: currentUserId, following_id: userId });
+    if (error) setFollowed(prev => { const s = new Set(prev); s.delete(userId); return s; });
+  }, [currentUserId]);
 
-  async function handleUnfollow(userId: string) {
+  const handleUnfollow = useCallback(async (userId: string) => {
     setFollowed(prev => { const s = new Set(prev); s.delete(userId); return s; });
-    await supabase.from('follows').delete()
+    const { error } = await supabase.from('follows').delete()
       .eq('follower_id', currentUserId)
       .eq('following_id', userId);
-  }
+    if (error) setFollowed(prev => new Set([...prev, userId]));
+  }, [currentUserId]);
 
   if (loading || suggestions.length === 0) return null;
 

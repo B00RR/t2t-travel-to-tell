@@ -42,13 +42,14 @@ export default function TravelBuddiesScreen() {
       .eq('author_id', user.id)
       .eq('visibility', 'public');
 
-    const myDests: string[] = [];
+    const myDestsSet = new Set<string>();
     (myPlans || []).forEach(p => {
       (p.destinations || []).forEach((d: string | null) => {
         const normalized = (d ?? '').trim().toLowerCase();
-        if (normalized && !myDests.includes(normalized)) myDests.push(normalized);
+        if (normalized) myDestsSet.add(normalized);
       });
     });
+    const myDests = Array.from(myDestsSet);
     setMyDestinations(myDests);
 
     // 2. Fetch all public plans from other users
@@ -86,6 +87,8 @@ export default function TravelBuddiesScreen() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const myDestinationsSet = useMemo(() => new Set(myDestinations), [myDestinations]);
+
   const displayedPlans = useMemo(() => {
     if (activeFilter) {
       return allPublic.filter(p => (p.destinations || []).some((d: string | null) =>
@@ -103,10 +106,9 @@ export default function TravelBuddiesScreen() {
   );
 
   const renderItem = ({ item }: { item: BuddyPlan }) => {
-    const sharedDests = (item.destinations || []).filter((d: string) =>
-      myDestinations.includes(d.trim().toLowerCase())
+    const hasMatch = (item.destinations || []).some((d: string) =>
+      myDestinationsSet.has(d.trim().toLowerCase())
     );
-    const hasMatch = sharedDests.length > 0;
 
     return (
       <View style={styles.card}>
@@ -131,7 +133,7 @@ export default function TravelBuddiesScreen() {
           </TouchableOpacity>
           {hasMatch && (
             <View style={styles.matchBadge}>
-              <Text style={styles.matchBadgeText}>🎯 Match</Text>
+              <Text style={styles.matchBadgeText}>{t('buddy.match_badge')}</Text>
             </View>
           )}
         </View>
@@ -142,9 +144,9 @@ export default function TravelBuddiesScreen() {
           {(item.destinations || []).map((dest: string, i: number) => (
             <View
               key={i}
-              style={[styles.destPill, myDestinations.includes(dest.trim().toLowerCase()) && styles.destPillMatch]}
+              style={[styles.destPill, myDestinationsSet.has(dest.trim().toLowerCase()) && styles.destPillMatch]}
             >
-              <Text style={[styles.destText, myDestinations.includes(dest.trim().toLowerCase()) && styles.destTextMatch]}>
+              <Text style={[styles.destText, myDestinationsSet.has(dest.trim().toLowerCase()) && styles.destTextMatch]}>
                 📍 {dest}
               </Text>
             </View>
@@ -211,7 +213,7 @@ export default function TravelBuddiesScreen() {
                     onPress={() => setActiveFilter(null)}
                   >
                     <Text style={[styles.filterChipText, !activeFilter && styles.filterChipTextActive]}>
-                      {matches.length > 0 ? `🎯 Match (${matches.length})` : 'Tutti'}
+                      {matches.length > 0 ? t('buddy.filter_match', { count: matches.length }) : t('buddy.filter_all')}
                     </Text>
                   </TouchableOpacity>
                   {allDestinations.map(dest => (

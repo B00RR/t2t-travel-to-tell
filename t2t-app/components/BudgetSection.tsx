@@ -23,7 +23,8 @@ interface BudgetSectionProps {
 }
 
 export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'it' ? locale : 'en-US';
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<BudgetEstimate>({});
 
@@ -97,7 +98,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>{t('planner.budget_total')}</Text>
             <Text style={styles.totalAmount}>
-              {displayTotal.toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {currency}
+              {displayTotal.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {currency}
             </Text>
           </View>
           {Object.keys(breakdown).length > 0 && (
@@ -109,7 +110,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                     <Text style={styles.breakdownLabel}>{t(`planner.budget_cat_${cat.key}`)}</Text>
                   </View>
                   <Text style={styles.breakdownAmount}>
-                    {(breakdown[cat.key] || 0).toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {currency}
+                    {(breakdown[cat.key] || 0).toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {currency}
                   </Text>
                 </View>
               ))}
@@ -175,7 +176,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                 <View style={styles.draftTotalRow}>
                   <Text style={styles.draftTotalLabel}>{t('planner.budget_total')}</Text>
                   <Text style={styles.draftTotalAmount}>
-                    {draftTotal.toLocaleString('it-IT', { minimumFractionDigits: 0 })} {draft.currency || 'EUR'}
+                    {draftTotal.toLocaleString(locale, { minimumFractionDigits: 0 })} {draft.currency || 'EUR'}
                   </Text>
                 </View>
               )}

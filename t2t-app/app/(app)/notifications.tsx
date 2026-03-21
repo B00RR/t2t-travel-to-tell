@@ -122,7 +122,7 @@ export default function NotificationsScreen() {
     );
   };
 
-  const hasUnread = notifications.some(n => !n.is_read);
+  const hasUnread = useMemo(() => notifications.some(n => !n.is_read), [notifications]);
 
   return (
     <View style={styles.container}>

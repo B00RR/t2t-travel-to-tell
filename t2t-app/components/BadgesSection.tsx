@@ -2,7 +2,7 @@
  * Gamification: badge visivi calcolati dai dati del profilo.
  * Non richiede nuove tabelle DB — usa stats già esistenti.
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -103,7 +103,7 @@ const TIER_COLORS = {
   gold:   { bg: '#fffde7', border: '#ffc107', text: '#f57f17' },
 };
 
-function computeLevel(stats: BadgeStats): { level: number; title: string; xp: number; nextXp: number } {
+function computeLevel(stats: BadgeStats): { level: number; xp: number; nextXp: number } {
   const xp =
     stats.diaries * 10 +
     stats.countries * 15 +
@@ -116,14 +116,8 @@ function computeLevel(stats: BadgeStats): { level: number; title: string; xp: nu
     if (xp >= thresholds[i]) { level = i + 1; break; }
   }
 
-  const titles = [
-    'Turista', 'Viaggiatore', 'Esploratore', 'Avventuriero',
-    'Nomade', 'Globetrotter', 'Pioniere', 'Leggenda', 'Icona', 'Maestro',
-  ];
-
   return {
     level,
-    title: titles[Math.min(level - 1, titles.length - 1)],
     xp,
     nextXp: thresholds[Math.min(level, thresholds.length - 1)] || xp,
   };
@@ -138,9 +132,14 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
   const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
 
-  const earned = BADGE_DEFS.filter(b => b.check(stats));
-  const locked = BADGE_DEFS.filter(b => !b.check(stats));
-  const { level, title, xp, nextXp } = computeLevel(stats);
+  const { earned, locked, level, xp, nextXp } = useMemo(() => {
+    const earned = BADGE_DEFS.filter(b => b.check(stats));
+    const locked = BADGE_DEFS.filter(b => !b.check(stats));
+    const { level, xp, nextXp } = computeLevel(stats);
+    return { earned, locked, level, xp, nextXp };
+  }, [stats]);
+
+  const levelTitle = t(`badges.lvl_${Math.min(level, 10)}`);
   const progress = nextXp > 0 ? Math.min(xp / nextXp, 1) : 1;
 
   return (
@@ -150,7 +149,7 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
         <View style={styles.levelTop}>
           <View>
             <Text style={styles.levelNum}>Lv. {level}</Text>
-            <Text style={styles.levelTitle}>{title}</Text>
+            <Text style={styles.levelTitle}>{levelTitle}</Text>
           </View>
           <Text style={styles.xpText}>{xp} XP</Text>
         </View>

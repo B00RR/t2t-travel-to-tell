@@ -48,7 +48,7 @@ export default function DiaryDetailScreen() {
         .update({ view_count: (diary.view_count || 0) + 1 })
         .eq('id', diary.id);
     }
-  }, [diary?.id]);
+  }, [diary?.id, user?.id]);
 
   const fetchDiaryDetails = useCallback(async () => {
     setLoading(true);
@@ -102,7 +102,7 @@ export default function DiaryDetailScreen() {
     }
   }
 
-  async function moveDay(dayId: string, direction: 'up' | 'down') {
+  const moveDay = useCallback(async (dayId: string, direction: 'up' | 'down') => {
     const idx = days.findIndex(d => d.id === dayId);
     if (idx === -1) return;
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
@@ -117,7 +117,7 @@ export default function DiaryDetailScreen() {
       supabase.from('diary_days').update({ sort_order: target.sort_order }).eq('id', current.id),
       supabase.from('diary_days').update({ sort_order: current.sort_order }).eq('id', target.id),
     ]);
-  }
+  }, [days]);
 
   function handleOptions() {
     Alert.alert(

@@ -31,7 +31,14 @@
     "empty_browse": "Discover travel diaries from around the world",
     "trending": "Trending",
     "all_diaries": "All Diaries",
-    "error_fetch": "Unable to load diaries. Please try again."
+    "error_fetch": "Unable to load diaries. Please try again.",
+    "sort_recent": "Recent",
+    "sort_popular": "Most Liked",
+    "sort_trending": "Trending",
+    "duration_all": "All",
+    "duration_short": "Short (≤4d)",
+    "duration_medium": "Medium (5-14d)",
+    "duration_long": "Long (15+d)"
   },
   "profile": {
     "title": "Profile",
@@ -227,7 +234,19 @@
     "select_diary_hint": "Select a diary to import stops from:",
     "no_diaries_to_import": "You don't have any diaries yet.",
     "err_title_required": "Please enter a title for your itinerary.",
-    "err_select_diary": "Please select a diary to import."
+    "err_select_diary": "Please select a diary to import.",
+    "budget": "Budget",
+    "budget_edit": "Edit",
+    "budget_add": "Add estimated budget",
+    "budget_empty": "No budget set.",
+    "budget_total": "Total",
+    "budget_currency": "Currency",
+    "budget_breakdown": "Breakdown",
+    "budget_cat_transport": "Transport",
+    "budget_cat_accommodation": "Accommodation",
+    "budget_cat_food": "Food",
+    "budget_cat_activities": "Activities",
+    "budget_cat_other": "Other"
   },
   "notifications": {
     "title": "Notifications",

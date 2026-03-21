@@ -12,10 +12,33 @@ import type { FeedDiary } from '@/types/supabase';
 
 const PAGE_SIZE = 20;
 
+type SortMode = 'recent' | 'popular' | 'trending';
+type DurationFilter = 'all' | 'short' | 'medium' | 'long';
+
+function getDurationDays(diary: FeedDiary): number | null {
+  if (!diary.start_date || !diary.end_date) return null;
+  const start = new Date(diary.start_date);
+  const end = new Date(diary.end_date);
+  const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+  return Math.max(1, Math.round(diff) + 1);
+}
+
+function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
+  if (filter === 'all') return true;
+  const days = getDurationDays(diary);
+  if (days === null) return filter === 'all';
+  if (filter === 'short') return days <= 4;
+  if (filter === 'medium') return days >= 5 && days <= 14;
+  if (filter === 'long') return days >= 15;
+  return true;
+}
+
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [durationFilter, setDurationFilter] = useState<DurationFilter>('all');
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [trendingDiaries, setTrendingDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,14 +48,18 @@ export default function DiscoveryScreen() {
   const [page, setPage] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
 
-  const fetchBrowse = useCallback(async (pageNum: number, refresh = false) => {
+  const fetchBrowse = useCallback(async (pageNum: number, refresh = false, sort: SortMode = sortMode) => {
+    if (sort === 'trending') {
+      // Trending uses its own dataset, no pagination needed
+      return;
+    }
+
     if (pageNum === 0) {
       if (refresh) setRefreshing(true);
       else setLoading(true);
@@ -42,6 +69,7 @@ export default function DiscoveryScreen() {
 
     const from = pageNum * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
+    const orderColumn = sort === 'popular' ? 'like_count' : 'created_at';
 
     let query = supabase
       .from('diaries')
@@ -53,11 +81,10 @@ export default function DiscoveryScreen() {
           avatar_url
         )
       `)
-      .order('created_at', { ascending: false })
+      .order(orderColumn, { ascending: false })
       .range(from, to);
 
     if (user?.id) {
-      // Show public published diaries OR user's own diaries (any status)
       query = query.or(`and(status.eq.published,visibility.eq.public),author_id.eq.${user.id}`);
     } else {
       query = query.eq('status', 'published').eq('visibility', 'public');
@@ -75,7 +102,7 @@ export default function DiscoveryScreen() {
     setLoading(false);
     setLoadingMore(false);
     setRefreshing(false);
-  }, [t, user?.id]);
+  }, [t, user?.id, sortMode]);
 
   const fetchSearch = useCallback(async (query: string) => {
     setLoading(true);
@@ -130,26 +157,37 @@ export default function DiscoveryScreen() {
       .eq('status', 'published')
       .eq('visibility', 'public')
       .order('like_count', { ascending: false })
-      .limit(10);
+      .limit(20);
 
     if (data) setTrendingDiaries(data as FeedDiary[]);
   }, []);
 
-  // Initial load
   useEffect(() => {
-    fetchBrowse(0);
+    fetchBrowse(0, false, sortMode);
     fetchTrending();
-  }, [fetchBrowse, fetchTrending]);
+  }, []);
+
+  const handleSortChange = useCallback((mode: SortMode) => {
+    setSortMode(mode);
+    setPage(0);
+    setDurationFilter('all');
+    if (mode === 'trending') {
+      setDiaries([]);
+      setHasMore(false);
+    } else {
+      setHasMore(true);
+      fetchBrowse(0, false, mode);
+    }
+  }, [fetchBrowse]);
 
   const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (!text.trim()) {
-      // Back to browse mode
       setPage(0);
-      setHasMore(true);
-      fetchBrowse(0);
+      setHasMore(sortMode !== 'trending');
+      if (sortMode !== 'trending') fetchBrowse(0);
       return;
     }
 
@@ -157,51 +195,110 @@ export default function DiscoveryScreen() {
       setPage(0);
       fetchSearch(text);
     }, 300);
-  }, [fetchSearch, fetchBrowse]);
+  }, [fetchSearch, fetchBrowse, sortMode]);
 
   const onRefresh = useCallback(() => {
     setPage(0);
-    setHasMore(true);
+    setHasMore(sortMode !== 'trending');
     if (searchQuery.trim()) {
       fetchSearch(searchQuery);
+    } else if (sortMode === 'trending') {
+      fetchTrending();
+      setRefreshing(false);
     } else {
-      fetchBrowse(0, true);
+      fetchBrowse(0, true, sortMode);
     }
-  }, [searchQuery, fetchSearch, fetchBrowse]);
+  }, [searchQuery, fetchSearch, fetchBrowse, fetchTrending, sortMode]);
 
   const handleEndReached = useCallback(() => {
-    if (!loading && !loadingMore && hasMore && !searchQuery.trim()) {
+    if (!loading && !loadingMore && hasMore && !searchQuery.trim() && sortMode !== 'trending') {
       const nextPage = page + 1;
       setPage(nextPage);
-      fetchBrowse(nextPage);
+      fetchBrowse(nextPage, false, sortMode);
     }
-  }, [loading, loadingMore, hasMore, searchQuery, page, fetchBrowse]);
+  }, [loading, loadingMore, hasMore, searchQuery, page, fetchBrowse, sortMode]);
 
   const renderItem = useCallback(
     ({ item }: { item: FeedDiary }) => <ExploreDiaryCard item={item} />,
     []
   );
 
-  const ListHeader = useCallback(() => {
-    if (searchQuery.trim() || trendingDiaries.length === 0) return null;
+  // Data to display: trending mode uses trendingDiaries, else diaries (with duration filter)
+  const displayDiaries = sortMode === 'trending'
+    ? trendingDiaries.filter(d => matchesDuration(d, durationFilter))
+    : diaries.filter(d => matchesDuration(d, durationFilter));
+
+  const isSearchMode = searchQuery.trim().length > 0;
+
+  const SortBar = useCallback(() => {
+    if (isSearchMode) return null;
+    const sorts: { key: SortMode; label: string; icon: string }[] = [
+      { key: 'recent', label: t('explore.sort_recent'), icon: 'time-outline' },
+      { key: 'popular', label: t('explore.sort_popular'), icon: 'heart-outline' },
+      { key: 'trending', label: t('explore.sort_trending'), icon: 'flame-outline' },
+    ];
     return (
       <View>
-        <Text style={styles.sectionTitle}>{t('explore.trending')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.trendingList}
+          contentContainerStyle={styles.sortBar}
         >
-          {trendingDiaries.map(item => (
-            <View key={`trending-${item.id}`} style={styles.trendingCardWrapper}>
-              <ExploreDiaryCard item={item} />
-            </View>
+          {sorts.map(s => (
+            <TouchableOpacity
+              key={s.key}
+              style={[styles.sortChip, sortMode === s.key && styles.sortChipActive]}
+              onPress={() => handleSortChange(s.key)}
+            >
+              <Ionicons
+                name={s.icon as any}
+                size={15}
+                color={sortMode === s.key ? '#fff' : '#555'}
+              />
+              <Text style={[styles.sortChipText, sortMode === s.key && styles.sortChipTextActive]}>
+                {s.label}
+              </Text>
+            </TouchableOpacity>
           ))}
         </ScrollView>
-        <Text style={styles.sectionTitle}>{t('explore.all_diaries')}</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.durationBar}
+        >
+          {(['all', 'short', 'medium', 'long'] as DurationFilter[]).map(d => (
+            <TouchableOpacity
+              key={d}
+              style={[styles.durationChip, durationFilter === d && styles.durationChipActive]}
+              onPress={() => setDurationFilter(d)}
+            >
+              <Text style={[styles.durationChipText, durationFilter === d && styles.durationChipTextActive]}>
+                {t(`explore.duration_${d}`)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
     );
-  }, [searchQuery, trendingDiaries, t]);
+  }, [isSearchMode, sortMode, durationFilter, t, handleSortChange]);
+
+  const ListHeader = useCallback(() => {
+    if (isSearchMode) return null;
+    return (
+      <View>
+        <SortBar />
+        {sortMode === 'recent' && (
+          <Text style={styles.sectionTitle}>{t('explore.all_diaries')}</Text>
+        )}
+        {sortMode === 'popular' && (
+          <Text style={styles.sectionTitle}>{t('explore.sort_popular')}</Text>
+        )}
+        {sortMode === 'trending' && (
+          <Text style={styles.sectionTitle}>{t('explore.sort_trending')}</Text>
+        )}
+      </View>
+    );
+  }, [isSearchMode, sortMode, t, SortBar]);
 
   const ListFooter = useCallback(() => {
     if (!loadingMore) return null;
@@ -212,7 +309,7 @@ export default function DiscoveryScreen() {
     );
   }, [loadingMore]);
 
-  const emptyText = searchQuery.trim()
+  const emptyText = isSearchMode
     ? t('explore.no_results', { query: searchQuery })
     : t('explore.empty_browse');
 
@@ -243,7 +340,7 @@ export default function DiscoveryScreen() {
         </View>
       ) : (
         <FlatList
-          data={diaries}
+          data={displayDiaries}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           numColumns={2}
@@ -258,10 +355,12 @@ export default function DiscoveryScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#007AFF" />
           }
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="search-outline" size={64} color="#ddd" />
-              <Text style={styles.emptyText}>{emptyText}</Text>
-            </View>
+            loading ? null : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="search-outline" size={64} color="#ddd" />
+                <Text style={styles.emptyText}>{emptyText}</Text>
+              </View>
+            )
           }
         />
       )}
@@ -277,7 +376,7 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
@@ -303,20 +402,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  sortBar: {
+    paddingHorizontal: 10,
+    paddingTop: 14,
+    paddingBottom: 8,
+    gap: 8,
+  },
+  sortChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f2f2f7',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  sortChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  sortChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+  },
+  sortChipTextActive: {
+    color: '#fff',
+  },
+  durationBar: {
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    gap: 6,
+  },
+  durationChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 14,
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  durationChipActive: {
+    backgroundColor: '#e8f0fe',
+    borderColor: '#007AFF',
+  },
+  durationChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+  },
+  durationChipTextActive: {
+    color: '#007AFF',
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1a1a1a',
     paddingHorizontal: 10,
-    paddingTop: 16,
+    paddingTop: 4,
     paddingBottom: 10,
-  },
-  trendingList: {
-    paddingHorizontal: 10,
-    gap: 10,
-  },
-  trendingCardWrapper: {
-    width: 160,
   },
   listContent: {
     padding: 10,

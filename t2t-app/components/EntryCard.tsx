@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { DayEntry } from '@/types/social';
 import type { VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
+import { RichTextRenderer } from './RichTextRenderer';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
@@ -96,7 +97,11 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
         </Text>
         <Ionicons name="pencil" size={14} color="#bbb" style={{ marginLeft: 'auto' }} />
       </View>
-      <Text style={styles.entryContent}>{entry.content}</Text>
+      {entry.type === 'text' && entry.content ? (
+        <RichTextRenderer text={entry.content} />
+      ) : (
+        <Text style={styles.entryContent}>{entry.content}</Text>
+      )}
     </TouchableOpacity>
   );
 }

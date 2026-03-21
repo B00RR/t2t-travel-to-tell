@@ -31,7 +31,14 @@
     "empty_browse": "Scopri i diari di viaggio da tutto il mondo",
     "trending": "In tendenza",
     "all_diaries": "Tutti i diari",
-    "error_fetch": "Impossibile caricare i diari. Riprova più tardi."
+    "error_fetch": "Impossibile caricare i diari. Riprova più tardi.",
+    "sort_recent": "Recenti",
+    "sort_popular": "Più Popolari",
+    "sort_trending": "Tendenza",
+    "duration_all": "Tutti",
+    "duration_short": "Breve (≤4gg)",
+    "duration_medium": "Media (5-14gg)",
+    "duration_long": "Lungo (15+gg)"
   },
   "profile": {
     "title": "Profilo",
@@ -227,7 +234,19 @@
     "select_diary_hint": "Seleziona un diario da cui importare le tappe:",
     "no_diaries_to_import": "Non hai ancora nessun diario.",
     "err_title_required": "Inserisci un titolo per il tuo itinerario.",
-    "err_select_diary": "Seleziona un diario da importare."
+    "err_select_diary": "Seleziona un diario da importare.",
+    "budget": "Budget",
+    "budget_edit": "Modifica",
+    "budget_add": "Aggiungi budget stimato",
+    "budget_empty": "Nessun budget impostato.",
+    "budget_total": "Totale",
+    "budget_currency": "Valuta",
+    "budget_breakdown": "Ripartizione",
+    "budget_cat_transport": "Trasporti",
+    "budget_cat_accommodation": "Alloggio",
+    "budget_cat_food": "Cibo",
+    "budget_cat_activities": "Attività",
+    "budget_cat_other": "Altro"
   },
   "notifications": {
     "title": "Notifiche",

@@ -32,7 +32,7 @@ export default function DayDetailScreen() {
   // Custom Hooks
   const {
     dayInfo, entries, loading, saving,
-    fetchDayInfo, fetchEntries, addEntry, addMood, updateEntry, deleteEntry, getNextSortOrder,
+    fetchDayInfo, fetchEntries, addEntry, addMood, updateEntry, deleteEntry, moveEntry, getNextSortOrder,
   } = useDayEntries(day_id as string);
 
   const { uploading: uploadingMedia, pickAndUploadMedia } = useMediaUpload({
@@ -49,6 +49,7 @@ export default function DayDetailScreen() {
   const [newContent, setNewContent] = useState('');
 
   const [showMoodPicker, setShowMoodPicker] = useState(false);
+  const [reorderMode, setReorderMode] = useState(false);
 
   const [editingEntry, setEditingEntry] = useState<DayEntry | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -146,9 +147,18 @@ export default function DayDetailScreen() {
           </Text>
           {dayInfo?.date && <Text style={styles.headerDate}>{dayInfo.date}</Text>}
         </View>
-        <TouchableOpacity style={styles.headerIcon} onPress={() => setShowAddMenu(!showAddMenu)}>
-          <Ionicons name="add-circle" size={28} color="#007AFF" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 4 }}>
+          {entries.length > 1 && (
+            <TouchableOpacity style={styles.headerIcon} onPress={() => { setReorderMode(r => !r); setShowAddMenu(false); }}>
+              <Ionicons name={reorderMode ? 'checkmark-circle' : 'reorder-three-outline'} size={26} color={reorderMode ? '#34C759' : '#007AFF'} />
+            </TouchableOpacity>
+          )}
+          {!reorderMode && (
+            <TouchableOpacity style={styles.headerIcon} onPress={() => setShowAddMenu(!showAddMenu)}>
+              <Ionicons name="add-circle" size={28} color="#007AFF" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Add Menu */}
@@ -196,13 +206,37 @@ export default function DayDetailScreen() {
         )}
 
         {/* Entry List */}
-        {entries.map((entry) => (
-          <EntryCard
-            key={entry.id}
-            entry={entry}
-            onPress={handleStartEdit}
-            onLongPress={deleteEntry}
-          />
+        {entries.map((entry, idx) => (
+          reorderMode ? (
+            <View key={entry.id} style={styles.reorderRow}>
+              <View style={{ flex: 1 }}>
+                <EntryCard entry={entry} onPress={() => {}} onLongPress={() => {}} />
+              </View>
+              <View style={styles.reorderBtns}>
+                <TouchableOpacity
+                  style={[styles.reorderBtn, idx === 0 && styles.reorderBtnDisabled]}
+                  onPress={() => idx > 0 && moveEntry(entry.id, 'up')}
+                  disabled={idx === 0}
+                >
+                  <Ionicons name="chevron-up" size={20} color={idx === 0 ? '#ccc' : '#007AFF'} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.reorderBtn, idx === entries.length - 1 && styles.reorderBtnDisabled]}
+                  onPress={() => idx < entries.length - 1 && moveEntry(entry.id, 'down')}
+                  disabled={idx === entries.length - 1}
+                >
+                  <Ionicons name="chevron-down" size={20} color={idx === entries.length - 1 ? '#ccc' : '#007AFF'} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <EntryCard
+              key={entry.id}
+              entry={entry}
+              onPress={handleStartEdit}
+              onLongPress={deleteEntry}
+            />
+          )
         ))}
 
         {/* Inline Add Form */}
@@ -273,4 +307,11 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#999', marginTop: 16 },
   emptySub: { fontSize: 14, color: '#bbb', textAlign: 'center', marginTop: 8, paddingHorizontal: 40 },
+  reorderRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  reorderBtns: { gap: 4 },
+  reorderBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#f0f4ff', justifyContent: 'center', alignItems: 'center',
+  },
+  reorderBtnDisabled: { backgroundColor: '#f9f9f9' },
 });

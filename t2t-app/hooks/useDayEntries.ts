@@ -216,6 +216,31 @@ export function useDayEntries(dayId: string | string[]) {
     [fetchEntries, t]
   );
 
+  const moveEntry = useCallback(
+    async (entryId: string, direction: 'up' | 'down') => {
+      const idx = entries.findIndex(e => e.id === entryId);
+      if (idx === -1) return;
+      const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= entries.length) return;
+
+      const current = entries[idx];
+      const target = entries[swapIdx];
+
+      // Optimistic update
+      const updated = [...entries];
+      updated[idx] = { ...current, sort_order: target.sort_order };
+      updated[swapIdx] = { ...target, sort_order: current.sort_order };
+      setEntries(updated.sort((a, b) => a.sort_order - b.sort_order));
+
+      // Persist
+      await Promise.all([
+        supabase.from('day_entries').update({ sort_order: target.sort_order }).eq('id', current.id),
+        supabase.from('day_entries').update({ sort_order: current.sort_order }).eq('id', target.id),
+      ]);
+    },
+    [entries]
+  );
+
   const deleteEntry = useCallback(
     async (entryId: string) => {
       return new Promise<void>((resolve) => {
@@ -280,6 +305,7 @@ export function useDayEntries(dayId: string | string[]) {
     addMood,
     updateEntry,
     deleteEntry,
+    moveEntry,
     getNextSortOrder,
   };
 }

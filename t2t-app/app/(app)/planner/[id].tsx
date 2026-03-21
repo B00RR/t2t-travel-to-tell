@@ -11,6 +11,7 @@ import { useTripPlanDetail } from '@/hooks/useTripPlanDetail';
 import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
 import { TripPlanStopItem } from '@/components/TripPlanStopItem';
 import { ChecklistSection } from '@/components/ChecklistSection';
+import { BudgetSection } from '@/components/BudgetSection';
 import type { TripPlanStop } from '@/types/tripPlan';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -23,7 +24,7 @@ export default function TripPlanDetailScreen() {
 
   const {
     plan, stops, checklist, loading, saving,
-    fetchPlan, deletePlan, updateStop, deleteStop,
+    fetchPlan, deletePlan, updatePlan, updateStop, deleteStop,
     toggleChecklistItem, addChecklistItem, deleteChecklistItem,
     addStop,
   } = useTripPlanDetail(id);
@@ -202,6 +203,15 @@ export default function TripPlanDetailScreen() {
               />
             ))
           )}
+
+          <View style={styles.divider} />
+
+          {/* Budget section */}
+          <BudgetSection
+            budget={plan.budget_estimate || {}}
+            isOwner={isOwner}
+            onUpdate={async (budget) => updatePlan({ budget_estimate: budget })}
+          />
 
           <View style={styles.divider} />
 

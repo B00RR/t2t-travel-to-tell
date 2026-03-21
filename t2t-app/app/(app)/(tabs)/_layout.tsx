@@ -1,6 +1,18 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
+import { useNotifications } from '@/hooks/useNotifications';
+
+function ProfileTabIcon({ color, size }: { color: string; size: number }) {
+  const { unreadCount } = useNotifications();
+  return (
+    <View>
+      <Ionicons name="person" size={size} color={color} />
+      {unreadCount > 0 && <View style={styles.badge} />}
+    </View>
+  );
+}
 
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -53,12 +65,33 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="planner"
+        options={{
+          title: t('planner.tab'),
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: t('common.profile'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <ProfileTabIcon color={color} size={size} />,
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  badge: {
+    position: 'absolute',
+    top: -1,
+    right: -3,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#FF3B30',
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+});

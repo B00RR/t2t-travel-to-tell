@@ -7,6 +7,7 @@ export default function AppLayout() {
       <Stack.Screen name="diary/[id]" />
       <Stack.Screen name="diary/add-day" options={{ presentation: 'modal' }} />
       <Stack.Screen name="diary/day/[day_id]" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }

@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 type DiaryDay = {
   id: string;
   day_number: number;
+  sort_order: number;
   title: string | null;
   date: string | null;
 };
@@ -32,9 +33,22 @@ export default function DiaryDetailScreen() {
   // Social UI state
   const [showComments, setShowComments] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [reorderDaysMode, setReorderDaysMode] = useState(false);
 
   // Follow logic (Mocking target profile ID as diary.author_id)
   const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
+
+  // Increment view count once per component mount (not per focus)
+  const viewCountedRef = useRef(false);
+  useEffect(() => {
+    if (diary && !viewCountedRef.current && user?.id !== diary.author_id) {
+      viewCountedRef.current = true;
+      supabase
+        .from('diaries')
+        .update({ view_count: (diary.view_count || 0) + 1 })
+        .eq('id', diary.id);
+    }
+  }, [diary?.id, user?.id]);
 
   const fetchDiaryDetails = useCallback(async () => {
     setLoading(true);
@@ -53,9 +67,9 @@ export default function DiaryDetailScreen() {
     setLoading(true); // Se vogliamo mostrare il loader anche durante il reload dei giorni
     const { data, error } = await supabase
       .from('diary_days')
-      .select('id, day_number, title, date')
+      .select('id, day_number, title, date, sort_order')
       .eq('diary_id', id)
-      .order('day_number', { ascending: true });
+      .order('sort_order', { ascending: true });
 
     if (!error && data) {
       setDays(data);
@@ -66,11 +80,44 @@ export default function DiaryDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       if (id) {
-        fetchDiaryDetails();
-        fetchDiaryDays();
+        Promise.all([fetchDiaryDetails(), fetchDiaryDays()]);
       }
     }, [id, fetchDiaryDetails, fetchDiaryDays])
   );
+
+  async function handleShare() {
+    if (!diary) return;
+    const destinations = diary.destinations?.join(', ') || '';
+    const message = [
+      `📖 ${diary.title}`,
+      destinations ? `📍 ${destinations}` : null,
+      diary.description ? `\n${diary.description}` : null,
+      `\n🌍 Scopri T2T — Travel to Tell`,
+    ].filter(Boolean).join('\n');
+
+    try {
+      await Share.share({ message, title: diary.title });
+    } catch (e) {
+      // User dismissed share sheet — no action needed
+    }
+  }
+
+  const moveDay = useCallback(async (dayId: string, direction: 'up' | 'down') => {
+    const idx = days.findIndex(d => d.id === dayId);
+    if (idx === -1) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= days.length) return;
+    const current = days[idx];
+    const target = days[swapIdx];
+    const updated = [...days];
+    updated[idx] = { ...current, sort_order: target.sort_order };
+    updated[swapIdx] = { ...target, sort_order: current.sort_order };
+    setDays(updated.sort((a, b) => a.sort_order - b.sort_order));
+    await Promise.all([
+      supabase.from('diary_days').update({ sort_order: target.sort_order }).eq('id', current.id),
+      supabase.from('diary_days').update({ sort_order: current.sort_order }).eq('id', target.id),
+    ]);
+  }, [days]);
 
   function handleOptions() {
     Alert.alert(
@@ -190,17 +237,44 @@ export default function DiaryDetailScreen() {
           <Text style={[styles.description, styles.contentPadding]}>{diary.description}</Text>
         ) : null}
 
-        <View style={[styles.divider, styles.contentPadding]} />
+        {/* Stats row */}
+        <View style={[styles.statsRow, styles.contentPadding]}>
+          <View style={styles.statItem}>
+            <Ionicons name="eye-outline" size={15} color="#aaa" />
+            <Text style={styles.statText}>{diary.view_count || 0}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Ionicons name="heart" size={15} color="#FF3B30" />
+            <Text style={styles.statText}>{diary.like_count || 0}</Text>
+          </View>
+        </View>
 
+        <View style={[styles.divider, styles.contentPadding]} />
         <View style={[styles.daysHeader, styles.contentPadding]}>
           <Text style={styles.sectionTitle}>{t('diary.days')}</Text>
-          <TouchableOpacity 
-            style={styles.addDayButton}
-            onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
-          >
-            <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addDayText}>{t('diary.add')}</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            {user?.id === diary.author_id && days.length > 1 && (
+              <TouchableOpacity
+                style={[styles.reorderToggleBtn, reorderDaysMode && styles.reorderToggleBtnActive]}
+                onPress={() => setReorderDaysMode(r => !r)}
+              >
+                <Ionicons
+                  name={reorderDaysMode ? 'checkmark' : 'reorder-three-outline'}
+                  size={18}
+                  color={reorderDaysMode ? '#fff' : '#007AFF'}
+                />
+              </TouchableOpacity>
+            )}
+            {!reorderDaysMode && (
+              <TouchableOpacity
+                style={styles.addDayButton}
+                onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
+              >
+                <Ionicons name="add" size={20} color="#fff" />
+                <Text style={styles.addDayText}>{t('diary.add')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {days.length === 0 ? (
@@ -210,21 +284,41 @@ export default function DiaryDetailScreen() {
           </View>
         ) : (
           <View style={[styles.daysList, styles.contentPadding]}>
-            {days.map((day) => (
-              <TouchableOpacity
-                key={day.id}
-                style={styles.dayCard}
-                onPress={() => router.push({ pathname: '/diary/day/[day_id]', params: { day_id: day.id, diary_id: id } })}
-              >
-                <View style={styles.dayIconBox}>
-                  <Text style={styles.dayIconText}>{day.day_number}</Text>
-                </View>
-                <View style={styles.dayContent}>
-                  <Text style={styles.dayTitle}>{t('diary.day_label', { number: day.day_number })}{day.title ? `: ${day.title}` : ''}</Text>
-                  {day.date && <Text style={styles.dayDate}>{day.date}</Text>}
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
-              </TouchableOpacity>
+            {days.map((day, idx) => (
+              <View key={day.id} style={styles.dayRow}>
+                <TouchableOpacity
+                  style={[styles.dayCard, { flex: 1 }]}
+                  onPress={() => !reorderDaysMode && router.push({ pathname: '/diary/day/[day_id]', params: { day_id: day.id, diary_id: id } })}
+                  activeOpacity={reorderDaysMode ? 1 : 0.7}
+                >
+                  <View style={styles.dayIconBox}>
+                    <Text style={styles.dayIconText}>{day.day_number}</Text>
+                  </View>
+                  <View style={styles.dayContent}>
+                    <Text style={styles.dayTitle}>{t('diary.day_label', { number: day.day_number })}{day.title ? `: ${day.title}` : ''}</Text>
+                    {day.date && <Text style={styles.dayDate}>{day.date}</Text>}
+                  </View>
+                  {!reorderDaysMode && <Ionicons name="chevron-forward" size={20} color="#ccc" />}
+                </TouchableOpacity>
+                {reorderDaysMode && (
+                  <View style={styles.reorderBtns}>
+                    <TouchableOpacity
+                      style={[styles.reorderBtn, idx === 0 && styles.reorderBtnDisabled]}
+                      onPress={() => idx > 0 && moveDay(day.id, 'up')}
+                      disabled={idx === 0}
+                    >
+                      <Ionicons name="chevron-up" size={20} color={idx === 0 ? '#ccc' : '#007AFF'} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.reorderBtn, idx === days.length - 1 && styles.reorderBtnDisabled]}
+                      onPress={() => idx < days.length - 1 && moveDay(day.id, 'down')}
+                      disabled={idx === days.length - 1}
+                    >
+                      <Ionicons name="chevron-down" size={20} color={idx === days.length - 1 ? '#ccc' : '#007AFF'} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
             ))}
           </View>
         )}
@@ -241,6 +335,7 @@ export default function DiaryDetailScreen() {
           save_count: diary.save_count || 0,
         }}
         onCommentPress={() => setShowComments(true)}
+        onSharePress={handleShare}
       />
 
       <CommentsModal
@@ -252,7 +347,7 @@ export default function DiaryDetailScreen() {
 
       <CoverImagePicker
         visible={showCoverPicker}
-        diaryId={id as string}
+        itemId={id as string}
         userId={user?.id}
         destinations={diary.destinations || []}
         onCoverSet={(url) => setDiary(prev => prev ? { ...prev, cover_image_url: url } : prev)}
@@ -379,7 +474,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#444',
     lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 4,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  statText: {
+    fontSize: 13,
+    color: '#aaa',
+    fontWeight: '600',
   },
   divider: {
     height: 1,
@@ -450,14 +560,33 @@ const styles = StyleSheet.create({
   daysList: {
     marginTop: 8,
   },
+  dayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   dayCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
   },
+  reorderToggleBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    borderWidth: 1.5, borderColor: '#007AFF',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  reorderToggleBtnActive: {
+    backgroundColor: '#34C759', borderColor: '#34C759',
+  },
+  reorderBtns: { gap: 4 },
+  reorderBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#f0f4ff', justifyContent: 'center', alignItems: 'center',
+  },
+  reorderBtnDisabled: { backgroundColor: '#f9f9f9' },
   dayIconBox: {
     width: 40,
     height: 40,

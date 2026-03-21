@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { RichTextInput } from './RichTextInput';
 
 type AddableType = 'text' | 'tip' | 'location';
 
@@ -51,17 +52,26 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
         <Ionicons name={cfg.icon} size={20} color={cfg.color} />
         <Text style={styles.title}>{title}</Text>
       </View>
-      <TextInput
-        style={[styles.input, type === 'location' && { minHeight: 48 }]}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        value={value}
-        onChangeText={onChangeText}
-        multiline={type !== 'location'}
-        numberOfLines={type === 'location' ? 1 : 4}
-        textAlignVertical="top"
-        autoFocus
-      />
+      {type === 'text' ? (
+        <RichTextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          autoFocus
+        />
+      ) : (
+        <TextInput
+          style={[styles.input, type === 'location' && { minHeight: 48 }]}
+          placeholder={placeholder}
+          placeholderTextColor="#999"
+          value={value}
+          onChangeText={onChangeText}
+          multiline={type !== 'location'}
+          numberOfLines={type === 'location' ? 1 : 4}
+          textAlignVertical="top"
+          autoFocus
+        />
+      )}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
           <Text style={styles.cancelText}>{t('common.cancel')}</Text>

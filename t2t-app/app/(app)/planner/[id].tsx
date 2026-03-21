@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Image, Dimensions, Share,
+  Modal, TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,7 +13,9 @@ import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
 import { TripPlanStopItem } from '@/components/TripPlanStopItem';
 import { ChecklistSection } from '@/components/ChecklistSection';
 import { BudgetSection } from '@/components/BudgetSection';
-import type { TripPlanStop } from '@/types/tripPlan';
+import type { TripPlanStop, TripPlan } from '@/types/tripPlan';
+
+type Visibility = TripPlan['visibility'];
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -32,6 +35,50 @@ export default function TripPlanDetailScreen() {
   const { creating, clonePlan } = useCreateTripPlan(user?.id);
 
   const isOwner = plan?.author_id === user?.id;
+
+  // Edit metadata modal state
+  const [editVisible, setEditVisible] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    destinations: '',
+    start_date: '',
+    end_date: '',
+    visibility: 'private' as Visibility,
+  });
+
+  function openEditModal() {
+    if (!plan) return;
+    setEditForm({
+      title: plan.title,
+      description: plan.description || '',
+      destinations: (plan.destinations || []).join(', '),
+      start_date: plan.start_date || '',
+      end_date: plan.end_date || '',
+      visibility: plan.visibility,
+    });
+    setEditVisible(true);
+  }
+
+  async function handleSaveMetadata() {
+    if (!editForm.title.trim()) {
+      Alert.alert(t('common.error'), t('planner.err_title_required'));
+      return;
+    }
+    const destinations = editForm.destinations
+      .split(',')
+      .map(d => d.trim())
+      .filter(Boolean);
+    await updatePlan({
+      title: editForm.title.trim(),
+      description: editForm.description.trim() || null,
+      destinations,
+      start_date: editForm.start_date.trim() || null,
+      end_date: editForm.end_date.trim() || null,
+      visibility: editForm.visibility,
+    });
+    setEditVisible(false);
+  }
 
   const handleBudgetUpdate = useCallback(
     (budget: object) => updatePlan({ budget_estimate: budget }),
@@ -128,9 +175,14 @@ export default function TripPlanDetailScreen() {
             <Ionicons name="share-outline" size={24} color="#007AFF" />
           </TouchableOpacity>
           {isOwner ? (
-            <TouchableOpacity style={styles.iconBtn} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity style={styles.iconBtn} onPress={openEditModal}>
+                <Ionicons name="create-outline" size={24} color="#007AFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconBtn} onPress={handleDelete}>
+                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+              </TouchableOpacity>
+            </>
           ) : plan.visibility === 'public' ? (
           <TouchableOpacity
             style={styles.cloneHeaderBtn}
@@ -249,6 +301,93 @@ export default function TripPlanDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Edit Metadata Modal */}
+      <Modal visible={editVisible} animationType="slide" presentationStyle="pageSheet">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setEditVisible(false)}>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>{t('plan_edit.title')}</Text>
+            <TouchableOpacity onPress={handleSaveMetadata} disabled={saving}>
+              <Text style={[styles.modalSave, saving && { opacity: 0.4 }]}>{t('common.save')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalBody} keyboardShouldPersistTaps="handled">
+            <View style={styles.modalField}>
+              <Text style={styles.modalLabel}>{t('planner.title_label')}</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={editForm.title}
+                onChangeText={v => setEditForm(p => ({ ...p, title: v }))}
+                placeholder={t('planner.title_placeholder')}
+              />
+            </View>
+
+            <View style={styles.modalField}>
+              <Text style={styles.modalLabel}>{t('planner.description_label')}</Text>
+              <TextInput
+                style={[styles.modalInput, styles.modalTextArea]}
+                value={editForm.description}
+                onChangeText={v => setEditForm(p => ({ ...p, description: v }))}
+                placeholder={t('planner.description_placeholder')}
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.modalField}>
+              <Text style={styles.modalLabel}>{t('planner.destinations_label')}</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={editForm.destinations}
+                onChangeText={v => setEditForm(p => ({ ...p, destinations: v }))}
+                placeholder={t('planner.destinations_placeholder')}
+              />
+            </View>
+
+            <View style={styles.modalRow}>
+              <View style={[styles.modalField, { flex: 1 }]}>
+                <Text style={styles.modalLabel}>{t('planner.start_date_label')}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={editForm.start_date}
+                  onChangeText={v => setEditForm(p => ({ ...p, start_date: v }))}
+                  placeholder="YYYY-MM-DD"
+                />
+              </View>
+              <View style={[styles.modalField, { flex: 1 }]}>
+                <Text style={styles.modalLabel}>{t('planner.end_date_label')}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={editForm.end_date}
+                  onChangeText={v => setEditForm(p => ({ ...p, end_date: v }))}
+                  placeholder="YYYY-MM-DD"
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalField}>
+              <Text style={styles.modalLabel}>{t('plan_edit.visibility_label')}</Text>
+              <View style={styles.visibilityRow}>
+                {(['private', 'public', 'friends'] as Visibility[]).map(v => (
+                  <TouchableOpacity
+                    key={v}
+                    style={[styles.visibilityBtn, editForm.visibility === v && styles.visibilityBtnActive]}
+                    onPress={() => setEditForm(p => ({ ...p, visibility: v }))}
+                  >
+                    <Text style={[styles.visibilityBtnText, editForm.visibility === v && styles.visibilityBtnTextActive]}>
+                      {t(`plan_edit.visibility_${v}`)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -411,5 +550,92 @@ const styles = StyleSheet.create({
     color: '#aaa',
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalCancel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  modalSave: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#007AFF',
+  },
+  modalBody: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  modalField: {
+    marginTop: 20,
+  },
+  modalRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#888',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#1a1a1a',
+    backgroundColor: '#fafafa',
+  },
+  modalTextArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  visibilityRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  visibilityBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#f2f2f7',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    alignItems: 'center',
+  },
+  visibilityBtnActive: {
+    backgroundColor: '#e8f0fe',
+    borderColor: '#007AFF',
+  },
+  visibilityBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+  },
+  visibilityBtnTextActive: {
+    color: '#007AFF',
   },
 });

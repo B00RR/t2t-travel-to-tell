@@ -295,5 +295,21 @@
     "minutes_ago": "{{count}}m ago",
     "hours_ago": "{{count}}h ago",
     "days_ago": "{{count}}d ago"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "language_subtitle": "Choose app language",
+    "account": "Account",
+    "logout": "Sign out",
+    "version": "Version",
+    "saved": "Preferences saved"
+  },
+  "plan_edit": {
+    "title": "Edit Itinerary",
+    "visibility_label": "Visibility",
+    "visibility_private": "Private 🔒",
+    "visibility_public": "Public 🌍",
+    "visibility_friends": "Friends 👥"
   }
 }

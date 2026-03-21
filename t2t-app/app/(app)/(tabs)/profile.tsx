@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { BadgesSection } from '@/components/BadgesSection';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
+import i18n from '@/i18n';
 import type { Diary } from '@/types/supabase';
 
 export default function ProfileScreen() {
@@ -19,6 +20,15 @@ export default function ProfileScreen() {
   const { profile, loading: profileLoading, updateProfile, uploadAvatar, checkUsernameUnique } = useUserProfile(user?.id);
   const { unreadCount } = useNotifications();
   const [diaries, setDiaries] = useState<Diary[]>([]);
+  const langSynced = useRef(false);
+
+  // Sync lingua preferita del profilo all'avvio (una sola volta)
+  useEffect(() => {
+    if (profile?.preferred_language && !langSynced.current) {
+      langSynced.current = true;
+      i18n.changeLanguage(profile.preferred_language);
+    }
+  }, [profile?.preferred_language]);
   const [loadingDiaries, setLoadingDiaries] = useState(true);
 
   // Edit State
@@ -134,8 +144,8 @@ export default function ProfileScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIcon} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+          <TouchableOpacity style={styles.headerIcon} onPress={() => router.push('/(app)/settings')}>
+            <Ionicons name="settings-outline" size={24} color="#1a1a1a" />
           </TouchableOpacity>
         </View>
       </View>

@@ -250,7 +250,6 @@ export default function DiaryDetailScreen() {
         </View>
 
         <View style={[styles.divider, styles.contentPadding]} />
-
         <View style={[styles.daysHeader, styles.contentPadding]}>
           <Text style={styles.sectionTitle}>{t('diary.days')}</Text>
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>

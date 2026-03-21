@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions, Share } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
@@ -37,6 +37,18 @@ export default function DiaryDetailScreen() {
 
   // Follow logic (Mocking target profile ID as diary.author_id)
   const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
+
+  // Increment view count once per component mount (not per focus)
+  const viewCountedRef = useRef(false);
+  useEffect(() => {
+    if (diary && !viewCountedRef.current && user?.id !== diary.author_id) {
+      viewCountedRef.current = true;
+      supabase
+        .from('diaries')
+        .update({ view_count: (diary.view_count || 0) + 1 })
+        .eq('id', diary.id);
+    }
+  }, [diary?.id]);
 
   const fetchDiaryDetails = useCallback(async () => {
     setLoading(true);
@@ -224,6 +236,18 @@ export default function DiaryDetailScreen() {
         {diary.description ? (
           <Text style={[styles.description, styles.contentPadding]}>{diary.description}</Text>
         ) : null}
+
+        {/* Stats row */}
+        <View style={[styles.statsRow, styles.contentPadding]}>
+          <View style={styles.statItem}>
+            <Ionicons name="eye-outline" size={15} color="#aaa" />
+            <Text style={styles.statText}>{diary.view_count || 0}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Ionicons name="heart" size={15} color="#FF3B30" />
+            <Text style={styles.statText}>{diary.like_count || 0}</Text>
+          </View>
+        </View>
 
         <View style={[styles.divider, styles.contentPadding]} />
 
@@ -451,7 +475,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#444',
     lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 4,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  statText: {
+    fontSize: 13,
+    color: '#aaa',
+    fontWeight: '600',
   },
   divider: {
     height: 1,

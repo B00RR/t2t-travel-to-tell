@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
+import { PeopleToFollow } from '@/components/PeopleToFollow';
 import type { FeedDiary } from '@/types/supabase';
 
 const PAGE_SIZE = 20;
@@ -288,6 +289,9 @@ export default function DiscoveryScreen() {
     return (
       <View>
         <SortBar />
+        {user?.id && sortMode === 'recent' && (
+          <PeopleToFollow currentUserId={user.id} />
+        )}
         {sortMode === 'recent' && (
           <Text style={styles.sectionTitle}>{t('explore.all_diaries')}</Text>
         )}
@@ -299,7 +303,7 @@ export default function DiscoveryScreen() {
         )}
       </View>
     );
-  }, [isSearchMode, sortMode, t, SortBar]);
+  }, [isSearchMode, sortMode, t, SortBar, user?.id]);
 
   const ListFooter = useCallback(() => {
     if (!loadingMore) return null;

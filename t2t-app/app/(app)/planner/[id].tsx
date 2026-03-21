@@ -115,14 +115,33 @@ export default function TripPlanDetailScreen() {
   async function handleShare() {
     if (!plan) return;
     const dests = plan.destinations?.join(', ') || '';
-    const message = [
-      `🗺️ ${plan.title}`,
-      dests ? `📍 ${dests}` : null,
-      plan.description ? `\n${plan.description}` : null,
-      `\n✈️ Pianifica su T2T — Travel to Tell`,
-    ].filter(Boolean).join('\n');
+
+    const lines: string[] = [];
+    lines.push(`🗺️ ${plan.title}`);
+    if (dests) lines.push(`📍 ${dests}`);
+    if (plan.start_date) {
+      lines.push(`📅 ${plan.start_date}${plan.end_date ? ` → ${plan.end_date}` : ''}`);
+    }
+    if (plan.description) lines.push(`\n${plan.description}`);
+
+    if (stops.length > 0) {
+      lines.push(`\n📌 ${t('planner.stops').toUpperCase()}:`);
+      stops.forEach(s => {
+        const dayLabel = `${t('diary.day_label', { number: s.day_number })}`;
+        const parts = [dayLabel, s.title, s.location_name].filter(Boolean).join(' — ');
+        lines.push(`  ${parts}`);
+      });
+    }
+
+    const budget = plan.budget_estimate as Record<string, any> | null;
+    if (budget?.total) {
+      lines.push(`\n💰 Budget: ${budget.total} ${budget.currency || 'EUR'}`);
+    }
+
+    lines.push(`\n✈️ Pianifica su T2T — Travel to Tell`);
+
     try {
-      await Share.share({ message, title: plan.title });
+      await Share.share({ message: lines.join('\n'), title: plan.title });
     } catch (_) {}
   }
 

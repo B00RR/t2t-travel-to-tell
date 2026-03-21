@@ -38,7 +38,9 @@
     "duration_all": "Tutti",
     "duration_short": "Breve (≤4gg)",
     "duration_medium": "Media (5-14gg)",
-    "duration_long": "Lungo (15+gg)"
+    "duration_long": "Lungo (15+gg)",
+    "suggestions_title": "Persone da seguire",
+    "suggestions_diaries": "diari"
   },
   "profile": {
     "title": "Profilo",

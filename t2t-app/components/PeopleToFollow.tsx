@@ -1,0 +1,190 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+
+interface SuggestedUser {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  stats: { diaries?: number; followers?: number } | null;
+}
+
+interface Props {
+  currentUserId: string;
+}
+
+export function PeopleToFollow({ currentUserId }: Props) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
+  const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  const fetchSuggestions = useCallback(async () => {
+    // 1. Fetch who I already follow
+    const { data: followingData } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', currentUserId);
+
+    const followingIds = new Set((followingData || []).map(f => f.following_id as string));
+    followingIds.add(currentUserId); // exclude self
+
+    // 2. Fetch top profiles excluding those already followed
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, avatar_url, stats')
+      .not('id', 'in', `(${Array.from(followingIds).join(',')})`)
+      .not('username', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(15);
+
+    if (data) setSuggestions(data as SuggestedUser[]);
+    setLoading(false);
+  }, [currentUserId]);
+
+  useEffect(() => { fetchSuggestions(); }, [fetchSuggestions]);
+
+  async function handleFollow(userId: string) {
+    setFollowed(prev => new Set([...prev, userId]));
+    await supabase.from('follows').insert({ follower_id: currentUserId, following_id: userId });
+  }
+
+  async function handleUnfollow(userId: string) {
+    setFollowed(prev => { const s = new Set(prev); s.delete(userId); return s; });
+    await supabase.from('follows').delete()
+      .eq('follower_id', currentUserId)
+      .eq('following_id', userId);
+  }
+
+  if (loading || suggestions.length === 0) return null;
+
+  const renderItem = ({ item }: { item: SuggestedUser }) => {
+    const name = item.display_name || item.username || '?';
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const diaryCount = item.stats?.diaries ?? 0;
+    const isFollowed = followed.has(item.id);
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => router.push(`/(app)/profile/${item.id}`)}
+        activeOpacity={0.85}
+      >
+        <View style={styles.avatar}>
+          {item.avatar_url ? null : (
+            <Text style={styles.initials}>{initials}</Text>
+          )}
+        </View>
+        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        {diaryCount > 0 && (
+          <Text style={styles.sub}>{diaryCount} {t('explore.suggestions_diaries')}</Text>
+        )}
+        <TouchableOpacity
+          style={[styles.followBtn, isFollowed && styles.followingBtn]}
+          onPress={() => isFollowed ? handleUnfollow(item.id) : handleFollow(item.id)}
+        >
+          <Text style={[styles.followBtnText, isFollowed && styles.followingBtnText]}>
+            {isFollowed ? t('profile.following_button') : t('profile.follow')}
+          </Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{t('explore.suggestions_title')}</Text>
+      <FlatList
+        data={suggestions}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.list}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  section: {
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  list: {
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  card: {
+    width: 110,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#efefef',
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  initials: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  name: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  sub: {
+    fontSize: 11,
+    color: '#aaa',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  followBtn: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginTop: 4,
+  },
+  followingBtn: {
+    backgroundColor: '#f2f2f7',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  followBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  followingBtnText: {
+    color: '#888',
+  },
+});

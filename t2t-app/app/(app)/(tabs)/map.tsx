@@ -28,16 +28,16 @@ export default function MapScreen() {
   const [mode, setMode] = useState<MapMode>('mine');
 
   const { locations: myLocations, loading: myLoading, refresh: myRefresh } = useMapLocations(user?.id);
-  const { locations: publicLocations, loading: publicLoading, refresh: publicRefresh } = usePublicMapLocations();
+  const { locations: publicLocations, loading: publicLoading, refresh: publicRefresh } = usePublicMapLocations(mode === 'discover');
 
   const mapRef = useRef<MapView>(null);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      myRefresh();
-      publicRefresh();
-    }, [myRefresh, publicRefresh])
+      if (mode === 'mine') myRefresh();
+      else publicRefresh();
+    }, [mode, myRefresh, publicRefresh])
   );
 
   useEffect(() => {
@@ -45,6 +45,16 @@ export default function MapScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       const granted = status === 'granted';
       setLocationPermission(granted);
+
+      if (granted) {
+        const pos = await Location.getCurrentPositionAsync({});
+        mapRef.current?.animateToRegion({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          latitudeDelta: 10,
+          longitudeDelta: 10,
+        }, 800);
+      }
     })();
   }, []);
 

@@ -7,11 +7,12 @@ export interface PublicMapLocation extends MapLocation {
   author_display_name: string | null;
 }
 
-export function usePublicMapLocations() {
+export function usePublicMapLocations(enabled: boolean) {
   const [locations, setLocations] = useState<PublicMapLocation[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchLocations = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
     try {
       const { data: diaries, error: dErr } = await supabase
@@ -87,8 +88,8 @@ export function usePublicMapLocations() {
   }, []);
 
   useEffect(() => {
-    fetchLocations();
-  }, [fetchLocations]);
+    if (enabled) fetchLocations();
+  }, [enabled, fetchLocations]);
 
   return { locations, loading, refresh: fetchLocations };
 }

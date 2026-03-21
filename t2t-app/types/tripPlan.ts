@@ -46,8 +46,17 @@ export interface ChecklistItem {
   sort_order: number;
 }
 
+export interface BudgetExpense {
+  id: string;
+  amount: number;
+  category: string;
+  note: string;
+  date: string;
+}
+
 export interface BudgetEstimate {
   total?: number;
   currency?: string;
   breakdown?: Record<string, number>;
+  expenses?: BudgetExpense[];
 }

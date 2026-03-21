@@ -168,7 +168,9 @@
     "subtitle": "Visualize all the places you've visited on an interactive map. Your trips, at a glance.",
     "coming_soon": "Coming Soon",
     "my_map": "My Map",
+    "discover": "Explore world",
     "no_locations": "No locations yet.\nAdd location entries to your diary days to see them here.",
+    "no_public_locations": "No public locations found.\nTravelers haven't shared their destinations yet.",
     "location_permission_denied": "Location permission is required to show your position on the map.",
     "tap_to_open": "Tap to open diary",
     "center_on_me": "Center on my location"
@@ -265,7 +267,26 @@
     "budget_cat_accommodation": "Accommodation",
     "budget_cat_food": "Food",
     "budget_cat_activities": "Activities",
-    "budget_cat_other": "Other"
+    "budget_cat_other": "Other",
+    "budget_cat_label": "Category",
+    "budget_tab_estimated": "Estimated",
+    "budget_tab_expenses": "Expenses",
+    "budget_estimated": "Estimated",
+    "budget_spent": "Spent",
+    "budget_remaining": "Remaining",
+    "expense_add": "Add expense",
+    "expense_empty": "No expenses recorded yet.\nAdd your expenses during the trip!",
+    "expense_amount": "Amount",
+    "expense_note": "Note (optional)",
+    "expense_note_placeholder": "e.g. Dinner at restaurant",
+    "expense_save": "Add expense"
+  },
+  "stats": {
+    "title": "Your statistics",
+    "published": "Published diaries",
+    "countries": "Destinations",
+    "days": "Days traveling",
+    "likes": "Likes received"
   },
   "badges": {
     "title": "Badges & Level",

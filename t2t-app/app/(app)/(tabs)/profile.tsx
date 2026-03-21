@@ -8,6 +8,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { BadgesSection } from '@/components/BadgesSection';
+import { TravelStats } from '@/components/TravelStats';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
 import i18n from '@/i18n';
@@ -22,7 +23,6 @@ export default function ProfileScreen() {
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const langSynced = useRef(false);
 
-  // Sync lingua preferita del profilo all'avvio (una sola volta)
   useEffect(() => {
     if (profile?.preferred_language && !langSynced.current) {
       langSynced.current = true;
@@ -157,6 +157,9 @@ export default function ProfileScreen() {
           isOwnProfile={true}
           onEditPress={handleEditPress}
         />
+
+        {/* Section: Travel Stats */}
+        <TravelStats diaries={diaries} />
 
         {/* Section: Badges */}
         <View style={styles.sectionHeader}>
@@ -354,24 +357,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-
-  // Profile Card (These styles are now mostly handled by ProfileHeader, but some might be reused or overridden)
-  profileCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   avatarLarge: {
     width: 100,
     height: 100,
@@ -399,69 +384,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
   },
-  displayName: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 2,
-  },
-  username: {
-    fontSize: 15,
-    color: '#999',
-    marginBottom: 8,
-  },
-  bio: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  travelStylePill: {
-    backgroundColor: '#fff3e0',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginTop: 4,
-  },
-  travelStyleText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#e65100',
-  },
-
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  statBox: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1a1a1a',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 2,
-    fontWeight: '600',
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: '#f0f0f0',
-  },
-
-  // My Diaries
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

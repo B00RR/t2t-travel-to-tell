@@ -15,6 +15,7 @@ import { ChecklistSection } from '@/components/ChecklistSection';
 import { BudgetSection } from '@/components/BudgetSection';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
 import type { TripPlanStop, TripPlan } from '@/types/tripPlan';
+import { Palette } from '@/constants/theme';
 
 type Visibility = TripPlan['visibility'];
 
@@ -169,7 +170,7 @@ export default function TripPlanDetailScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={Palette.teal} />
       </View>
     );
   }
@@ -177,6 +178,7 @@ export default function TripPlanDetailScreen() {
   if (!plan) {
     return (
       <View style={styles.center}>
+        <Ionicons name="map-outline" size={48} color={Palette.border} />
         <Text style={styles.errorText}>{t('planner.not_found')}</Text>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>{t('diary.go_back')}</Text>
@@ -187,54 +189,17 @@ export default function TripPlanDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
-        </TouchableOpacity>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity style={styles.iconBtn} onPress={handleShare}>
-            <Ionicons name="share-outline" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          {isOwner ? (
-            <>
-              <TouchableOpacity style={styles.iconBtn} onPress={openEditModal}>
-                <Ionicons name="create-outline" size={24} color="#007AFF" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconBtn} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-              </TouchableOpacity>
-            </>
-          ) : plan.visibility === 'public' ? (
-          <TouchableOpacity
-            style={styles.cloneHeaderBtn}
-            onPress={handleClone}
-            disabled={creating}
-          >
-            {creating ? (
-              <ActivityIndicator size="small" color="#007AFF" />
-            ) : (
-              <>
-                <Ionicons name="copy-outline" size={16} color="#007AFF" />
-                <Text style={styles.cloneHeaderBtnText}>{t('planner.clone')}</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        ) : null}
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Cover */}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Cover — full bleed with floating header */}
         <TouchableOpacity
-          activeOpacity={isOwner ? 0.8 : 1}
+          activeOpacity={isOwner ? 0.85 : 1}
           onPress={() => isOwner && setShowCoverPicker(true)}
         >
           {plan.cover_image_url ? (
             <Image source={{ uri: plan.cover_image_url }} style={styles.cover} />
           ) : (
             <View style={styles.coverPlaceholder}>
-              <Ionicons name="map-outline" size={48} color="#ccc" />
+              <Ionicons name="map-outline" size={52} color={Palette.border} />
               {isOwner && (
                 <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
               )}
@@ -242,10 +207,47 @@ export default function TripPlanDetailScreen() {
           )}
           {isOwner && plan.cover_image_url && (
             <View style={styles.coverEditBadge}>
-              <Ionicons name="camera" size={16} color="#fff" />
+              <Ionicons name="camera" size={14} color="#fff" />
             </View>
           )}
         </TouchableOpacity>
+
+        {/* Floating header over cover */}
+        <View style={styles.floatingHeader}>
+          <TouchableOpacity style={styles.floatingBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={22} color="#fff" />
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity style={styles.floatingBtn} onPress={handleShare}>
+              <Ionicons name="share-outline" size={20} color="#fff" />
+            </TouchableOpacity>
+            {isOwner ? (
+              <>
+                <TouchableOpacity style={styles.floatingBtn} onPress={openEditModal}>
+                  <Ionicons name="create-outline" size={20} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.floatingBtnDanger} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={20} color={Palette.red} />
+                </TouchableOpacity>
+              </>
+            ) : plan.visibility === 'public' ? (
+              <TouchableOpacity
+                style={styles.cloneHeaderBtn}
+                onPress={handleClone}
+                disabled={creating}
+              >
+                {creating ? (
+                  <ActivityIndicator size="small" color={Palette.teal} />
+                ) : (
+                  <>
+                    <Ionicons name="copy-outline" size={15} color={Palette.teal} />
+                    <Text style={styles.cloneHeaderBtnText}>{t('planner.clone')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
 
         <View style={styles.padded}>
           {/* Title */}
@@ -262,31 +264,30 @@ export default function TripPlanDetailScreen() {
             </View>
           )}
 
-          {/* Dates */}
-          {plan.start_date && (
-            <View style={styles.dateRow}>
-              <Ionicons name="calendar-outline" size={16} color="#666" />
-              <Text style={styles.dateText}>
-                {plan.start_date}
-                {plan.end_date ? ` → ${plan.end_date}` : ''}
-              </Text>
-            </View>
-          )}
+          {/* Dates + Clone count */}
+          <View style={styles.metaRow}>
+            {plan.start_date && (
+              <View style={styles.metaItem}>
+                <Ionicons name="calendar-outline" size={14} color={Palette.textMuted} />
+                <Text style={styles.metaText}>
+                  {plan.start_date}{plan.end_date ? ` → ${plan.end_date}` : ''}
+                </Text>
+              </View>
+            )}
+            {plan.clone_count > 0 && (
+              <View style={styles.metaItem}>
+                <Ionicons name="copy-outline" size={14} color={Palette.textMuted} />
+                <Text style={styles.metaText}>
+                  {t('planner.clone_count', { count: plan.clone_count })}
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Description */}
           {plan.description ? (
             <Text style={styles.description}>{plan.description}</Text>
           ) : null}
-
-          {/* Clone count badge */}
-          {plan.clone_count > 0 && (
-            <View style={styles.cloneCountRow}>
-              <Ionicons name="copy-outline" size={14} color="#999" />
-              <Text style={styles.cloneCountText}>
-                {t('planner.clone_count', { count: plan.clone_count })}
-              </Text>
-            </View>
-          )}
 
           <View style={styles.divider} />
 
@@ -295,24 +296,29 @@ export default function TripPlanDetailScreen() {
             <Text style={styles.sectionTitle}>{t('planner.stops')}</Text>
             {isOwner && (
               <TouchableOpacity style={styles.addBtn} onPress={handleAddStop} disabled={saving}>
-                <Ionicons name="add" size={18} color="#fff" />
+                <Ionicons name="add" size={16} color={Palette.bgPrimary} />
                 <Text style={styles.addBtnText}>{t('planner.add_stop')}</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {stops.length === 0 ? (
-            <Text style={styles.emptyText}>{t('planner.no_stops')}</Text>
+            <View style={styles.emptyStops}>
+              <Ionicons name="navigate-outline" size={32} color={Palette.border} />
+              <Text style={styles.emptyText}>{t('planner.no_stops')}</Text>
+            </View>
           ) : (
-            stops.map(stop => (
-              <TripPlanStopItem
-                key={stop.id}
-                stop={stop}
-                isOwner={isOwner}
-                onUpdate={isOwner ? updateStop : undefined}
-                onDelete={isOwner ? deleteStop : undefined}
-              />
-            ))
+            <View>
+              {stops.map(stop => (
+                <TripPlanStopItem
+                  key={stop.id}
+                  stop={stop}
+                  isOwner={isOwner}
+                  onUpdate={isOwner ? updateStop : undefined}
+                  onDelete={isOwner ? deleteStop : undefined}
+                />
+              ))}
+            </View>
           )}
 
           <View style={styles.divider} />
@@ -368,6 +374,7 @@ export default function TripPlanDetailScreen() {
                 value={editForm.title}
                 onChangeText={v => setEditForm(p => ({ ...p, title: v }))}
                 placeholder={t('planner.title_placeholder')}
+                placeholderTextColor={Palette.textMuted}
               />
             </View>
 
@@ -378,6 +385,7 @@ export default function TripPlanDetailScreen() {
                 value={editForm.description}
                 onChangeText={v => setEditForm(p => ({ ...p, description: v }))}
                 placeholder={t('planner.description_placeholder')}
+                placeholderTextColor={Palette.textMuted}
                 multiline
                 numberOfLines={3}
               />
@@ -390,6 +398,7 @@ export default function TripPlanDetailScreen() {
                 value={editForm.destinations}
                 onChangeText={v => setEditForm(p => ({ ...p, destinations: v }))}
                 placeholder={t('planner.destinations_placeholder')}
+                placeholderTextColor={Palette.textMuted}
               />
             </View>
 
@@ -401,6 +410,7 @@ export default function TripPlanDetailScreen() {
                   value={editForm.start_date}
                   onChangeText={v => setEditForm(p => ({ ...p, start_date: v }))}
                   placeholder="YYYY-MM-DD"
+                  placeholderTextColor={Palette.textMuted}
                 />
               </View>
               <View style={[styles.modalField, { flex: 1 }]}>
@@ -410,6 +420,7 @@ export default function TripPlanDetailScreen() {
                   value={editForm.end_date}
                   onChangeText={v => setEditForm(p => ({ ...p, end_date: v }))}
                   placeholder="YYYY-MM-DD"
+                  placeholderTextColor={Palette.textMuted}
                 />
               </View>
             </View>
@@ -440,95 +451,118 @@ export default function TripPlanDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
+    gap: 12,
   },
   errorText: {
-    fontSize: 18,
-    color: '#1a1a1a',
-    marginBottom: 16,
+    fontSize: 17,
+    color: Palette.textSecondary,
+    marginBottom: 4,
   },
   backBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 14,
+    marginTop: 8,
   },
   backBtnText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  iconBtn: {
-    padding: 8,
-  },
-  cloneHeaderBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    gap: 6,
-  },
-  cloneHeaderBtnText: {
-    color: '#007AFF',
+    color: Palette.bgPrimary,
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 15,
   },
+  // Cover
   cover: {
     width: SCREEN_WIDTH,
-    height: 200,
+    height: 240,
     resizeMode: 'cover',
   },
   coverPlaceholder: {
     width: SCREEN_WIDTH,
-    height: 140,
-    backgroundColor: '#f0f0f0',
+    height: 160,
+    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   coverPlaceholderText: {
     fontSize: 14,
-    color: '#aaa',
+    color: Palette.textMuted,
     fontWeight: '500',
   },
   coverEditBadge: {
     position: 'absolute',
-    bottom: 10,
-    right: 14,
+    bottom: 12,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 12,
+    padding: 7,
+  },
+  // Floating header
+  floatingHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 56,
+    paddingBottom: 12,
+  },
+  floatingBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 14,
-    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  floatingBtnDanger: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cloneHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 19,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,201,167,0.5)',
+  },
+  cloneHeaderBtnText: {
+    color: Palette.teal,
+    fontWeight: '700',
+    fontSize: 14,
   },
   content: {
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
   padded: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 20,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 12,
-    lineHeight: 32,
+    fontSize: 28,
+    fontWeight: '900',
+    color: Palette.textPrimary,
+    marginBottom: 14,
+    lineHeight: 34,
+    letterSpacing: -0.8,
   },
   pillRow: {
     flexDirection: 'row',
@@ -537,47 +571,44 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   pill: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.bgElevated,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   pillText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 13,
+    color: Palette.textSecondary,
     fontWeight: '500',
   },
-  dateRow: {
+  metaRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
+    gap: 5,
   },
-  dateText: {
-    fontSize: 14,
-    color: '#666',
+  metaText: {
+    fontSize: 13,
+    color: Palette.textMuted,
     fontWeight: '500',
   },
   description: {
     fontSize: 15,
-    color: '#444',
+    color: Palette.textSecondary,
     lineHeight: 22,
-    marginBottom: 12,
-  },
-  cloneCountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
     marginBottom: 4,
-  },
-  cloneCountText: {
-    fontSize: 13,
-    color: '#999',
   },
   divider: {
     height: 1,
-    backgroundColor: '#eee',
-    marginVertical: 20,
+    backgroundColor: Palette.border,
+    marginVertical: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -588,31 +619,36 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
     gap: 4,
   },
   addBtnText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: Palette.bgPrimary,
+    fontWeight: '700',
     fontSize: 13,
+  },
+  emptyStops: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 10,
   },
   emptyText: {
     fontSize: 15,
-    color: '#aaa',
+    color: Palette.textMuted,
     textAlign: 'center',
-    paddingVertical: 20,
   },
+  // Edit Modal
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -622,21 +658,21 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Palette.border,
   },
   modalCancel: {
     fontSize: 16,
-    color: '#666',
+    color: Palette.textSecondary,
   },
   modalTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   modalSave: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: Palette.teal,
   },
   modalBody: {
     flex: 1,
@@ -651,22 +687,22 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   modalLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#888',
-    marginBottom: 6,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.textMuted,
+    marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Palette.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#1a1a1a',
-    backgroundColor: '#fafafa',
+    color: Palette.textPrimary,
+    backgroundColor: Palette.bgElevated,
   },
   modalTextArea: {
     minHeight: 80,
@@ -680,21 +716,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderColor: Palette.border,
     alignItems: 'center',
   },
   visibilityBtnActive: {
-    backgroundColor: '#e8f0fe',
-    borderColor: '#007AFF',
+    backgroundColor: 'rgba(0,201,167,0.1)',
+    borderColor: Palette.teal,
   },
   visibilityBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#666',
+    color: Palette.textSecondary,
   },
   visibilityBtnTextActive: {
-    color: '#007AFF',
+    color: Palette.teal,
   },
 });

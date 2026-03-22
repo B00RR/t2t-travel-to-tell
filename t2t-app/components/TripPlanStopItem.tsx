@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { TripPlanStop } from '@/types/tripPlan';
+import { Palette } from '@/constants/theme';
 
 interface TripPlanStopItemProps {
   stop: TripPlanStop;
@@ -34,11 +35,15 @@ export function TripPlanStopItem({ stop, isOwner, onUpdate, onDelete }: TripPlan
 
   return (
     <View style={styles.container}>
-      <View style={styles.dayBadge}>
-        <Text style={styles.dayNumber}>{stop.day_number}</Text>
+      {/* Timeline connector */}
+      <View style={styles.timelineCol}>
+        <View style={styles.dayBadge}>
+          <Text style={styles.dayNumber}>{stop.day_number}</Text>
+        </View>
+        <View style={styles.timelineLine} />
       </View>
 
-      <View style={styles.content}>
+      <View style={styles.card}>
         {editing ? (
           <>
             <TextInput
@@ -46,16 +51,16 @@ export function TripPlanStopItem({ stop, isOwner, onUpdate, onDelete }: TripPlan
               value={title}
               onChangeText={setTitle}
               placeholder="Day title"
-              placeholderTextColor="#bbb"
+              placeholderTextColor={Palette.textMuted}
             />
             <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={14} color="#999" />
+              <Ionicons name="location-outline" size={14} color={Palette.textMuted} />
               <TextInput
                 style={[styles.input, styles.locationInput]}
                 value={locationName}
                 onChangeText={setLocationName}
                 placeholder="Location"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
               />
             </View>
             <TextInput
@@ -63,7 +68,7 @@ export function TripPlanStopItem({ stop, isOwner, onUpdate, onDelete }: TripPlan
               value={notes}
               onChangeText={setNotes}
               placeholder="Notes..."
-              placeholderTextColor="#bbb"
+              placeholderTextColor={Palette.textMuted}
               multiline
             />
             <View style={styles.editActions}>
@@ -77,12 +82,24 @@ export function TripPlanStopItem({ stop, isOwner, onUpdate, onDelete }: TripPlan
           </>
         ) : (
           <>
-            <Text style={styles.stopTitle}>
-              {stop.title || `Day ${stop.day_number}`}
-            </Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.stopTitle}>
+                {stop.title || `Day ${stop.day_number}`}
+              </Text>
+              {isOwner && (
+                <View style={styles.actions}>
+                  <TouchableOpacity onPress={() => setEditing(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Ionicons name="pencil-outline" size={16} color={Palette.textMuted} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => onDelete?.(stop.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Ionicons name="trash-outline" size={16} color={Palette.red} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
             {stop.location_name ? (
               <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={13} color="#007AFF" />
+                <Ionicons name="location-outline" size={13} color={Palette.teal} />
                 <Text style={styles.locationText}>{stop.location_name}</Text>
               </View>
             ) : null}
@@ -92,17 +109,6 @@ export function TripPlanStopItem({ stop, isOwner, onUpdate, onDelete }: TripPlan
           </>
         )}
       </View>
-
-      {isOwner && !editing && (
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={() => setEditing(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="pencil-outline" size={18} color="#999" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onDelete?.(stop.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 }
@@ -110,35 +116,57 @@ export function TripPlanStopItem({ stop, isOwner, onUpdate, onDelete }: TripPlan
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  timelineCol: {
+    alignItems: 'center',
+    width: 44,
+    marginRight: 12,
   },
   dayBadge: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e6f2ff',
+    backgroundColor: 'rgba(0,201,167,0.15)',
+    borderWidth: 1.5,
+    borderColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-    flexShrink: 0,
   },
   dayNumber: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '800',
+    color: Palette.teal,
   },
-  content: {
+  timelineLine: {
     flex: 1,
+    width: 1.5,
+    backgroundColor: Palette.border,
+    marginTop: 4,
+    marginBottom: -4,
+    minHeight: 24,
+  },
+  card: {
+    flex: 1,
+    backgroundColor: Palette.bgElevated,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
   },
   stopTitle: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 4,
+    color: Palette.textPrimary,
+    marginRight: 8,
   },
   locationRow: {
     flexDirection: 'row',
@@ -148,28 +176,28 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 13,
-    color: '#007AFF',
+    color: Palette.teal,
     fontWeight: '500',
   },
   notesText: {
     fontSize: 13,
-    color: '#666',
+    color: Palette.textSecondary,
     lineHeight: 18,
+    marginTop: 2,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Palette.border,
     borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 8,
     fontSize: 14,
-    color: '#1a1a1a',
-    backgroundColor: '#fff',
-    marginBottom: 6,
+    color: Palette.textPrimary,
+    backgroundColor: Palette.bgSubtle,
+    marginBottom: 8,
   },
   locationInput: {
     flex: 1,
-    marginBottom: 6,
   },
   notesInput: {
     minHeight: 60,
@@ -183,31 +211,30 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Palette.border,
   },
   cancelBtnText: {
     fontSize: 13,
-    color: '#666',
+    color: Palette.textSecondary,
     fontWeight: '600',
   },
   saveBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
   },
   saveBtnText: {
     fontSize: 13,
-    color: '#fff',
-    fontWeight: '600',
+    color: Palette.bgPrimary,
+    fontWeight: '700',
   },
   actions: {
     flexDirection: 'row',
     gap: 12,
-    marginLeft: 8,
-    paddingTop: 2,
+    flexShrink: 0,
   },
 });

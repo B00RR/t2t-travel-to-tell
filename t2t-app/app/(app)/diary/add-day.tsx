@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { Palette } from '@/constants/theme';
 
 export default function AddDayScreen() {
   const { t } = useTranslation();
@@ -34,13 +35,13 @@ export default function AddDayScreen() {
     }
 
     const nextDayNumber = daysData && daysData.length > 0 ? daysData[0].day_number + 1 : 1;
-    
+
     // Parse DD/MM/YYYY to YYYY-MM-DD if provided (optional for MVP)
     let parsedDate = null;
     if (dateStr) {
       const parts = dateStr.split('/');
       if (parts.length === 3) {
-        parsedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // quick MVP parse
+        parsedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
     }
 
@@ -69,11 +70,11 @@ export default function AddDayScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backIcon} onPress={() => router.back()} disabled={loading}>
-          <Ionicons name="close" size={28} color="#1a1a1a" />
+        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} disabled={loading}>
+          <Ionicons name="close" size={22} color={Palette.textSecondary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('diary.new_day_title')}</Text>
-        <View style={{ width: 44 }} />
+        <View style={{ width: 38 }} />
       </View>
 
       <View style={styles.content}>
@@ -82,7 +83,7 @@ export default function AddDayScreen() {
           <TextInput
             style={styles.input}
             placeholder={t('diary.day_title_placeholder')}
-            placeholderTextColor="#999"
+            placeholderTextColor={Palette.textMuted}
             value={title}
             onChangeText={setTitle}
           />
@@ -90,23 +91,26 @@ export default function AddDayScreen() {
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>{t('diary.date_label')}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t('diary.date_placeholder')}
-            placeholderTextColor="#999"
-            value={dateStr}
-            onChangeText={setDateStr}
-            keyboardType="numbers-and-punctuation"
-          />
+          <View style={styles.inputWrapper}>
+            <Ionicons name="calendar-outline" size={16} color={Palette.textMuted} style={styles.inputIcon} />
+            <TextInput
+              style={styles.inputWithIcon}
+              placeholder={t('diary.date_placeholder')}
+              placeholderTextColor={Palette.textMuted}
+              value={dateStr}
+              onChangeText={setDateStr}
+              keyboardType="numbers-and-punctuation"
+            />
+          </View>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleAddDay}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Palette.bgPrimary} />
           ) : (
             <Text style={styles.buttonText}>{t('diary.add_to_diary')}</Text>
           )}
@@ -119,7 +123,7 @@ export default function AddDayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
@@ -129,15 +133,22 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Palette.border,
+  },
+  closeBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Palette.bgElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  backIcon: {
-    padding: 8,
+    color: Palette.textPrimary,
   },
   content: {
     padding: 24,
@@ -146,32 +157,55 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.textMuted,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: Palette.bgSurface,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
+    borderWidth: 1,
+    borderColor: Palette.border,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Palette.bgSurface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  inputWithIcon: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: Palette.textPrimary,
   },
   button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
+    backgroundColor: Palette.teal,
+    borderRadius: 16,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

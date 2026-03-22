@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, SectionList } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { ChecklistItem, ChecklistCategory } from '@/types/tripPlan';
+import { Palette } from '@/constants/theme';
 
 const CATEGORY_ORDER: ChecklistCategory[] = ['documents', 'gear', 'accommodation', 'transport', 'general'];
 const CATEGORY_ICONS: Record<ChecklistCategory, string> = {
@@ -27,16 +28,8 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
   const [addCategory, setAddCategory] = useState<ChecklistCategory>('general');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Group by category
-  const sections = CATEGORY_ORDER
-    .map(cat => ({
-      category: cat,
-      title: t(`planner.categories.${cat}`),
-      data: items.filter(i => i.category === cat),
-    }))
-    .filter(s => s.data.length > 0 || (isOwner && s.category === addCategory && showAddForm));
-
   const checkedCount = items.filter(i => i.is_checked).length;
+  const progressPct = items.length > 0 ? (checkedCount / items.length) * 100 : 0;
 
   function handleAdd() {
     if (!addLabel.trim()) return;
@@ -49,8 +42,17 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>{t('planner.checklist')}</Text>
-        <Text style={styles.progress}>{checkedCount}/{items.length}</Text>
+        <View style={styles.progressBadge}>
+          <Text style={styles.progressText}>{checkedCount}/{items.length}</Text>
+        </View>
       </View>
+
+      {/* Progress bar */}
+      {items.length > 0 && (
+        <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarFill, { width: `${progressPct}%` }]} />
+        </View>
+      )}
 
       {CATEGORY_ORDER.map(cat => {
         const catItems = items.filter(i => i.category === cat);
@@ -59,7 +61,7 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
         return (
           <View key={cat} style={styles.categoryGroup}>
             <View style={styles.categoryHeader}>
-              <Ionicons name={CATEGORY_ICONS[cat] as any} size={15} color="#666" />
+              <Ionicons name={CATEGORY_ICONS[cat] as any} size={13} color={Palette.textMuted} />
               <Text style={styles.categoryLabel}>{t(`planner.categories.${cat}`)}</Text>
             </View>
 
@@ -71,7 +73,7 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
                 activeOpacity={0.7}
               >
                 <View style={[styles.checkbox, item.is_checked && styles.checkboxChecked]}>
-                  {item.is_checked && <Ionicons name="checkmark" size={14} color="#fff" />}
+                  {item.is_checked && <Ionicons name="checkmark" size={13} color={Palette.bgPrimary} />}
                 </View>
                 <Text style={[styles.checkLabel, item.is_checked && styles.checkLabelDone]}>
                   {item.label}
@@ -82,7 +84,7 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     style={styles.deleteBtn}
                   >
-                    <Ionicons name="close-circle-outline" size={18} color="#ccc" />
+                    <Ionicons name="close-circle-outline" size={17} color={Palette.textMuted} />
                   </TouchableOpacity>
                 )}
               </TouchableOpacity>
@@ -99,7 +101,7 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
               value={addLabel}
               onChangeText={setAddLabel}
               placeholder={t('planner.add_item_placeholder')}
-              placeholderTextColor="#bbb"
+              placeholderTextColor={Palette.textMuted}
               autoFocus
               returnKeyType="done"
               onSubmitEditing={handleAdd}
@@ -129,7 +131,7 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
           </View>
         ) : (
           <TouchableOpacity style={styles.addItemRow} onPress={() => setShowAddForm(true)}>
-            <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+            <Ionicons name="add-circle-outline" size={19} color={Palette.teal} />
             <Text style={styles.addItemText}>{t('planner.add_item')}</Text>
           </TouchableOpacity>
         )
@@ -140,26 +142,48 @@ export function ChecklistSection({ items, isOwner, onToggle, onAdd, onDelete }: 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
-  progress: {
-    fontSize: 14,
-    color: '#007AFF',
+  progressBadge: {
+    backgroundColor: 'rgba(0,201,167,0.12)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,201,167,0.25)',
+  },
+  progressText: {
+    fontSize: 13,
+    color: Palette.teal,
     fontWeight: '700',
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: Palette.bgSubtle,
+    borderRadius: 2,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: Palette.teal,
+    borderRadius: 2,
   },
   categoryGroup: {
     marginBottom: 14,
@@ -168,14 +192,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   categoryLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#666',
+    color: Palette.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   checkRow: {
     flexDirection: 'row',
@@ -187,24 +211,24 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#ddd',
+    borderWidth: 1.5,
+    borderColor: Palette.border,
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
   },
   checkboxChecked: {
-    backgroundColor: '#34C759',
-    borderColor: '#34C759',
+    backgroundColor: Palette.teal,
+    borderColor: Palette.teal,
   },
   checkLabel: {
     flex: 1,
     fontSize: 15,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   checkLabelDone: {
     textDecorationLine: 'line-through',
-    color: '#bbb',
+    color: Palette.textMuted,
   },
   deleteBtn: {
     marginLeft: 4,
@@ -214,26 +238,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 10,
+    marginTop: 4,
   },
   addItemText: {
     fontSize: 15,
-    color: '#007AFF',
+    color: Palette.teal,
     fontWeight: '600',
   },
   addForm: {
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Palette.border,
     paddingTop: 14,
   },
   addInput: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Palette.border,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
+    backgroundColor: Palette.bgSubtle,
     marginBottom: 10,
   },
   categoryPicker: {
@@ -244,23 +270,23 @@ const styles = StyleSheet.create({
   },
   catChip: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f9f9f9',
+    borderColor: Palette.border,
+    backgroundColor: Palette.bgSubtle,
   },
   catChipSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: Palette.teal,
+    borderColor: Palette.teal,
   },
   catChipText: {
     fontSize: 12,
-    color: '#666',
+    color: Palette.textSecondary,
     fontWeight: '600',
   },
   catChipTextSelected: {
-    color: '#fff',
+    color: Palette.bgPrimary,
   },
   addActions: {
     flexDirection: 'row',
@@ -272,22 +298,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Palette.border,
   },
   cancelBtnText: {
     fontSize: 14,
-    color: '#666',
+    color: Palette.textSecondary,
     fontWeight: '600',
   },
   addBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
   },
   addBtnText: {
     fontSize: 14,
-    color: '#fff',
-    fontWeight: '600',
+    color: Palette.bgPrimary,
+    fontWeight: '700',
   },
 });

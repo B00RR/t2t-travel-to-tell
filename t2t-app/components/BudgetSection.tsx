@@ -5,6 +5,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { BudgetEstimate, BudgetExpense } from '@/types/tripPlan';
+import { Palette } from '@/constants/theme';
 
 const BUDGET_CATEGORIES = [
   { key: 'transport', icon: 'airplane-outline' },
@@ -121,12 +122,17 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
     [locale]
   );
 
+  const remainingAmount = displayTotal - totalSpent;
+  const isOverBudget = totalSpent > displayTotal && displayTotal > 0;
+
   return (
     <View>
       {/* Section header */}
       <View style={styles.sectionHeader}>
         <View style={styles.titleRow}>
-          <Ionicons name="wallet-outline" size={20} color="#34C759" />
+          <View style={styles.sectionIconBg}>
+            <Ionicons name="wallet-outline" size={18} color={Palette.teal} />
+          </View>
           <Text style={styles.sectionTitle}>{t('planner.budget')}</Text>
         </View>
       </View>
@@ -141,7 +147,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>{t('planner.budget_spent')}</Text>
-            <Text style={[styles.summaryAmount, totalSpent > displayTotal && displayTotal > 0 && styles.overBudget]}>
+            <Text style={[styles.summaryAmount, isOverBudget && styles.overBudget]}>
               {fmt(totalSpent)} {currency}
             </Text>
           </View>
@@ -150,8 +156,8 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>{t('planner.budget_remaining')}</Text>
-                <Text style={[styles.summaryAmount, totalSpent > displayTotal ? styles.overBudget : styles.underBudget]}>
-                  {fmt(displayTotal - totalSpent)} {currency}
+                <Text style={[styles.summaryAmount, isOverBudget ? styles.overBudget : styles.underBudget]}>
+                  {fmt(remainingAmount)} {currency}
                 </Text>
               </View>
             </>
@@ -185,7 +191,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
           {!hasEstimate ? (
             isOwner ? (
               <TouchableOpacity style={styles.emptyBudgetBtn} onPress={openEditEstimate}>
-                <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                <Ionicons name="add-circle-outline" size={20} color={Palette.teal} />
                 <Text style={styles.emptyBudgetText}>{t('planner.budget_add')}</Text>
               </TouchableOpacity>
             ) : (
@@ -199,7 +205,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                   <Text style={styles.totalAmount}>{fmt(displayTotal)} {currency}</Text>
                   {isOwner && (
                     <TouchableOpacity onPress={openEditEstimate} style={styles.editIconBtn}>
-                      <Ionicons name="pencil-outline" size={16} color="#007AFF" />
+                      <Ionicons name="pencil-outline" size={16} color={Palette.teal} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -209,7 +215,9 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                   {BUDGET_CATEGORIES.filter(c => breakdown[c.key] && breakdown[c.key]! > 0).map(cat => (
                     <View key={cat.key} style={styles.breakdownRow}>
                       <View style={styles.breakdownLeft}>
-                        <Ionicons name={cat.icon as any} size={15} color="#666" />
+                        <View style={styles.catIconBg}>
+                          <Ionicons name={cat.icon as any} size={13} color={Palette.textSecondary} />
+                        </View>
                         <Text style={styles.breakdownLabel}>{t(`planner.budget_cat_${cat.key}`)}</Text>
                       </View>
                       <Text style={styles.breakdownAmount}>
@@ -229,7 +237,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
         <>
           {isOwner && (
             <TouchableOpacity style={styles.addExpenseBtn} onPress={() => setAddingExpense(true)}>
-              <Ionicons name="add" size={18} color="#fff" />
+              <Ionicons name="add" size={18} color={Palette.bgPrimary} />
               <Text style={styles.addExpenseBtnText}>{t('planner.expense_add')}</Text>
             </TouchableOpacity>
           )}
@@ -242,7 +250,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                 return (
                   <View key={exp.id} style={styles.expenseRow}>
                     <View style={styles.expenseIconWrap}>
-                      <Ionicons name={(cat?.icon ?? 'ellipsis-horizontal-outline') as any} size={16} color="#555" />
+                      <Ionicons name={(cat?.icon ?? 'ellipsis-horizontal-outline') as any} size={15} color={Palette.textSecondary} />
                     </View>
                     <View style={styles.expenseInfo}>
                       <Text style={styles.expenseNote} numberOfLines={1}>
@@ -256,7 +264,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                         onPress={() => handleDeleteExpense(exp.id)}
                         style={styles.deleteExpenseBtn}
                       >
-                        <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+                        <Ionicons name="trash-outline" size={15} color={Palette.red} />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -271,15 +279,16 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
       <Modal visible={editingEstimate} animationType="slide" transparent>
         <View style={styles.overlay}>
           <View style={styles.modal}>
+            <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('planner.budget_edit')}</Text>
               <TouchableOpacity onPress={() => setEditingEstimate(false)}>
-                <Ionicons name="close" size={24} color="#1a1a1a" />
+                <Ionicons name="close" size={22} color={Palette.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.fieldLabel}>{t('planner.budget_currency')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
                 <View style={styles.currencyRow}>
                   {CURRENCIES.map(cur => (
                     <TouchableOpacity
@@ -298,7 +307,9 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
               {BUDGET_CATEGORIES.map(cat => (
                 <View key={cat.key} style={styles.categoryRow}>
                   <View style={styles.categoryLabel}>
-                    <Ionicons name={cat.icon as any} size={18} color="#666" />
+                    <View style={styles.catIconBg}>
+                      <Ionicons name={cat.icon as any} size={15} color={Palette.textSecondary} />
+                    </View>
                     <Text style={styles.categoryLabelText}>{t(`planner.budget_cat_${cat.key}`)}</Text>
                   </View>
                   <View style={styles.amountInput}>
@@ -306,7 +317,7 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
                       style={styles.amountField}
                       keyboardType="decimal-pad"
                       placeholder="0"
-                      placeholderTextColor="#bbb"
+                      placeholderTextColor={Palette.textMuted}
                       value={draft.breakdown?.[cat.key] ? String(draft.breakdown[cat.key]) : ''}
                       onChangeText={val => setCategory(cat.key, val)}
                     />
@@ -334,14 +345,15 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
       <Modal visible={addingExpense} animationType="slide" transparent>
         <View style={styles.overlay}>
           <View style={styles.modal}>
+            <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('planner.expense_add')}</Text>
               <TouchableOpacity onPress={() => setAddingExpense(false)}>
-                <Ionicons name="close" size={24} color="#1a1a1a" />
+                <Ionicons name="close" size={22} color={Palette.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.fieldLabel}>{t('planner.budget_cat_label')}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
               <View style={styles.currencyRow}>
                 {BUDGET_CATEGORIES.map(cat => (
                   <TouchableOpacity
@@ -357,12 +369,12 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
               </View>
             </ScrollView>
             <Text style={styles.fieldLabel}>{t('planner.expense_amount')}</Text>
-            <View style={[styles.amountInput, { marginBottom: 16 }]}>
+            <View style={[styles.amountInput, { marginBottom: 20 }]}>
               <TextInput
                 style={[styles.amountField, { flex: 1 }]}
                 keyboardType="decimal-pad"
                 placeholder="0.00"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
                 value={expenseForm.amount}
                 onChangeText={v => setExpenseForm(p => ({ ...p, amount: v }))}
               />
@@ -370,9 +382,9 @@ export function BudgetSection({ budget, isOwner, onUpdate }: BudgetSectionProps)
             </View>
             <Text style={styles.fieldLabel}>{t('planner.expense_note')}</Text>
             <TextInput
-              style={[styles.amountInput, { paddingVertical: 12, fontSize: 15, marginBottom: 20 }]}
+              style={[styles.amountInput, { paddingVertical: 12, fontSize: 15, marginBottom: 24, color: Palette.textPrimary }]}
               placeholder={t('planner.expense_note_placeholder')}
-              placeholderTextColor="#bbb"
+              placeholderTextColor={Palette.textMuted}
               value={expenseForm.note}
               onChangeText={v => setExpenseForm(p => ({ ...p, note: v }))}
             />
@@ -391,26 +403,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+  },
+  sectionIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,201,167,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   summaryBar: {
     flexDirection: 'row',
-    backgroundColor: '#f8fff8',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#d4f0d4',
+    borderColor: Palette.border,
   },
   summaryItem: {
     flex: 1,
@@ -419,87 +439,87 @@ const styles = StyleSheet.create({
   },
   summaryDivider: {
     width: 1,
-    backgroundColor: '#d4f0d4',
+    backgroundColor: Palette.border,
     marginHorizontal: 8,
   },
   summaryLabel: {
-    fontSize: 11,
-    color: '#888',
+    fontSize: 10,
+    color: Palette.textMuted,
     fontWeight: '600',
     textTransform: 'uppercase',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   summaryAmount: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     textAlign: 'center',
   },
   overBudget: {
-    color: '#FF3B30',
+    color: Palette.red,
   },
   underBudget: {
-    color: '#34C759',
+    color: Palette.teal,
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#f2f2f7',
-    borderRadius: 10,
+    backgroundColor: Palette.bgElevated,
+    borderRadius: 12,
     padding: 3,
     marginBottom: 14,
     gap: 3,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   tabBtn: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 9,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 9,
   },
   tabBtnActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: Palette.bgSubtle,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#888',
+    color: Palette.textMuted,
   },
   tabTextActive: {
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   emptyBudgetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#007AFF',
+    borderColor: 'rgba(0,201,167,0.4)',
     borderStyle: 'dashed',
     justifyContent: 'center',
-    backgroundColor: '#f5f9ff',
+    backgroundColor: 'rgba(0,201,167,0.05)',
   },
   emptyBudgetText: {
-    color: '#007AFF',
+    color: Palette.teal,
     fontWeight: '600',
     fontSize: 15,
   },
   noBudgetText: {
-    color: '#bbb',
+    color: Palette.textMuted,
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 16,
   },
   budgetCard: {
-    backgroundColor: '#f8fff8',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#d4f0d4',
+    borderColor: Palette.border,
   },
   totalRow: {
     flexDirection: 'row',
@@ -508,9 +528,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   totalLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: Palette.textMuted,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   totalRight: {
     flexDirection: 'row',
@@ -520,15 +542,23 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.teal,
   },
   editIconBtn: {
     padding: 4,
   },
+  catIconBg: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: Palette.bgSubtle,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   breakdown: {
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: '#d4f0d4',
+    borderTopColor: Palette.border,
     paddingTop: 12,
   },
   breakdownRow: {
@@ -539,29 +569,29 @@ const styles = StyleSheet.create({
   breakdownLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   breakdownLabel: {
     fontSize: 14,
-    color: '#555',
+    color: Palette.textSecondary,
   },
   breakdownAmount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Palette.textPrimary,
   },
   addExpenseBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 13,
     marginBottom: 12,
   },
   addExpenseBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -571,18 +601,18 @@ const styles = StyleSheet.create({
   expenseRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fafafa',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 12,
     padding: 12,
     gap: 10,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: Palette.border,
   },
   expenseIconWrap: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f2f2f7',
+    borderRadius: 10,
+    backgroundColor: Palette.bgSubtle,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -592,32 +622,44 @@ const styles = StyleSheet.create({
   expenseNote: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   expenseDate: {
     fontSize: 12,
-    color: '#999',
+    color: Palette.textMuted,
     marginTop: 2,
   },
   expenseAmount: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   deleteExpenseBtn: {
     padding: 4,
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: Palette.bgSurface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: 24,
     maxHeight: '85%',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: Palette.border,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Palette.border,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -628,13 +670,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   fieldLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#555',
+    fontSize: 12,
+    fontWeight: '700',
+    color: Palette.textMuted,
     marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   currencyRow: {
     flexDirection: 'row',
@@ -645,21 +689,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: Palette.border,
   },
   currencyChipActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: Palette.teal,
+    borderColor: Palette.teal,
   },
   currencyChipText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#555',
+    color: Palette.textSecondary,
   },
   currencyChipTextActive: {
-    color: '#fff',
+    color: Palette.bgPrimary,
   },
   categoryRow: {
     flexDirection: 'row',
@@ -670,56 +714,60 @@ const styles = StyleSheet.create({
   categoryLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     flex: 1,
   },
   categoryLabelText: {
     fontSize: 15,
-    color: '#333',
+    color: Palette.textSecondary,
   },
   amountInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 6,
     minWidth: 110,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   amountField: {
     fontSize: 15,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     minWidth: 60,
     textAlign: 'right',
   },
   amountCurrency: {
     fontSize: 13,
-    color: '#888',
+    color: Palette.textMuted,
     fontWeight: '600',
   },
   draftTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#e8f5e9',
+    backgroundColor: 'rgba(0,201,167,0.1)',
     borderRadius: 12,
     padding: 14,
     marginTop: 8,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,201,167,0.25)',
   },
   draftTotalLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2e7d32',
+    color: Palette.teal,
   },
   draftTotalAmount: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#2e7d32',
+    color: Palette.teal,
   },
   saveBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: 'center',
@@ -727,7 +775,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   saveBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
+import { Palette } from '@/constants/theme';
 
 type Step = 'choose' | 'manual' | 'from_diary';
 
@@ -103,7 +104,7 @@ export default function CreateTripPlanScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color={Palette.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('planner.new_plan')}</Text>
           <View style={styles.iconBtn} />
@@ -113,14 +114,14 @@ export default function CreateTripPlanScreen() {
           <Text style={styles.chooseSubtitle}>{t('planner.choose_method')}</Text>
 
           <TouchableOpacity style={styles.methodCard} onPress={() => setStep('manual')}>
-            <View style={styles.methodIcon}>
-              <Ionicons name="create-outline" size={32} color="#007AFF" />
+            <View style={styles.methodIconWrap}>
+              <Ionicons name="create-outline" size={28} color={Palette.teal} />
             </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodTitle}>{t('planner.create_manual')}</Text>
               <Text style={styles.methodDesc}>{t('planner.create_manual_desc')}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            <Ionicons name="chevron-forward" size={18} color={Palette.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -130,14 +131,14 @@ export default function CreateTripPlanScreen() {
               fetchMyDiaries();
             }}
           >
-            <View style={styles.methodIcon}>
-              <Ionicons name="book-outline" size={32} color="#34C759" />
+            <View style={[styles.methodIconWrap, styles.methodIconWrapWarm]}>
+              <Ionicons name="book-outline" size={28} color={Palette.orange} />
             </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodTitle}>{t('planner.create_from_diary')}</Text>
               <Text style={styles.methodDesc}>{t('planner.create_from_diary_desc')}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            <Ionicons name="chevron-forward" size={18} color={Palette.textMuted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -150,7 +151,7 @@ export default function CreateTripPlanScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setStep('choose')}>
-            <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color={Palette.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('planner.create_manual')}</Text>
           <View style={styles.iconBtn} />
@@ -163,7 +164,7 @@ export default function CreateTripPlanScreen() {
             value={title}
             onChangeText={setTitle}
             placeholder={t('planner.title_placeholder')}
-            placeholderTextColor="#bbb"
+            placeholderTextColor={Palette.textMuted}
           />
 
           <Text style={styles.fieldLabel}>{t('planner.destinations_label')}</Text>
@@ -172,7 +173,7 @@ export default function CreateTripPlanScreen() {
             value={destinations}
             onChangeText={setDestinations}
             placeholder={t('planner.destinations_placeholder')}
-            placeholderTextColor="#bbb"
+            placeholderTextColor={Palette.textMuted}
           />
 
           <Text style={styles.fieldLabel}>{t('planner.description_label')}</Text>
@@ -181,7 +182,7 @@ export default function CreateTripPlanScreen() {
             value={description}
             onChangeText={setDescription}
             placeholder={t('planner.description_placeholder')}
-            placeholderTextColor="#bbb"
+            placeholderTextColor={Palette.textMuted}
             multiline
           />
 
@@ -193,7 +194,7 @@ export default function CreateTripPlanScreen() {
                 value={startDate}
                 onChangeText={setStartDate}
                 placeholder="YYYY-MM-DD"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
               />
             </View>
             <View style={styles.dateField}>
@@ -203,7 +204,7 @@ export default function CreateTripPlanScreen() {
                 value={endDate}
                 onChangeText={setEndDate}
                 placeholder="YYYY-MM-DD"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
               />
             </View>
           </View>
@@ -214,7 +215,7 @@ export default function CreateTripPlanScreen() {
             disabled={!title.trim() || creating}
           >
             {creating ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={Palette.bgPrimary} />
             ) : (
               <Text style={styles.submitBtnText}>{t('planner.create_btn')}</Text>
             )}
@@ -229,7 +230,7 @@ export default function CreateTripPlanScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconBtn} onPress={() => setStep('choose')}>
-          <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={Palette.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('planner.create_from_diary')}</Text>
         <View style={styles.iconBtn} />
@@ -239,11 +240,11 @@ export default function CreateTripPlanScreen() {
 
       {loadingDiaries ? (
         <View style={styles.center}>
-          <ActivityIndicator color="#007AFF" />
+          <ActivityIndicator color={Palette.teal} />
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.center}>
-          <Ionicons name="book-outline" size={48} color="#ccc" />
+          <Ionicons name="book-outline" size={48} color={Palette.border} />
           <Text style={styles.emptyText}>{t('planner.no_diaries_to_import')}</Text>
         </View>
       ) : (
@@ -279,7 +280,7 @@ export default function CreateTripPlanScreen() {
           disabled={!selectedDiaryId || creating}
         >
           {creating ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Palette.bgPrimary} />
           ) : (
             <Text style={styles.submitBtnText}>{t('planner.import_diary')}</Text>
           )}
@@ -292,7 +293,7 @@ export default function CreateTripPlanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: Palette.border,
   },
   iconBtn: {
     width: 40,
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   // Choose step
   chooseContent: {
@@ -319,33 +320,34 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   chooseSubtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 15,
+    color: Palette.textSecondary,
     marginBottom: 24,
   },
   methodCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 16,
+    backgroundColor: Palette.bgSurface,
+    borderRadius: 18,
     padding: 18,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Palette.border,
   },
-  methodIcon: {
+  methodIconWrap: {
     width: 52,
     height: 52,
-    borderRadius: 26,
-    backgroundColor: '#fff',
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,201,167,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0,201,167,0.2)',
+  },
+  methodIconWrapWarm: {
+    backgroundColor: 'rgba(249,115,22,0.1)',
+    borderColor: 'rgba(249,115,22,0.2)',
   },
   methodInfo: {
     flex: 1,
@@ -353,35 +355,37 @@ const styles = StyleSheet.create({
   methodTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 4,
   },
   methodDesc: {
     fontSize: 13,
-    color: '#888',
+    color: Palette.textMuted,
     lineHeight: 18,
   },
   // Manual form
   formContent: {
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
   fieldLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 6,
-    marginTop: 16,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.textMuted,
+    marginBottom: 8,
+    marginTop: 20,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderColor: Palette.border,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 15,
-    color: '#1a1a1a',
-    backgroundColor: '#fafafa',
+    color: Palette.textPrimary,
+    backgroundColor: Palette.bgSurface,
   },
   textarea: {
     minHeight: 90,
@@ -396,24 +400,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   submitBtn: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    borderRadius: 14,
+    backgroundColor: Palette.teal,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 32,
   },
   submitBtnDisabled: {
-    opacity: 0.45,
+    opacity: 0.4,
   },
   submitBtnText: {
-    color: '#fff',
-    fontWeight: '700',
+    color: Palette.bgPrimary,
+    fontWeight: '800',
     fontSize: 16,
   },
   // From diary
   selectHint: {
-    fontSize: 15,
-    color: '#666',
+    fontSize: 14,
+    color: Palette.textSecondary,
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 8,
@@ -423,12 +427,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+    gap: 12,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#aaa',
+    fontSize: 15,
+    color: Palette.textMuted,
     textAlign: 'center',
-    marginTop: 12,
   },
   diaryListContent: {
     padding: 16,
@@ -437,16 +441,16 @@ const styles = StyleSheet.create({
   diaryOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 14,
+    backgroundColor: Palette.bgSurface,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: Palette.border,
   },
   diaryOptionSelected: {
-    borderColor: '#007AFF',
-    backgroundColor: '#e6f2ff',
+    borderColor: Palette.teal,
+    backgroundColor: 'rgba(0,201,167,0.06)',
   },
   diaryOptionInfo: {
     flex: 1,
@@ -454,42 +458,42 @@ const styles = StyleSheet.create({
   diaryOptionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 4,
   },
   diaryOptionDest: {
     fontSize: 13,
-    color: '#666',
+    color: Palette.textMuted,
   },
   radioOuter: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: Palette.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
   },
   radioOuterSelected: {
-    borderColor: '#007AFF',
+    borderColor: Palette.teal,
   },
   radioInner: {
-    width: 12,
-    height: 12,
+    width: 11,
+    height: 11,
     borderRadius: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
   },
   footerBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
     paddingHorizontal: 24,
     paddingTop: 12,
-    paddingBottom: 32,
+    paddingBottom: 36,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: Palette.border,
   },
 });

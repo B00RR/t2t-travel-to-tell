@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { TripPlan } from '@/types/tripPlan';
+import { Palette } from '@/constants/theme';
 
 interface TripPlanCardProps {
   item: TripPlan;
@@ -32,7 +33,7 @@ const TripPlanCardComponent = ({ item, userId, onClone }: TripPlanCardProps) => 
   return (
     <TouchableOpacity
       style={styles.card}
-      activeOpacity={0.9}
+      activeOpacity={0.88}
       onPress={() => router.push(`/planner/${item.id}`)}
     >
       {/* Cover */}
@@ -40,17 +41,28 @@ const TripPlanCardComponent = ({ item, userId, onClone }: TripPlanCardProps) => 
         <Image source={{ uri: item.cover_image_url }} style={styles.coverImage} />
       ) : (
         <View style={styles.coverPlaceholder}>
-          <Ionicons name="map-outline" size={40} color="#ccc" />
+          <Ionicons name="map-outline" size={44} color={Palette.border} />
         </View>
       )}
 
-      {/* From diary badge */}
-      {item.source_diary_id && (
-        <View style={styles.sourceBadge}>
-          <Ionicons name="book-outline" size={12} color="#fff" />
-          <Text style={styles.sourceBadgeText}>{t('planner.from_diary')}</Text>
-        </View>
-      )}
+      {/* Overlay gradient effect */}
+      <View style={styles.coverOverlay} />
+
+      {/* Badges over image */}
+      <View style={styles.badgeRow}>
+        {item.source_diary_id && (
+          <View style={styles.sourceBadge}>
+            <Ionicons name="book-outline" size={11} color="#fff" />
+            <Text style={styles.sourceBadgeText}>{t('planner.from_diary')}</Text>
+          </View>
+        )}
+        {item.clone_count > 0 && (
+          <View style={styles.cloneBadge}>
+            <Ionicons name="copy-outline" size={11} color={Palette.teal} />
+            <Text style={styles.cloneBadgeText}>{item.clone_count}</Text>
+          </View>
+        )}
+      </View>
 
       <View style={styles.cardBody}>
         {/* Author row (only in discover) */}
@@ -83,19 +95,12 @@ const TripPlanCardComponent = ({ item, userId, onClone }: TripPlanCardProps) => 
         )}
 
         <View style={styles.footer}>
-          <View style={styles.footerLeft}>
-            {item.start_date ? (
+          {item.start_date ? (
+            <View style={styles.dateRow}>
+              <Ionicons name="calendar-outline" size={12} color={Palette.textMuted} />
               <Text style={styles.dateText}>{formatDate(item.start_date)}</Text>
-            ) : null}
-            {item.clone_count > 0 && (
-              <View style={styles.cloneRow}>
-                <Ionicons name="copy-outline" size={13} color="#999" />
-                <Text style={styles.cloneText}>
-                  {t('planner.clone_count', { count: item.clone_count })}
-                </Text>
-              </View>
-            )}
-          </View>
+            </View>
+          ) : <View />}
 
           {!isOwner && onClone && (
             <TouchableOpacity
@@ -103,7 +108,7 @@ const TripPlanCardComponent = ({ item, userId, onClone }: TripPlanCardProps) => 
               onPress={() => onClone(item.id)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="copy-outline" size={16} color="#007AFF" />
+              <Ionicons name="copy-outline" size={14} color={Palette.teal} />
               <Text style={styles.cloneBtnText}>{t('planner.clone')}</Text>
             </TouchableOpacity>
           )}
@@ -117,36 +122,50 @@ export const TripPlanCard = React.memo(TripPlanCardComponent);
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Palette.borderLight,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
   },
   coverImage: {
     width: '100%',
-    height: 160,
+    height: 180,
     resizeMode: 'cover',
   },
   coverPlaceholder: {
     width: '100%',
-    height: 100,
-    backgroundColor: '#f0f0f0',
+    height: 110,
+    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sourceBadge: {
+  coverOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 180,
+    background: 'transparent',
+  },
+  badgeRow: {
     position: 'absolute',
     top: 12,
     left: 12,
     flexDirection: 'row',
+    gap: 6,
+  },
+  sourceBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 4,
     gap: 4,
@@ -155,6 +174,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
+  },
+  cloneBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,201,167,0.15)',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,201,167,0.3)',
+  },
+  cloneBadgeText: {
+    color: Palette.teal,
+    fontSize: 11,
+    fontWeight: '700',
   },
   cardBody: {
     padding: 16,
@@ -166,94 +201,90 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
   },
   avatarPlaceholder: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#007AFF',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '700',
-    fontSize: 11,
+    fontSize: 10,
   },
   authorName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#555',
+    color: Palette.textSecondary,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 8,
+    color: Palette.textPrimary,
+    marginBottom: 10,
     lineHeight: 24,
+    letterSpacing: -0.3,
   },
   destinationRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   destPill: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.bgElevated,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   destPillText: {
     fontSize: 12,
-    color: '#555',
+    color: Palette.textSecondary,
     fontWeight: '500',
   },
   moreText: {
     fontSize: 12,
-    color: '#999',
+    color: Palette.textMuted,
     alignSelf: 'center',
-    marginLeft: 4,
+    marginLeft: 2,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  footerLeft: {
+  dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 5,
   },
   dateText: {
-    fontSize: 13,
-    color: '#999',
-  },
-  cloneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  cloneText: {
     fontSize: 12,
-    color: '#999',
+    color: Palette.textMuted,
+    fontWeight: '500',
   },
   cloneBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,201,167,0.1)',
     borderWidth: 1,
-    borderColor: '#007AFF',
-    borderRadius: 14,
+    borderColor: 'rgba(0,201,167,0.3)',
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
     gap: 5,
   },
   cloneBtnText: {
     fontSize: 13,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: Palette.teal,
+    fontWeight: '700',
   },
 });

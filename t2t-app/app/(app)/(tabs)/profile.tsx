@@ -403,7 +403,7 @@ export default function ProfileScreen() {
                 value={editForm.display_name}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, display_name: text }))}
                 placeholder={t('profile.display_name')}
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
                 returnKeyType="next"
                 onFocus={() => setFocusedField('display_name')}
                 onBlur={() => setFocusedField(null)}
@@ -423,7 +423,7 @@ export default function ProfileScreen() {
                     setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-9_]/g, '') }));
                   }}
                   placeholder={t('profile.username_placeholder')}
-                  placeholderTextColor="#bbb"
+                  placeholderTextColor={Palette.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"
@@ -454,7 +454,7 @@ export default function ProfileScreen() {
                   if (text.length <= BIO_MAX) setEditForm(prev => ({ ...prev, bio: text }));
                 }}
                 placeholder={t('profile.bio_placeholder')}
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"

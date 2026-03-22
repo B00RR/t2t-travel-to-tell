@@ -6,16 +6,28 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "cache": {
+        "key": "development-v1",
+        "paths": ["node_modules", ".expo"]
+      }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "cache": {
+        "key": "preview-v1",
+        "paths": ["node_modules", ".expo"]
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "cache": {
+        "key": "production-v1",
+        "paths": ["node_modules", ".expo"]
+      }
     }
   },
   "submit": {

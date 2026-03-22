@@ -205,8 +205,12 @@ export default function ProfileScreen() {
         <View style={{ marginHorizontal: 16, marginBottom: 8 }}>
           <BadgesSection
             stats={{
-              diaries: (profile?.stats as any)?.diaries ?? diaries.length,
-              countries: (profile?.stats as any)?.countries ?? 0,
+              diaries: diaries.filter(d => d.status === 'published').length,
+              countries: new Set(
+                diaries
+                  .filter(d => d.status === 'published')
+                  .flatMap(d => d.destinations || [])
+              ).size,
               followers: (profile?.stats as any)?.followers ?? 0,
               totalLikes: diaries.reduce((sum, d) => sum + (d.like_count || 0), 0),
             }}

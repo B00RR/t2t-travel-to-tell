@@ -1,10 +1,12 @@
-import { Stack, useRouter, useSegments, SplashScreen } from 'expo-router';
+import { Stack, useRouter, useSegments, SplashScreen, ErrorBoundary } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import '../i18n';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+
+export { ErrorBoundary };
 
 // Mantieni lo splash nativo visibile finché non sappiamo lo stato auth
 SplashScreen.preventAutoHideAsync();

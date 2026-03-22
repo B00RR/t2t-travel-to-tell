@@ -15,9 +15,9 @@ import { Palette, Glass } from '@/constants/theme';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface MorphingTabBarProps {
-  state: any;
-  descriptors: any;
-  navigation: any;
+  state: { routes: Array<{ key: string; name: string }>; index: number };
+  descriptors: Record<string, { options: { title?: string } }>;
+  navigation: { emit: (e: any) => any; navigate: (name: string) => void };
 }
 
 const TAB_ICONS: Record<string, { default: string; active: string }> = {
@@ -99,7 +99,7 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
             >
               <View style={styles.tabIconWrap}>
                 <Ionicons
-                  name={iconName as any}
+                  name={iconName as keyof typeof Ionicons.glyphMap}
                   size={24}
                   color={isFocused ? Palette.teal : 'rgba(255,255,255,0.5)'}
                 />

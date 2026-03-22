@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   Dimensions, StatusBar, Platform,
@@ -47,7 +47,7 @@ function getTripDays(start: string | null, end: string | null): number | null {
   return Math.max(1, Math.round(diff) + 1);
 }
 
-export function ImmersiveStoryCard({
+export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
   item, userId, scrollX, index, onCommentPress, isActive,
 }: ImmersiveStoryCardProps) {
   const router = useRouter();
@@ -145,35 +145,35 @@ export function ImmersiveStoryCard({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   }, [hasLiked, toggleLike]);
 
-  // Swipe up gesture for expand
-  const swipeGesture = Gesture.Pan()
-    .onEnd((e) => {
-      if (e.translationY < -50) {
-        runOnJS(handleToggleExpand)();
-      } else if (e.translationY > 50 && expanded) {
-        runOnJS(handleToggleExpand)();
-      }
-    });
+  // Memoize gesture objects to avoid recreating on every render
+  const composedGesture = useMemo(() => {
+    const swipe = Gesture.Pan()
+      .onEnd((e) => {
+        if (e.translationY < -50) {
+          runOnJS(handleToggleExpand)();
+        } else if (e.translationY > 50 && expanded) {
+          runOnJS(handleToggleExpand)();
+        }
+      });
 
-  // Double-tap gesture
-  const doubleTapGesture = Gesture.Tap()
-    .numberOfTaps(2)
-    .onEnd(() => {
-      runOnJS(handleDoubleTap)();
-    });
+    const doubleTap = Gesture.Tap()
+      .numberOfTaps(2)
+      .onEnd(() => {
+        runOnJS(handleDoubleTap)();
+      });
 
-  // Single tap to navigate
-  const singleTapGesture = Gesture.Tap()
-    .numberOfTaps(1)
-    .onEnd(() => {
-      runOnJS(() => router.push(`/diary/${item.id}`))();
-    });
+    const singleTap = Gesture.Tap()
+      .numberOfTaps(1)
+      .onEnd(() => {
+        runOnJS(() => router.push(`/diary/${item.id}`))();
+      });
 
-  const composedGesture = Gesture.Exclusive(doubleTapGesture, singleTapGesture);
+    return Gesture.Simultaneous(Gesture.Exclusive(doubleTap, singleTap), swipe);
+  }, [handleToggleExpand, handleDoubleTap, expanded, router, item.id]);
 
   return (
     <View style={styles.container}>
-      <GestureDetector gesture={Gesture.Simultaneous(composedGesture, swipeGesture)}>
+      <GestureDetector gesture={composedGesture}>
         <Animated.View style={styles.inner}>
           {/* Full-bleed background image with Ken Burns */}
           <Animated.View style={[styles.imageContainer, parallaxStyle]}>
@@ -295,7 +295,7 @@ export function ImmersiveStoryCard({
             {item.description && (
               <Text style={styles.expandDesc} numberOfLines={4}>{item.description}</Text>
             )}
-            {item.view_count != null && item.view_count > 0 && (
+            {item.view_count !== null && item.view_count !== undefined && item.view_count > 0 && (
               <View style={styles.expandMeta}>
                 <Ionicons name="eye-outline" size={14} color="rgba(255,255,255,0.6)" />
                 <Text style={styles.expandMetaText}>
@@ -314,7 +314,7 @@ export function ImmersiveStoryCard({
       </GestureDetector>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -358,12 +358,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: SCREEN_HEIGHT * 0.5,
     backgroundColor: 'transparent',
-    // Simulate gradient with layered views
-    borderTopWidth: 0,
-    // Using background color with opacity
-    ...(Platform.OS === 'ios'
-      ? {}
-      : {}),
   },
 
   // Top bar

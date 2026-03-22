@@ -29,7 +29,7 @@ export function StoryProgressBar({ count, scrollX, screenWidth }: StoryProgressB
   );
 }
 
-function SegmentBar({
+const SegmentBar = React.memo(function SegmentBar({
   index,
   scrollX,
   screenWidth,
@@ -70,7 +70,7 @@ function SegmentBar({
       <Animated.View style={[styles.segmentFill, animatedStyle]} />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

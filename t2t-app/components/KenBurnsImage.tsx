@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
   withRepeat,
   withSequence,
+  cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
 
@@ -33,10 +34,18 @@ export function KenBurnsImage({
   const translateY = useSharedValue(0);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused) {
+      cancelAnimation(scale);
+      cancelAnimation(translateX);
+      cancelAnimation(translateY);
+      scale.value = 1;
+      translateX.value = 0;
+      translateY.value = 0;
+      return;
+    }
 
     const halfDuration = duration / 2;
-    const panRange = 12; // pixels of subtle pan
+    const panRange = 12;
 
     scale.value = withRepeat(
       withSequence(
@@ -66,7 +75,13 @@ export function KenBurnsImage({
       -1,
       false,
     );
-  }, [paused, duration, maxScale]);
+
+    return () => {
+      cancelAnimation(scale);
+      cancelAnimation(translateX);
+      cancelAnimation(translateY);
+    };
+  }, [paused, duration, maxScale, uri]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [

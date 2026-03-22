@@ -49,7 +49,7 @@ export function AnimatedHeartOverlay({ visible, onFinish }: AnimatedHeartOverlay
         runOnJS(onFinish)();
       }),
     );
-  }, [visible]);
+  }, [visible, onFinish]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [

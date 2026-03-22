@@ -8,6 +8,7 @@ import Animated, {
   withDelay,
   Easing,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useMapLocations } from '@/hooks/useMapLocations';
@@ -154,9 +155,6 @@ export function JourneyMap({ userId }: JourneyMapProps) {
     </Animated.View>
   );
 }
-
-// Need to import Ionicons for the empty state
-import { Ionicons } from '@expo/vector-icons';
 
 const styles = StyleSheet.create({
   container: {

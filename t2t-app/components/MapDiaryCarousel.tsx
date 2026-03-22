@@ -107,6 +107,11 @@ export function MapDiaryCarousel({ locations, clusterTitle, onClose }: MapDiaryC
         contentContainerStyle={styles.listContent}
         snapToInterval={CARD_WIDTH + CARD_GAP}
         decelerationRate="fast"
+        getItemLayout={(_, index) => ({
+          length: CARD_WIDTH + CARD_GAP,
+          offset: (CARD_WIDTH + CARD_GAP) * index,
+          index,
+        })}
       />
     </Animated.View>
   );

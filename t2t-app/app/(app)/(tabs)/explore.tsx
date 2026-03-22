@@ -258,7 +258,7 @@ export default function DiscoveryScreen() {
               onPress={() => handleSortChange(s.key)}
             >
               <Ionicons
-                name={s.icon as any}
+                name={s.icon as keyof typeof Ionicons.glyphMap}
                 size={15}
                 color={sortMode === s.key ? Palette.bgPrimary : Palette.textSecondary}
               />

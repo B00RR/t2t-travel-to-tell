@@ -137,7 +137,7 @@ export function WanderlustMap() {
 /**
  * Glowing hotspot marker — pulsing orb sized by diary count.
  */
-function HotspotMarker({
+const HotspotMarker = React.memo(function HotspotMarker({
   cluster,
   onPress,
 }: {
@@ -180,7 +180,7 @@ function HotspotMarker({
       </View>
     </Marker>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

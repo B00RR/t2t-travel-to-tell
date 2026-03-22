@@ -159,7 +159,7 @@ export default function HomeScreen() {
         isActive={idx === activeIndex}
       />
     ),
-    [user?.id, scrollX, activeIndex]
+    [user?.id, activeIndex]
   );
 
   const emptyIcon = tab === 'following' ? 'people-outline' : 'globe-outline';

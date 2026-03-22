@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDiarySocial } from '@/hooks/useDiarySocial';
+import { Palette } from '@/constants/theme';
 import type { SocialCounters } from '@/types/social';
 
 interface SocialActionBarProps {
@@ -31,12 +32,16 @@ export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPre
           accessibilityRole="button"
           accessibilityLabel={hasLiked ? t('social.unlike') : t('social.like')}
         >
-          <Ionicons 
-            name={hasLiked ? 'heart' : 'heart-outline'} 
-            size={26} 
-            color={hasLiked ? '#FF3B30' : '#4a4a4a'} 
+          <Ionicons
+            name={hasLiked ? 'heart' : 'heart-outline'}
+            size={22}
+            color={hasLiked ? Palette.red : Palette.textMuted}
           />
-          <Text style={styles.actionText}>{counters.like_count > 0 ? counters.like_count : ''}</Text>
+          {counters.like_count > 0 && (
+            <Text style={[styles.actionCount, hasLiked && styles.actionCountActive]}>
+              {counters.like_count}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -45,8 +50,10 @@ export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPre
           accessibilityRole="button"
           accessibilityLabel={t('social.comment_action')}
         >
-          <Ionicons name="chatbubble-outline" size={24} color="#4a4a4a" />
-          <Text style={styles.actionText}>{counters.comment_count > 0 ? counters.comment_count : ''}</Text>
+          <Ionicons name="chatbubble-outline" size={20} color={Palette.textMuted} />
+          {counters.comment_count > 0 && (
+            <Text style={styles.actionCount}>{counters.comment_count}</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -55,7 +62,7 @@ export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPre
           accessibilityRole="button"
           accessibilityLabel={t('social.share')}
         >
-          <Ionicons name="share-outline" size={24} color="#4a4a4a" />
+          <Ionicons name="share-outline" size={20} color={Palette.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -65,10 +72,10 @@ export function SocialActionBar({ diaryId, userId, initialCounters, onCommentPre
         accessibilityRole="button"
         accessibilityLabel={hasSaved ? t('social.unsave') : t('social.save')}
       >
-        <Ionicons 
-          name={hasSaved ? 'bookmark' : 'bookmark-outline'} 
-          size={24} 
-          color={hasSaved ? '#007AFF' : '#4a4a4a'} 
+        <Ionicons
+          name={hasSaved ? 'bookmark' : 'bookmark-outline'}
+          size={20}
+          color={hasSaved ? Palette.teal : Palette.textMuted}
         />
       </TouchableOpacity>
     </View>
@@ -80,26 +87,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e0e0e0',
-    backgroundColor: '#fff',
+    paddingTop: 12,
   },
   leftActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: 22,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     paddingVertical: 4,
   },
-  actionText: {
-    fontSize: 14,
+  actionCount: {
+    fontSize: 13,
     fontWeight: '600',
-    color: '#4a4a4a',
+    color: Palette.textMuted,
+  },
+  actionCountActive: {
+    color: Palette.red,
   },
 });

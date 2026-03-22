@@ -1,6 +1,9 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
+import {
+  View, Text, StyleSheet, FlatList, TouchableOpacity,
+  RefreshControl, StatusBar, Animated,
+} from 'react-native';
 import { supabase } from '@/lib/supabase';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,10 +13,13 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
 import { ErrorView } from '@/components/ErrorView';
 import { FeedDiaryCard } from '@/components/FeedDiaryCard';
-import { Palette } from '@/constants/theme';
+import { Palette, Motion } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
 type FeedTab = 'discover' | 'following';
+
+// Width of each tab pill text area — used to slide the indicator
+const TAB_PILL_WIDTH = 100;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -26,8 +32,17 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
-
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+
+  // Animated sliding pill indicator
+  const pillX = useRef(new Animated.Value(0)).current;
+
+  function animatePillTo(tabIndex: number) {
+    Animated.spring(pillX, {
+      toValue: tabIndex * TAB_PILL_WIDTH,
+      ...Motion.spring.snappy,
+    }).start();
+  }
 
   const fetchDiscover = useCallback(async (isRefreshing = false) => {
     if (!isRefreshing) setLoading(true);
@@ -73,7 +88,6 @@ export default function HomeScreen() {
     }
 
     const followedIds = follows.map(f => f.following_id as string);
-
     const { data, error } = await supabase
       .from('diaries')
       .select(`
@@ -90,9 +104,7 @@ export default function HomeScreen() {
       .order('created_at', { ascending: false })
       .limit(30);
 
-    if (!error && data) {
-      setFollowingDiaries(data as FeedDiary[]);
-    }
+    if (!error && data) setFollowingDiaries(data as FeedDiary[]);
     setLoading(false);
     if (isRefreshing) setRefreshing(false);
   }, [user]);
@@ -113,6 +125,7 @@ export default function HomeScreen() {
   function handleTabChange(newTab: FeedTab) {
     setTab(newTab);
     setErrorVisible(false);
+    animatePillTo(newTab === 'discover' ? 0 : 1);
     if (newTab === 'discover') fetchDiscover(false);
     else fetchFollowing(false);
   }
@@ -145,7 +158,7 @@ export default function HomeScreen() {
           style={styles.notifBtn}
           onPress={() => router.push('/(app)/notifications')}
         >
-          <Ionicons name="notifications-outline" size={22} color={Palette.textPrimary} />
+          <Ionicons name="notifications-outline" size={21} color={Palette.textPrimary} />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -154,27 +167,35 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Feed Tabs */}
+      {/* ── ANIMATED SLIDING PILL TAB SELECTOR ── */}
       <View style={styles.tabRow}>
+        {/* Sliding background pill */}
+        <Animated.View
+          style={[
+            styles.tabPillBg,
+            { transform: [{ translateX: pillX }] },
+          ]}
+          pointerEvents="none"
+        />
+
         <TouchableOpacity
-          style={styles.tabPill}
+          style={[styles.tabItem, { width: TAB_PILL_WIDTH }]}
           onPress={() => handleTabChange('discover')}
-          activeOpacity={0.75}
+          activeOpacity={0.8}
         >
           <Text style={[styles.tabText, tab === 'discover' && styles.tabTextActive]}>
             {t('home.tab_discover')}
           </Text>
-          {tab === 'discover' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={styles.tabPill}
+          style={[styles.tabItem, { width: TAB_PILL_WIDTH }]}
           onPress={() => handleTabChange('following')}
-          activeOpacity={0.75}
+          activeOpacity={0.8}
         >
           <Text style={[styles.tabText, tab === 'following' && styles.tabTextActive]}>
             {t('home.tab_following')}
           </Text>
-          {tab === 'following' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
       </View>
 
@@ -189,7 +210,7 @@ export default function HomeScreen() {
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconWrap}>
-            <Ionicons name={emptyIcon} size={36} color={Palette.teal} />
+            <Ionicons name={emptyIcon} size={34} color={Palette.teal} />
           </View>
           <Text style={styles.emptyTitle}>{emptyTitle}</Text>
           <Text style={styles.emptySub}>{emptySub}</Text>
@@ -241,13 +262,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 56,
-    paddingBottom: 14,
+    paddingBottom: 16,
   },
   headerLogo: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: '900',
     color: Palette.teal,
-    letterSpacing: -1.5,
+    letterSpacing: -2,
+    // Subtle teal glow on the logo
+    textShadowColor: 'rgba(0,201,167,0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   notifBtn: {
     width: 40,
@@ -261,12 +286,12 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 5,
-    right: 5,
+    top: 6,
+    right: 6,
     backgroundColor: Palette.red,
-    minWidth: 15,
-    height: 15,
-    borderRadius: 8,
+    minWidth: 14,
+    height: 14,
+    borderRadius: 7,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 3,
@@ -278,39 +303,52 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '800',
   },
+
+  // ── ANIMATED TAB SELECTOR ──
   tabRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 8,
-    gap: 24,
-  },
-  tabPill: {
-    paddingBottom: 10,
+    marginHorizontal: 20,
+    marginBottom: 14,
+    backgroundColor: Palette.bgSurface,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+    padding: 3,
     position: 'relative',
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
+  },
+  // The sliding highlight pill
+  tabPillBg: {
+    position: 'absolute',
+    top: 3,
+    left: 3,
+    width: TAB_PILL_WIDTH,
+    bottom: 3,
+    backgroundColor: Palette.teal,
+    borderRadius: 18,
+  },
+  tabItem: {
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
+    zIndex: 1,
   },
   tabText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: Palette.textMuted,
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
   },
   tabTextActive: {
-    color: Palette.textPrimary,
-    fontWeight: '700',
+    color: Palette.bgPrimary,
   },
-  tabUnderline: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: Palette.teal,
-  },
+
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 4,
-    paddingBottom: 32,
+    paddingBottom: 120, // extra space for floating tab bar
   },
   emptyState: {
     flex: 1,

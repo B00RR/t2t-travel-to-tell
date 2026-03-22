@@ -9,6 +9,7 @@ import { useFollow } from '@/hooks/useFollow';
 import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
+import { DiaryMapCover } from '@/components/DiaryMapCover';
 import { Diary } from '@/types/supabase';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -185,28 +186,26 @@ export default function DiaryDetailScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Cover Image */}
-        <TouchableOpacity
-          style={styles.coverContainer}
-          onPress={() => user?.id === diary.author_id && setShowCoverPicker(true)}
-          activeOpacity={user?.id === diary.author_id ? 0.8 : 1}
-        >
-          {diary.cover_image_url ? (
-            <Image source={{ uri: diary.cover_image_url }} style={styles.coverImage} />
-          ) : (
-            <View style={styles.coverPlaceholder}>
-              <Ionicons name="image-outline" size={40} color="#ccc" />
-              {user?.id === diary.author_id && (
-                <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
-              )}
-            </View>
-          )}
-          {user?.id === diary.author_id && diary.cover_image_url && (
-            <View style={styles.coverEditBadge}>
-              <Ionicons name="camera" size={16} color="#fff" />
-            </View>
-          )}
-        </TouchableOpacity>
+        {/* Map Cover — shows itinerary if locations exist, otherwise falls back to cover image */}
+        <DiaryMapCover diaryId={id as string} dayIds={days.map(d => d.id)} />
+        {days.length === 0 && (
+          <TouchableOpacity
+            style={styles.coverContainer}
+            onPress={() => user?.id === diary.author_id && setShowCoverPicker(true)}
+            activeOpacity={user?.id === diary.author_id ? 0.8 : 1}
+          >
+            {diary.cover_image_url ? (
+              <Image source={{ uri: diary.cover_image_url }} style={styles.coverImage} />
+            ) : (
+              <View style={styles.coverPlaceholder}>
+                <Ionicons name="image-outline" size={40} color="#ccc" />
+                {user?.id === diary.author_id && (
+                  <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
+                )}
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
 
         <View style={[styles.titleRow, styles.contentPadding]}>
           <Text style={styles.title}>{diary.title}</Text>

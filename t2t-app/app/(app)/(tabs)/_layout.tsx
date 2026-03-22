@@ -1,9 +1,10 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Palette } from '@/constants/theme';
+import { Palette, Glass, Glow } from '@/constants/theme';
+import { HapticTab } from '@/components/haptic-tab';
 
 function ProfileTabIcon({ color, size }: { color: string; size: number }) {
   const { unreadCount } = useNotifications();
@@ -18,7 +19,7 @@ function ProfileTabIcon({ color, size }: { color: string; size: number }) {
 function CreateTabIcon({ color, focused }: { color: string; focused: boolean }) {
   return (
     <View style={[styles.createBtn, focused && styles.createBtnFocused]}>
-      <Ionicons name="add" size={26} color={focused ? Palette.bgPrimary : '#fff'} />
+      <Ionicons name="add" size={27} color={focused ? Palette.bgPrimary : '#fff'} />
     </View>
   );
 }
@@ -31,10 +32,11 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Palette.teal,
-        tabBarInactiveTintColor: Palette.textMuted,
+        tabBarInactiveTintColor: Palette.gray500,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabLabel,
         tabBarBackground: () => <View style={styles.tabBarBg} />,
+        tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
         name="index"
@@ -55,6 +57,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ color, focused }) => <CreateTabIcon color={color} focused={focused} />,
+          tabBarLabel: () => null,
         }}
       />
       <Tabs.Screen
@@ -84,38 +87,55 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
+    // Floating island: rounded pill that hovers above safe area
     backgroundColor: Palette.bgSurface,
-    borderTopColor: Palette.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+    borderTopWidth: 0,
+    borderRadius: 32,
+    marginHorizontal: 16,
+    marginBottom: Platform.OS === 'ios' ? 22 : 10,
     paddingTop: 10,
-    height: Platform.OS === 'ios' ? 88 : 68,
+    paddingBottom: Platform.OS === 'ios' ? 14 : 10,
+    paddingHorizontal: 4,
+    height: Platform.OS === 'ios' ? 74 : 64,
+    // Deep shadow — the island casts a shadow on the screen below
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
   },
   tabBarBg: {
     flex: 1,
     backgroundColor: Palette.bgSurface,
+    borderRadius: 32,
   },
   tabLabel: {
     fontSize: 10,
     fontWeight: '600',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
+    marginTop: -2,
   },
   createBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
+    // Teal aura glow — signature of the app
     shadowColor: Palette.teal,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOpacity: 0.7,
+    shadowRadius: 14,
+    elevation: 12,
   },
   createBtnFocused: {
     backgroundColor: '#fff',
+    shadowColor: '#ffffff',
+    shadowOpacity: 0.5,
   },
   notifDot: {
     position: 'absolute',

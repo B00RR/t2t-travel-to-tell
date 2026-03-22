@@ -140,6 +140,55 @@ export const Shadows = {
   },
 } as const;
 
+/** Glassmorphism tokens — frosted dark glass overlays */
+export const Glass = {
+  bg:       'rgba(12,12,22,0.72)',
+  bgLight:  'rgba(240,240,248,0.10)',
+  bgTeal:   'rgba(0,201,167,0.14)',
+  border:   'rgba(255,255,255,0.08)',
+  borderTeal: 'rgba(0,201,167,0.28)',
+} as const;
+
+/** Glow shadows keyed by color */
+export const Glow = {
+  teal: {
+    shadowColor: '#00C9A7',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
+    elevation: 12,
+  },
+  orange: {
+    shadowColor: '#F97316',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+  dark: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.65,
+    shadowRadius: 28,
+    elevation: 20,
+  },
+} as const;
+
+/** Motion presets for Animated.spring / Animated.timing */
+export const Motion = {
+  spring: {
+    normal:  { friction: 8,  tension: 120, useNativeDriver: true },
+    snappy:  { friction: 6,  tension: 200, useNativeDriver: true },
+    bouncy:  { friction: 4,  tension: 150, useNativeDriver: true },
+  },
+  duration: {
+    instant:  80,
+    fast:    150,
+    normal:  280,
+    slow:    420,
+  },
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
     sans:    'system-ui',

@@ -161,10 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingBottom: 14,
     paddingTop: 60,
-    background: 'transparent',
-    // Gradient via a semi-transparent overlay at the bottom
     backgroundColor: 'rgba(9,9,15,0.0)',
-    // We simulate gradient by stacking a view
   },
   destRow: {
     flexDirection: 'row',

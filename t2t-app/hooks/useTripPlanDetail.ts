@@ -44,7 +44,7 @@ export function useTripPlanDetail(planId: string | string[]) {
     if (planRes.error) {
       console.error('fetchPlan error', planRes.error);
     } else if (planRes.data) {
-      setPlan(planRes.data as TripPlan);
+      setPlan(planRes.data as unknown as TripPlan);
     }
 
     if (!stopsRes.error && stopsRes.data) setStops(stopsRes.data as TripPlanStop[]);
@@ -53,7 +53,7 @@ export function useTripPlanDetail(planId: string | string[]) {
     setLoading(false);
   }, [id]);
 
-  const updatePlan = useCallback(async (updates: Partial<Pick<TripPlan, 'title' | 'description' | 'visibility' | 'destinations' | 'start_date' | 'end_date' | 'budget_estimate'>>) => {
+  const updatePlan = useCallback(async (updates: Partial<Pick<TripPlan, 'title' | 'description' | 'visibility' | 'destinations' | 'start_date' | 'end_date' | 'budget_estimate' | 'cover_image_url'>>) => {
     setSaving(true);
     const { error } = await supabase
       .from('trip_plans')

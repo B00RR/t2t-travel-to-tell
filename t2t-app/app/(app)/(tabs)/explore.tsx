@@ -27,7 +27,7 @@ function getDurationDays(diary: FeedDiary): number | null {
 function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
   if (filter === 'all') return true;
   const days = getDurationDays(diary);
-  if (days === null) return filter === 'all';
+  if (days === null) return false;
   if (filter === 'short') return days <= 4;
   if (filter === 'medium') return days >= 5 && days <= 14;
   if (filter === 'long') return days >= 15;

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import type { DayEntry } from '@/types/social';
+import type { DayEntry } from '@/types/dayEntry';
 import type { VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
 import { RichTextRenderer } from './RichTextRenderer';

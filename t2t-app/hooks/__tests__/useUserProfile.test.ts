@@ -120,7 +120,7 @@ describe('useUserProfile', () => {
       expect(res.error).toBe('Network error');
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Errore', 'Impossibile aggiornare il profilo: Network error');
+    expect(Alert.alert).toHaveBeenCalledWith('common.error', 'profile.err_update_failed');
 
     consoleErrorSpy.mockRestore();
   });
@@ -140,7 +140,7 @@ describe('useUserProfile', () => {
       expect(res.success).toBe(false);
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Errore Upload', 'Impossibile caricare l\'avatar. Riprova più tardi.');
+    expect(Alert.alert).toHaveBeenCalledWith('common.upload_error', 'profile.err_avatar_failed');
 
     consoleErrorSpy.mockRestore();
   });

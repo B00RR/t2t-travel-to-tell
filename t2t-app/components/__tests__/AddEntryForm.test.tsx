@@ -33,22 +33,25 @@ describe('AddEntryForm', () => {
   });
 
   it('renders correctly for text type', () => {
-    const { getByText, getByPlaceholderText, UNSAFE_getByType } = render(
+    const { getByText, getByPlaceholderText, UNSAFE_getAllByType } = render(
       <AddEntryForm type="text" {...defaultProps} />
     );
 
     // Title and placeholder derived from translation keys
     expect(getByText('day.new_text')).toBeTruthy();
 
-    // Check icon configuration
-    const icon = UNSAFE_getByType('Ionicons' as any);
-    expect(icon.props.name).toBe('document-text');
-    expect(icon.props.color).toBe('#007AFF');
+    // Check icon configuration — for type="text" there are 2 Ionicons:
+    // one in the AddEntryForm header, one inside RichTextInput toolbar
+    const icons = UNSAFE_getAllByType('Ionicons' as any);
+    expect(icons.length).toBeGreaterThanOrEqual(1);
+    expect(icons[0].props.name).toBe('document-text');
+    expect(icons[0].props.color).toBe('#007AFF');
 
+    // The input is rendered by RichTextInput (numberOfLines=6, multiline=true)
     const input = getByPlaceholderText('day.placeholder_text');
     expect(input).toBeTruthy();
     expect(input.props.multiline).toBe(true);
-    expect(input.props.numberOfLines).toBe(4);
+    expect(input.props.numberOfLines).toBe(6);
   });
 
   it('renders correctly for tip type', () => {

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-export function useFollow(currentUserId: string | undefined, targetProfileId: string) {
+export function useFollow(currentUserId: string | undefined, targetProfileId: string | undefined) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
 

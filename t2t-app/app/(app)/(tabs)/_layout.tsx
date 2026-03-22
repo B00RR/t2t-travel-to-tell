@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Platform, Text } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Palette, Glass, Glow } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
 import { HapticTab } from '@/components/haptic-tab';
 
 function ProfileTabIcon({ color, size }: { color: string; size: number }) {
@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
     elevation: 24,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
+    overflow: 'hidden',
   },
   tabBarBg: {
     flex: 1,

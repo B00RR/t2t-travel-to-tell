@@ -71,8 +71,8 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
             imageStyle={styles.coverImg}
           >
             {/* Bottom scrim — gives title its cinema stage */}
-            <View style={styles.scrimBottom} pointerEvents="none" />
-            <View style={styles.scrimBottomDeep} pointerEvents="none" />
+            <View style={[styles.scrimBottom,   { pointerEvents: 'none' }]} />
+            <View style={[styles.scrimBottomDeep, { pointerEvents: 'none' }]} />
 
             {/* Top row: author glass pill + days badge */}
             <View style={styles.coverTop}>

@@ -173,9 +173,8 @@ export default function HomeScreen() {
         <Animated.View
           style={[
             styles.tabPillBg,
-            { transform: [{ translateX: pillX }] },
+            { transform: [{ translateX: pillX }], pointerEvents: 'none' },
           ]}
-          pointerEvents="none"
         />
 
         <TouchableOpacity

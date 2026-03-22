@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { Palette } from '@/constants/theme';
 
 interface SuggestedUser {
   id: string;
@@ -120,12 +121,12 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Palette.border,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     paddingHorizontal: 16,
     marginBottom: 12,
   },
@@ -135,58 +136,58 @@ const styles = StyleSheet.create({
   },
   card: {
     width: 110,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#efefef',
+    borderColor: Palette.border,
   },
   avatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.tealDim,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   initials: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 18,
     fontWeight: '800',
   },
   name: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     textAlign: 'center',
     marginBottom: 2,
   },
   sub: {
     fontSize: 11,
-    color: '#aaa',
+    color: Palette.textMuted,
     marginBottom: 8,
     textAlign: 'center',
   },
   followBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 5,
     marginTop: 4,
   },
   followingBtn: {
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Palette.border,
   },
   followBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#fff',
+    color: Palette.bgPrimary,
   },
   followingBtnText: {
-    color: '#888',
+    color: Palette.textSecondary,
   },
 });

@@ -9,6 +9,7 @@ import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
 import { TripPlanCard } from '@/components/TripPlanCard';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
 import type { TripPlan } from '@/types/tripPlan';
+import { Palette } from '@/constants/theme';
 
 type Tab = 'my' | 'discover';
 
@@ -81,7 +82,7 @@ export default function PlannerScreen() {
             style={styles.buddyBtn}
             onPress={() => router.push('/planner/buddies')}
           >
-            <Ionicons name="people-outline" size={18} color="#007AFF" />
+            <Ionicons name="people-outline" size={18} color={Palette.teal} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.newBtn}
@@ -120,7 +121,7 @@ export default function PlannerScreen() {
         </View>
       ) : plans.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="map-outline" size={64} color="#ccc" />
+          <Ionicons name="map-outline" size={64} color={Palette.border} />
           <Text style={styles.emptyTitle}>
             {activeTab === 'my' ? t('planner.empty') : t('planner.empty_discover')}
           </Text>
@@ -144,7 +145,7 @@ export default function PlannerScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => refresh(activeTab)}
-              tintColor="#007AFF"
+              tintColor={Palette.teal}
             />
           }
         />
@@ -156,7 +157,7 @@ export default function PlannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
@@ -165,23 +166,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: Palette.border,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     letterSpacing: -0.5,
   },
   buddyBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e8f0fe',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: '#cce0ff',
+    borderColor: Palette.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -189,15 +190,18 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
     paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Palette.border,
     gap: 8,
   },
   tabBtn: {
@@ -205,18 +209,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
     borderRadius: 20,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
   },
   tabBtnActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
   },
   tabBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Palette.textSecondary,
   },
   tabBtnTextActive: {
-    color: '#fff',
+    color: Palette.bgPrimary,
   },
   listContent: {
     padding: 16,
@@ -231,20 +235,20 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#999',
+    color: Palette.textMuted,
     textAlign: 'center',
     marginTop: 16,
     lineHeight: 24,
   },
   emptyBtn: {
     marginTop: 24,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
   },
   emptyBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '700',
     fontSize: 15,
   },

@@ -5,6 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Palette } from '@/constants/theme';
 
 interface BadgeDefinition {
   id: string;
@@ -98,9 +99,9 @@ const BADGE_DEFS: BadgeDefinition[] = [
 ];
 
 const TIER_COLORS = {
-  bronze: { bg: '#fff3e0', border: '#ff9800', text: '#e65100' },
-  silver: { bg: '#f5f5f5', border: '#9e9e9e', text: '#616161' },
-  gold:   { bg: '#fffde7', border: '#ffc107', text: '#f57f17' },
+  bronze: { bg: 'rgba(249,115,22,0.12)', border: Palette.orange, text: Palette.orange },
+  silver: { bg: Palette.bgElevated, border: Palette.textMuted, text: Palette.textSecondary },
+  gold:   { bg: 'rgba(245,200,66,0.12)', border: Palette.gold, text: Palette.gold },
 };
 
 function computeLevel(stats: BadgeStats): { level: number; xp: number; nextXp: number } {
@@ -283,12 +284,12 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
 
 const styles = StyleSheet.create({
   levelCard: {
-    backgroundColor: '#f0f7ff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#cce0ff',
+    borderColor: Palette.border,
   },
   levelTop: {
     flexDirection: 'row',
@@ -299,33 +300,33 @@ const styles = StyleSheet.create({
   levelNum: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#007AFF',
+    color: Palette.teal,
   },
   levelTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#555',
+    color: Palette.textSecondary,
     marginTop: 2,
   },
   xpText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#007AFF',
+    color: Palette.teal,
   },
   progressBg: {
     height: 8,
-    backgroundColor: '#d0e8ff',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     borderRadius: 4,
   },
   nextLevelText: {
     fontSize: 11,
-    color: '#888',
+    color: Palette.textMuted,
     marginTop: 6,
     textAlign: 'right',
   },
@@ -335,7 +336,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#d4e8ff',
+    borderTopColor: Palette.border,
     gap: 10,
   },
   nextBadgeEmoji: {
@@ -347,18 +348,18 @@ const styles = StyleSheet.create({
   nextBadgeLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#99b8e0',
+    color: Palette.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   nextBadgeName: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#2a6db5',
+    color: Palette.teal,
     marginTop: 1,
   },
   nextBadgeHintPill: {
-    backgroundColor: '#d4e8ff',
+    backgroundColor: Palette.tealDim,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
@@ -366,7 +367,7 @@ const styles = StyleSheet.create({
   nextBadgeHintText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#1a5fa8',
+    color: Palette.bgPrimary,
   },
   badgesRow: {
     flexDirection: 'row',
@@ -383,8 +384,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   badgeLocked: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#ddd',
+    backgroundColor: Palette.bgElevated,
+    borderColor: Palette.border,
     borderStyle: 'dashed',
   },
   badgeEmoji: {
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
   badgeLockedText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#bbb',
+    color: Palette.textMuted,
     textAlign: 'center',
   },
   noBadgesBtn: {
@@ -407,23 +408,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#ddd',
+    borderColor: Palette.border,
   },
   noBadgesText: {
     fontSize: 14,
-    color: '#aaa',
+    color: Palette.textMuted,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: Palette.overlayHeavy,
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     maxHeight: '80%',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: Palette.border,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -434,11 +439,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   closeBtn: {
     fontSize: 18,
-    color: '#999',
+    color: Palette.textMuted,
     padding: 4,
   },
   modalBadgeRow: {
@@ -447,10 +452,10 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: Palette.border,
   },
   modalBadgeRowLocked: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   modalBadgeIcon: {
     width: 52,
@@ -461,8 +466,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lockedIcon: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#ddd',
+    backgroundColor: Palette.bgElevated,
+    borderColor: Palette.border,
   },
   modalBadgeEmoji: {
     fontSize: 26,
@@ -473,20 +478,20 @@ const styles = StyleSheet.create({
   modalBadgeName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 2,
   },
   modalBadgeDesc: {
     fontSize: 12,
-    color: '#888',
+    color: Palette.textMuted,
     lineHeight: 16,
   },
   lockedText: {
-    color: '#aaa',
+    color: Palette.textMuted,
   },
   check: {
     fontSize: 18,
-    color: '#34C759',
+    color: Palette.teal,
     fontWeight: '700',
   },
 });

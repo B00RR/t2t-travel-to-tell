@@ -6,6 +6,7 @@ import type { DayEntry } from '@/types/dayEntry';
 import type { VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
 import { RichTextRenderer } from './RichTextRenderer';
+import { Palette } from '@/constants/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
@@ -72,7 +73,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
         onLongPress={() => onLongPress(entry.id)}
         delayLongPress={600}
       >
-        <Ionicons name="location" size={20} color="#FF3B30" />
+        <Ionicons name="location" size={20} color={Palette.red} />
         <Text style={styles.locationText}>{entry.content}</Text>
       </TouchableOpacity>
     );
@@ -90,12 +91,12 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
         <Ionicons
           name={entry.type === 'tip' ? 'bulb' : 'document-text'}
           size={18}
-          color={entry.type === 'tip' ? '#FF9500' : '#007AFF'}
+          color={entry.type === 'tip' ? Palette.orange : Palette.teal}
         />
         <Text style={[styles.entryType, entry.type === 'tip' && styles.entryTypeTip]}>
           {entry.type === 'tip' ? t('day.type_tip') : t('day.type_text')}
         </Text>
-        <Ionicons name="pencil" size={14} color="#bbb" style={{ marginLeft: 'auto' }} />
+        <Ionicons name="pencil" size={14} color={Palette.textMuted} style={{ marginLeft: 'auto' }} />
       </View>
       {entry.type === 'text' && entry.content ? (
         <RichTextRenderer text={entry.content} />
@@ -109,16 +110,16 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 const styles = StyleSheet.create({
   // Text / Tip
   entryCard: {
-    backgroundColor: '#f5f7fa',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftWidth: 3,
+    borderLeftColor: Palette.teal,
   },
   entryCardTip: {
-    backgroundColor: '#fff8ed',
-    borderLeftColor: '#FF9500',
+    backgroundColor: Palette.bgSurface,
+    borderLeftColor: Palette.orange,
   },
   entryHeader: {
     flexDirection: 'row',
@@ -129,14 +130,15 @@ const styles = StyleSheet.create({
   entryType: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#007AFF',
+    color: Palette.teal,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  entryTypeTip: { color: '#FF9500' },
+  entryTypeTip: { color: Palette.orange },
   entryContent: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#333',
+    color: Palette.textSecondary,
   },
 
   // Photo
@@ -144,13 +146,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.bgElevated,
   },
   entryPhoto: { borderRadius: 16 },
   photoCaption: {
     padding: 12,
     fontSize: 14,
-    color: '#666',
+    color: Palette.textSecondary,
     fontStyle: 'italic',
   },
 
@@ -158,37 +160,37 @@ const styles = StyleSheet.create({
   moodCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f8ff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     gap: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#5856D6',
+    borderLeftWidth: 3,
+    borderLeftColor: '#7C7BF5',
   },
   moodEmoji: { fontSize: 32 },
   moodLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#5856D6',
+    color: '#9D9CF7',
   },
 
   // Location
   locationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff0f0',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     gap: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF3B30',
+    borderLeftWidth: 3,
+    borderLeftColor: Palette.red,
   },
   locationText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: Palette.textPrimary,
     flex: 1,
   },
 });

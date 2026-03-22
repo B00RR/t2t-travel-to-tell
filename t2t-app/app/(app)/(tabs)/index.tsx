@@ -1,25 +1,31 @@
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  RefreshControl, StatusBar, Animated,
+  RefreshControl, StatusBar, Dimensions, Platform,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
-import { useState, useCallback, useRef } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { CommentsModal } from '@/components/CommentsModal';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
-import { DiaryCardSkeleton } from '@/components/Skeleton';
-import { ErrorView } from '@/components/ErrorView';
-import { FeedDiaryCard } from '@/components/FeedDiaryCard';
-import { Palette, Motion } from '@/constants/theme';
+import { ImmersiveStoryCard } from '@/components/ImmersiveStoryCard';
+import { StoryProgressBar } from '@/components/StoryProgressBar';
+import { Palette, Glass, Motion } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
-type FeedTab = 'discover' | 'following';
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Width of each tab pill text area — used to slide the indicator
-const TAB_PILL_WIDTH = 100;
+const AnimatedFlatList = Animated.createAnimatedComponent(
+  FlatList<FeedDiary>
+);
+
+type FeedTab = 'discover' | 'following';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -33,16 +39,16 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  // Animated sliding pill indicator
-  const pillX = useRef(new Animated.Value(0)).current;
+  // Shared value for scroll-driven animations
+  const scrollX = useSharedValue(0);
 
-  function animatePillTo(tabIndex: number) {
-    Animated.spring(pillX, {
-      toValue: tabIndex * TAB_PILL_WIDTH,
-      ...Motion.spring.snappy,
-    }).start();
-  }
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
 
   const fetchDiscover = useCallback(async (isRefreshing = false) => {
     if (!isRefreshing) setLoading(true);
@@ -125,22 +131,35 @@ export default function HomeScreen() {
   function handleTabChange(newTab: FeedTab) {
     setTab(newTab);
     setErrorVisible(false);
-    animatePillTo(newTab === 'discover' ? 0 : 1);
+    setActiveIndex(0);
     if (newTab === 'discover') fetchDiscover(false);
     else fetchFollowing(false);
   }
 
   const diaries = tab === 'discover' ? discoverDiaries : followingDiaries;
 
-  const renderDiaryCard = useCallback(
-    ({ item }: { item: FeedDiary }) => (
-      <FeedDiaryCard
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setActiveIndex(viewableItems[0].index ?? 0);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
+
+  const renderStoryCard = useCallback(
+    ({ item, index: idx }: { item: FeedDiary; index: number }) => (
+      <ImmersiveStoryCard
         item={item}
         userId={user?.id}
+        scrollX={scrollX}
+        index={idx}
         onCommentPress={setSelectedDiaryId}
+        isActive={idx === activeIndex}
       />
     ),
-    [user?.id]
+    [user?.id, scrollX, activeIndex]
   );
 
   const emptyIcon = tab === 'following' ? 'people-outline' : 'globe-outline';
@@ -149,67 +168,83 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Palette.bgPrimary} />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Header */}
+      {/* Story Progress Bar */}
+      {diaries.length > 1 && (
+        <StoryProgressBar
+          count={diaries.length}
+          scrollX={scrollX}
+          screenWidth={SCREEN_WIDTH}
+        />
+      )}
+
+      {/* Floating header overlay */}
       <View style={styles.header}>
         <Text style={styles.headerLogo}>T2T</Text>
-        <TouchableOpacity
-          style={styles.notifBtn}
-          onPress={() => router.push('/(app)/notifications')}
-        >
-          <Ionicons name="notifications-outline" size={21} color={Palette.textPrimary} />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+        <View style={styles.headerRight}>
+          {/* Tab toggle */}
+          <View style={styles.miniToggle}>
+            <TouchableOpacity
+              style={[styles.miniToggleBtn, tab === 'discover' && styles.miniToggleBtnActive]}
+              onPress={() => handleTabChange('discover')}
+            >
+              <Ionicons
+                name="globe-outline"
+                size={14}
+                color={tab === 'discover' ? '#fff' : 'rgba(255,255,255,0.5)'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.miniToggleBtn, tab === 'following' && styles.miniToggleBtnActive]}
+              onPress={() => handleTabChange('following')}
+            >
+              <Ionicons
+                name="people-outline"
+                size={14}
+                color={tab === 'following' ? '#fff' : 'rgba(255,255,255,0.5)'}
+              />
+            </TouchableOpacity>
+          </View>
 
-      {/* ── ANIMATED SLIDING PILL TAB SELECTOR ── */}
-      <View style={styles.tabRow}>
-        {/* Sliding background pill */}
-        <Animated.View
-          style={[
-            styles.tabPillBg,
-            { transform: [{ translateX: pillX }], pointerEvents: 'none' },
-          ]}
-        />
-
-        <TouchableOpacity
-          style={[styles.tabItem, { width: TAB_PILL_WIDTH }]}
-          onPress={() => handleTabChange('discover')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabText, tab === 'discover' && styles.tabTextActive]}>
-            {t('home.tab_discover')}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabItem, { width: TAB_PILL_WIDTH }]}
-          onPress={() => handleTabChange('following')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabText, tab === 'following' && styles.tabTextActive]}>
-            {t('home.tab_following')}
-          </Text>
-        </TouchableOpacity>
+          {/* Notifications */}
+          <TouchableOpacity
+            style={styles.notifBtn}
+            onPress={() => router.push('/(app)/notifications')}
+          >
+            <Ionicons name="notifications-outline" size={20} color="#fff" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Content */}
-      {errorVisible && !refreshing && diaries.length === 0 ? (
-        <ErrorView onRetry={tab === 'discover' ? fetchDiscover : fetchFollowing} />
-      ) : loading && !refreshing ? (
-        <View style={styles.listContent}>
-          <DiaryCardSkeleton />
-          <DiaryCardSkeleton />
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingPulse}>
+            <Ionicons name="earth" size={48} color={Palette.teal} />
+            <Text style={styles.loadingText}>{t('common.loading')}</Text>
+          </View>
+        </View>
+      ) : errorVisible && diaries.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="cloud-offline-outline" size={48} color={Palette.red} />
+          <Text style={styles.emptyTitle}>{t('common.error_generic')}</Text>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => tab === 'discover' ? fetchDiscover() : fetchFollowing()}
+          >
+            <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+          </TouchableOpacity>
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconWrap}>
-            <Ionicons name={emptyIcon} size={34} color={Palette.teal} />
+            <Ionicons name={emptyIcon} size={44} color={Palette.teal} />
           </View>
           <Text style={styles.emptyTitle}>{emptyTitle}</Text>
           <Text style={styles.emptySub}>{emptySub}</Text>
@@ -223,12 +258,22 @@ export default function HomeScreen() {
           )}
         </View>
       ) : (
-        <FlatList
+        <AnimatedFlatList
           data={diaries}
           keyExtractor={(item) => item.id}
-          renderItem={renderDiaryCard}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+          renderItem={renderStoryCard}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
+            index,
+          })}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -253,40 +298,74 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.bgPrimary,
+    backgroundColor: '#000',
   },
+
+  // Floating header (over the full-screen images)
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 16,
+    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingBottom: 12,
+    zIndex: 20,
   },
   headerLogo: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '900',
-    color: Palette.teal,
+    color: '#fff',
     letterSpacing: -2,
-    // Subtle teal glow on the logo
-    textShadowColor: 'rgba(0,201,167,0.5)',
+    textShadowColor: 'rgba(0,201,167,0.6)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
+    textShadowRadius: 16,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  // Mini toggle for discover/following
+  miniToggle: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.15)',
+    padding: 2,
+    gap: 2,
+  },
+  miniToggleBtn: {
+    width: 32,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  miniToggleBtnActive: {
+    backgroundColor: Palette.teal,
+  },
+
+  // Notification button
   notifBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Palette.bgSurface,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   badge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+    top: 4,
+    right: 4,
     backgroundColor: Palette.red,
     minWidth: 14,
     height: 14,
@@ -295,7 +374,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 3,
     borderWidth: 1.5,
-    borderColor: Palette.bgPrimary,
+    borderColor: '#000',
   },
   badgeText: {
     color: '#fff',
@@ -303,62 +382,35 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // ── ANIMATED TAB SELECTOR ──
-  tabRow: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 14,
-    backgroundColor: Palette.bgSurface,
-    borderRadius: 22,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
-    padding: 3,
-    position: 'relative',
-    alignSelf: 'flex-start',
-    overflow: 'hidden',
-  },
-  // The sliding highlight pill
-  tabPillBg: {
-    position: 'absolute',
-    top: 3,
-    left: 3,
-    width: TAB_PILL_WIDTH,
-    bottom: 3,
-    backgroundColor: Palette.teal,
-    borderRadius: 18,
-  },
-  tabItem: {
-    height: 34,
+  // Loading state
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 18,
-    zIndex: 1,
+    backgroundColor: Palette.bgPrimary,
   },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '700',
+  loadingPulse: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 14,
     color: Palette.textMuted,
-    letterSpacing: -0.1,
-  },
-  tabTextActive: {
-    color: Palette.bgPrimary,
+    fontWeight: '600',
   },
 
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 120, // extra space for floating tab bar
-  },
+  // Empty state
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+    backgroundColor: Palette.bgPrimary,
   },
   emptyIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: Palette.bgSurface,
     borderWidth: 1,
     borderColor: Palette.border,
@@ -371,12 +423,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Palette.textSecondary,
     textAlign: 'center',
+    marginBottom: 8,
   },
   emptySub: {
     fontSize: 14,
     color: Palette.textMuted,
     textAlign: 'center',
-    marginTop: 8,
     lineHeight: 20,
   },
   exploreBtn: {
@@ -387,9 +439,21 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
   exploreBtnText: {
-    color: Palette.bgPrimary,
+    color: '#fff',
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: 0.2,
+  },
+  retryBtn: {
+    marginTop: 16,
+    backgroundColor: Palette.teal,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  retryBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -27,6 +27,10 @@ export interface AppTheme {
   orange: string;
   red: string;
 
+  // Passport & premium
+  navy: string;
+  passGold: string;
+
   // Teal alpha helpers (for backgrounds, borders)
   tealAlpha10: string;   // rgba teal 10%
   tealAlpha15: string;   // rgba teal 15%
@@ -60,6 +64,9 @@ const dark: AppTheme = {
   orange:  Palette.orange,
   red:     Palette.red,
 
+  navy:     Palette.navy,
+  passGold: Palette.passGold,
+
   tealAlpha10:   'rgba(0,201,167,0.10)',
   tealAlpha15:   'rgba(0,201,167,0.15)',
   tealAlpha25:   'rgba(0,201,167,0.25)',
@@ -89,6 +96,9 @@ const light: AppTheme = {
   tealDim: '#008870',
   orange:  '#E86A0A',   // slightly darker for contrast on white
   red:     '#E83050',
+
+  navy:     '#0A1628',
+  passGold: '#B8903C',   // slightly warmer on light bg
 
   tealAlpha10:   'rgba(0,168,138,0.10)',
   tealAlpha15:   'rgba(0,168,138,0.15)',

@@ -1,6 +1,16 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Image, Dimensions, Share } from 'react-native';
+import {
+  View, Text, StyleSheet, ActivityIndicator, TouchableOpacity,
+  Alert, Dimensions, FlatList, Share, Platform,
+} from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,11 +19,12 @@ import { useFollow } from '@/hooks/useFollow';
 import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
-import { DiaryMapCover } from '@/components/DiaryMapCover';
+import { DayChapter } from '@/components/DayChapter';
+import { JourneyProgressBar } from '@/components/JourneyProgressBar';
 import { Diary } from '@/types/supabase';
-import { Palette } from '@/constants/theme';
+import { Palette, Glass } from '@/constants/theme';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type DiaryDay = {
   id: string;
@@ -23,24 +34,29 @@ type DiaryDay = {
   date: string | null;
 };
 
+/**
+ * Cinematic Journey Player — diary detail as chapter-by-chapter experience.
+ * Horizontal swipe between days, progress bar at top, full-screen hero images.
+ */
 export default function DiaryDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [diary, setDiary] = useState<Diary | null>(null);
   const [days, setDays] = useState<DiaryDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const { t } = useTranslation();
   const { user } = useAuth();
 
   // Social UI state
   const [showComments, setShowComments] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
-  const [reorderDaysMode, setReorderDaysMode] = useState(false);
 
-  // Follow logic (Mocking target profile ID as diary.author_id)
   const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
 
-  // Increment view count once per component mount (not per focus)
+  const flatListRef = useRef<FlatList>(null);
+
+  // Increment view count once
   const viewCountedRef = useRef(false);
   useEffect(() => {
     if (diary && !viewCountedRef.current && user?.id !== diary.author_id) {
@@ -59,31 +75,23 @@ export default function DiaryDetailScreen() {
       .select('*')
       .eq('id', id)
       .single();
-
-    if (!error && data) {
-      setDiary(data);
-    }
+    if (!error && data) setDiary(data);
   }, [id]);
 
   const fetchDiaryDays = useCallback(async () => {
-    setLoading(true); // Se vogliamo mostrare il loader anche durante il reload dei giorni
+    setLoading(true);
     const { data, error } = await supabase
       .from('diary_days')
       .select('id, day_number, title, date, sort_order')
       .eq('diary_id', id)
       .order('sort_order', { ascending: true });
-
-    if (!error && data) {
-      setDays(data);
-    }
+    if (!error && data) setDays(data);
     setLoading(false);
   }, [id]);
 
   useFocusEffect(
     useCallback(() => {
-      if (id) {
-        Promise.all([fetchDiaryDetails(), fetchDiaryDays()]);
-      }
+      if (id) Promise.all([fetchDiaryDetails(), fetchDiaryDays()]);
     }, [id, fetchDiaryDetails, fetchDiaryDays])
   );
 
@@ -94,32 +102,10 @@ export default function DiaryDetailScreen() {
       `📖 ${diary.title}`,
       destinations ? `📍 ${destinations}` : null,
       diary.description ? `\n${diary.description}` : null,
-      `\n🌍 Scopri T2T — Travel to Tell`,
+      `\n🌍 T2T — Travel to Tell`,
     ].filter(Boolean).join('\n');
-
-    try {
-      await Share.share({ message, title: diary.title });
-    } catch (e) {
-      // User dismissed share sheet — no action needed
-    }
+    try { await Share.share({ message, title: diary.title }); } catch {}
   }
-
-  const moveDay = useCallback(async (dayId: string, direction: 'up' | 'down') => {
-    const idx = days.findIndex(d => d.id === dayId);
-    if (idx === -1) return;
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= days.length) return;
-    const current = days[idx];
-    const target = days[swapIdx];
-    const updated = [...days];
-    updated[idx] = { ...current, sort_order: target.sort_order };
-    updated[swapIdx] = { ...target, sort_order: current.sort_order };
-    setDays(updated.sort((a, b) => a.sort_order - b.sort_order));
-    await Promise.all([
-      supabase.from('diary_days').update({ sort_order: target.sort_order }).eq('id', current.id),
-      supabase.from('diary_days').update({ sort_order: current.sort_order }).eq('id', target.id),
-    ]);
-  }, [days]);
 
   function handleOptions() {
     Alert.alert(
@@ -144,17 +130,32 @@ export default function DiaryDetailScreen() {
   }
 
   async function deleteDiary() {
-    const { error } = await supabase
-      .from('diaries')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      Alert.alert(t('common.error'), t('diary.err_delete_failed'));
-    } else {
-      router.replace('/');
-    }
+    const { error } = await supabase.from('diaries').delete().eq('id', id);
+    if (error) Alert.alert(t('common.error'), t('diary.err_delete_failed'));
+    else router.replace('/');
   }
+
+  const handleDayJump = useCallback((index: number) => {
+    flatListRef.current?.scrollToOffset({
+      offset: SCREEN_WIDTH * index,
+      animated: true,
+    });
+    setCurrentDayIndex(index);
+  }, []);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentDayIndex(viewableItems[0].index ?? 0);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+
+  // Header opacity animation (fades in on scroll/stop)
+  const headerOpacity = useSharedValue(1);
+  const headerStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+  }));
 
   if (loading) {
     return (
@@ -175,168 +176,147 @@ export default function DiaryDetailScreen() {
     );
   }
 
+  // If diary has no days yet, show add-day prompt
+  if (days.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Animated.View style={[styles.floatingHeader, headerStyle]}>
+          <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.floatingTitle} numberOfLines={1}>{diary.title}</Text>
+          <TouchableOpacity style={styles.headerBtn} onPress={handleOptions}>
+            <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
+          </TouchableOpacity>
+        </Animated.View>
+
+        <View style={styles.emptyDaysContainer}>
+          <Ionicons name="book-outline" size={56} color={Palette.tealDim} />
+          <Text style={styles.emptyDaysTitle}>{diary.title}</Text>
+          {diary.description && (
+            <Text style={styles.emptyDaysDesc}>{diary.description}</Text>
+          )}
+          <Text style={styles.emptyDaysHint}>{t('diary.no_days')}</Text>
+
+          {user?.id === diary.author_id && (
+            <TouchableOpacity
+              style={styles.addDayBtn}
+              onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
+            >
+              <Ionicons name="add" size={20} color="#fff" />
+              <Text style={styles.addDayBtnText}>{t('diary.add')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <SocialActionBar
+          diaryId={id as string}
+          userId={user?.id}
+          initialCounters={{
+            like_count: diary.like_count || 0,
+            comment_count: diary.comment_count || 0,
+            save_count: diary.save_count || 0,
+          }}
+          onCommentPress={() => setShowComments(true)}
+          onSharePress={handleShare}
+        />
+
+        <CommentsModal
+          visible={showComments}
+          diaryId={id as string}
+          userId={user?.id}
+          onClose={() => setShowComments(false)}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backIcon} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color={Palette.textPrimary} />
+      {/* Floating header */}
+      <Animated.View style={[styles.floatingHeader, headerStyle]}>
+        <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.editIcon} onPress={handleOptions}>
-          <Ionicons name="ellipsis-horizontal" size={28} color={Palette.textPrimary} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Map Cover — shows itinerary if locations exist, otherwise falls back to cover image */}
-        <DiaryMapCover diaryId={id as string} dayIds={days.map(d => d.id)} />
-        {days.length === 0 && (
-          <TouchableOpacity
-            style={styles.coverContainer}
-            onPress={() => user?.id === diary.author_id && setShowCoverPicker(true)}
-            activeOpacity={user?.id === diary.author_id ? 0.8 : 1}
-          >
-            {diary.cover_image_url ? (
-              <Image source={{ uri: diary.cover_image_url }} style={styles.coverImage} />
-            ) : (
-              <View style={styles.coverPlaceholder}>
-                <Ionicons name="image-outline" size={40} color={Palette.textMuted} />
-                {user?.id === diary.author_id && (
-                  <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
-                )}
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
-
-        <View style={[styles.titleRow, styles.contentPadding]}>
-          <Text style={styles.title}>{diary.title}</Text>
+        <Text style={styles.floatingTitle} numberOfLines={1}>{diary.title}</Text>
+        <View style={styles.headerActions}>
           {user?.id !== diary.author_id && (
-            <TouchableOpacity 
-              style={[styles.followBtn, isFollowing && styles.followingBtn]} 
+            <TouchableOpacity
+              style={[styles.miniFollowBtn, isFollowing && styles.miniFollowBtnActive]}
               onPress={toggleFollow}
               disabled={followLoading}
             >
-              <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
+              <Text style={styles.miniFollowText}>
                 {isFollowing ? t('profile.following_button') : t('profile.follow')}
               </Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity style={styles.headerBtn} onPress={handleOptions}>
+            <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
-        
-        {diary.destinations && diary.destinations.length > 0 && (
-          <View style={[styles.pillContainer, styles.contentPadding]}>
-            {diary.destinations.map((dest, idx) => (
-              <View key={idx} style={styles.pill}>
-                <Text style={styles.pillText}>📍 {dest}</Text>
-              </View>
-            ))}
-          </View>
+      </Animated.View>
+
+      {/* Journey progress bar */}
+      <View style={styles.progressBarWrap}>
+        <JourneyProgressBar
+          totalDays={days.length}
+          currentDay={currentDayIndex}
+          onDayPress={handleDayJump}
+        />
+      </View>
+
+      {/* Horizontal day chapters */}
+      <FlatList
+        ref={flatListRef}
+        data={days}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        renderItem={({ item, index }) => (
+          <DayChapter
+            dayId={item.id}
+            dayNumber={item.day_number}
+            dayTitle={item.title}
+            dayDate={item.date}
+            diaryId={id as string}
+            isActive={index === currentDayIndex}
+          />
         )}
-
-        {diary.description ? (
-          <Text style={[styles.description, styles.contentPadding]}>{diary.description}</Text>
-        ) : null}
-
-        {/* Stats row */}
-        <View style={[styles.statsRow, styles.contentPadding]}>
-          <View style={styles.statItem}>
-            <Ionicons name="eye-outline" size={15} color={Palette.textMuted} />
-            <Text style={styles.statText}>{diary.view_count || 0}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Ionicons name="heart" size={15} color={Palette.red} />
-            <Text style={styles.statText}>{diary.like_count || 0}</Text>
-          </View>
-        </View>
-
-        <View style={[styles.divider, styles.contentPadding]} />
-        <View style={[styles.daysHeader, styles.contentPadding]}>
-          <Text style={styles.sectionTitle}>{t('diary.days')}</Text>
-          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-            {user?.id === diary.author_id && days.length > 1 && (
-              <TouchableOpacity
-                style={[styles.reorderToggleBtn, reorderDaysMode && styles.reorderToggleBtnActive]}
-                onPress={() => setReorderDaysMode(r => !r)}
-              >
-                <Ionicons
-                  name={reorderDaysMode ? 'checkmark' : 'reorder-three-outline'}
-                  size={18}
-                  color={reorderDaysMode ? Palette.bgPrimary : Palette.teal}
-                />
-              </TouchableOpacity>
-            )}
-            {!reorderDaysMode && (
-              <TouchableOpacity
-                style={styles.addDayButton}
-                onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
-              >
-                <Ionicons name="add" size={20} color="#fff" />
-                <Text style={styles.addDayText}>{t('diary.add')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {days.length === 0 ? (
-          <View style={[styles.emptyDays, styles.contentPadding]}>
-            <Text style={styles.emptyDaysText}>{t('diary.no_days')}</Text>
-            <Text style={styles.emptyDaysSub}>{t('diary.start_adding')}</Text>
-          </View>
-        ) : (
-          <View style={[styles.daysList, styles.contentPadding]}>
-            {days.map((day, idx) => (
-              <View key={day.id} style={styles.dayRow}>
-                <TouchableOpacity
-                  style={[styles.dayCard, { flex: 1 }]}
-                  onPress={() => !reorderDaysMode && router.push({ pathname: '/diary/day/[day_id]', params: { day_id: day.id, diary_id: id } })}
-                  activeOpacity={reorderDaysMode ? 1 : 0.7}
-                >
-                  <View style={styles.dayIconBox}>
-                    <Text style={styles.dayIconText}>{day.day_number}</Text>
-                  </View>
-                  <View style={styles.dayContent}>
-                    <Text style={styles.dayTitle}>{t('diary.day_label', { number: day.day_number })}{day.title ? `: ${day.title}` : ''}</Text>
-                    {day.date && <Text style={styles.dayDate}>{day.date}</Text>}
-                  </View>
-                  {!reorderDaysMode && <Ionicons name="chevron-forward" size={20} color={Palette.border} />}
-                </TouchableOpacity>
-                {reorderDaysMode && (
-                  <View style={styles.reorderBtns}>
-                    <TouchableOpacity
-                      style={[styles.reorderBtn, idx === 0 && styles.reorderBtnDisabled]}
-                      onPress={() => idx > 0 && moveDay(day.id, 'up')}
-                      disabled={idx === 0}
-                    >
-                      <Ionicons name="chevron-up" size={20} color={idx === 0 ? Palette.textMuted : Palette.teal} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.reorderBtn, idx === days.length - 1 && styles.reorderBtnDisabled]}
-                      onPress={() => idx < days.length - 1 && moveDay(day.id, 'down')}
-                      disabled={idx === days.length - 1}
-                    >
-                      <Ionicons name="chevron-down" size={20} color={idx === days.length - 1 ? Palette.textMuted : Palette.teal} />
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-
-      </ScrollView>
-
-      {/* Sticky Social Actions */}
-      <SocialActionBar
-        diaryId={id as string}
-        userId={user?.id}
-        initialCounters={{
-          like_count: diary.like_count || 0,
-          comment_count: diary.comment_count || 0,
-          save_count: diary.save_count || 0,
-        }}
-        onCommentPress={() => setShowComments(true)}
-        onSharePress={handleShare}
       />
+
+      {/* Floating social bar */}
+      <View style={styles.floatingSocial}>
+        <SocialActionBar
+          diaryId={id as string}
+          userId={user?.id}
+          initialCounters={{
+            like_count: diary.like_count || 0,
+            comment_count: diary.comment_count || 0,
+            save_count: diary.save_count || 0,
+          }}
+          onCommentPress={() => setShowComments(true)}
+          onSharePress={handleShare}
+        />
+      </View>
+
+      {/* Add day button for owner */}
+      {user?.id === diary.author_id && (
+        <TouchableOpacity
+          style={styles.floatingAddDay}
+          onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
+        >
+          <Ionicons name="add" size={22} color="#fff" />
+        </TouchableOpacity>
+      )}
 
       <CommentsModal
         visible={showComments}
@@ -360,196 +340,13 @@ export default function DiaryDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.bgPrimary,
+    backgroundColor: '#000',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Palette.bgPrimary,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: Palette.bgPrimary,
-  },
-  backIcon: {
-    padding: 8,
-  },
-  editIcon: {
-    padding: 8,
-  },
-  content: {
-    paddingBottom: 24,
-  },
-  coverContainer: {
-    width: SCREEN_WIDTH,
-    height: 200,
-    marginBottom: 20,
-  },
-  coverImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  coverPlaceholder: {
-    flex: 1,
-    backgroundColor: Palette.bgElevated,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  coverPlaceholderText: {
-    fontSize: 14,
-    color: Palette.textMuted,
-    fontWeight: '500',
-  },
-  contentPadding: {
-    paddingHorizontal: 24,
-  },
-  coverEditBadge: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: Palette.overlayMid,
-    borderRadius: 16,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  title: {
-    flex: 1,
-    fontSize: 28,
-    fontWeight: '800',
-    color: Palette.textPrimary,
-    marginRight: 10,
-  },
-  followBtn: {
-    backgroundColor: Palette.teal,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: Palette.teal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  followingBtn: {
-    backgroundColor: Palette.bgElevated,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  followBtnText: {
-    color: Palette.bgPrimary,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  followingBtnText: {
-    color: Palette.textSecondary,
-  },
-  pillContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
-  },
-  pill: {
-    backgroundColor: Palette.bgElevated,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  pillText: {
-    fontSize: 14,
-    color: Palette.textSecondary,
-    fontWeight: '500',
-  },
-  description: {
-    fontSize: 16,
-    color: Palette.textSecondary,
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 4,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  statText: {
-    fontSize: 13,
-    color: Palette.textMuted,
-    fontWeight: '600',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Palette.border,
-    marginVertical: 24,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-  },
-  daysHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  addDayButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.teal,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  addDayText: {
-    color: Palette.bgPrimary,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  emptyDays: {
-    backgroundColor: Palette.bgSurface,
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Palette.border,
-    borderStyle: 'dashed',
-  },
-  emptyDaysText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyDaysSub: {
-    fontSize: 14,
-    color: Palette.textMuted,
-    textAlign: 'center',
   },
   errorText: {
     fontSize: 18,
@@ -563,68 +360,152 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   backButtonText: {
-    color: Palette.bgPrimary,
+    color: '#fff',
     fontWeight: '600',
     fontSize: 16,
   },
-  daysList: {
-    marginTop: 8,
-  },
-  dayRow: {
+
+  // Floating header (over content)
+  floatingHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingTop: Platform.OS === 'ios' ? 54 : 38,
+    paddingBottom: 8,
+    zIndex: 20,
   },
-  dayCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.bgSurface,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  reorderToggleBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    borderWidth: 1.5, borderColor: Palette.teal,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  reorderToggleBtnActive: {
-    backgroundColor: '#34C759', borderColor: '#34C759',
-  },
-  reorderBtns: { gap: 4 },
-  reorderBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: Palette.bgElevated, justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1, borderColor: Palette.border,
-  },
-  reorderBtnDisabled: { backgroundColor: Palette.bgSurface, borderColor: Palette.borderLight },
-  dayIconBox: {
+  headerBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Palette.tealDim,
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
-  dayIconText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Palette.bgPrimary,
-  },
-  dayContent: {
+  floatingTitle: {
     flex: 1,
-  },
-  dayTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    marginBottom: 4,
+    fontWeight: '800',
+    color: '#fff',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+    marginHorizontal: 8,
   },
-  dayDate: {
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  miniFollowBtn: {
+    backgroundColor: Palette.teal,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  miniFollowBtnActive: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  miniFollowText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Progress bar wrap
+  progressBarWrap: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 96 : 80,
+    left: 0,
+    right: 0,
+    zIndex: 15,
+  },
+
+  // Floating social bar
+  floatingSocial: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 40 : 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.1)',
+    zIndex: 10,
+  },
+
+  // Floating add day button
+  floatingAddDay: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 100 : 80,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Palette.teal,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 10,
+  },
+
+  // Empty days
+  emptyDaysContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: Palette.bgPrimary,
+    gap: 12,
+  },
+  emptyDaysTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+    textAlign: 'center',
+  },
+  emptyDaysDesc: {
+    fontSize: 15,
+    color: Palette.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  emptyDaysHint: {
     fontSize: 14,
     color: Palette.textMuted,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  addDayBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Palette.teal,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginTop: 16,
+    gap: 6,
+  },
+  addDayBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

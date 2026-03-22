@@ -20,7 +20,24 @@
     "retry": "Riprova",
     "upload_error": "Errore Caricamento",
     "success": "Successo",
-    "delete": "Elimina"
+    "delete": "Elimina",
+    "days": "giorni",
+    "views": "visualizzazioni",
+    "diary": "diario",
+    "diaries": "diari"
+  },
+  "passport": {
+    "name": "NOME",
+    "handle": "USERNAME",
+    "issued": "DATA EMISSIONE",
+    "style": "STILE DI VIAGGIO",
+    "journeys": "VIAGGI",
+    "followers": "FOLLOWER",
+    "following": "SEGUITI",
+    "stamps": "TIMBRI PAESI",
+    "my_journeys": "I MIEI VIAGGI",
+    "locations": "luoghi",
+    "no_journeys": "Nessun viaggio ancora. Inizia ad esplorare!"
   },
   "home": {
     "title": "T2T",
@@ -30,7 +47,8 @@
     "no_diaries_sub": "Quando i viaggiatori pubblicheranno i loro diari, li vedrai qui!",
     "no_following": "Nessun diario da chi segui",
     "no_following_sub": "Segui altri viaggiatori per vedere i loro diari qui.",
-    "explore_people": "Esplora i viaggiatori"
+    "explore_people": "Esplora i viaggiatori",
+    "swipe_details": "Scorri per dettagli"
   },
   "explore": {
     "title": "Esplora",
@@ -48,7 +66,8 @@
     "duration_medium": "Media (5-14gg)",
     "duration_long": "Lungo (15+gg)",
     "suggestions_title": "Persone da seguire",
-    "suggestions_diaries": "diari"
+    "suggestions_diaries": "diari",
+    "wanderlust_map": "Mappa Wanderlust"
   },
   "profile": {
     "title": "Profilo",
@@ -78,7 +97,8 @@
     "following_button": "Seguito",
     "saved_diaries": "Salvati",
     "no_saved": "Nessun diario salvato ancora.",
-    "explore_diaries": "Esplora i diari"
+    "explore_diaries": "Esplora i diari",
+    "edit": "Modifica Profilo"
   },
   "social": {
     "comments": "Commenti",
@@ -115,7 +135,8 @@
     "date_placeholder": "Es. 15/08/2026",
     "add_to_diary": "Aggiungi al Diario",
     "err_calc_day": "Impossibile calcolare il numero del giorno.",
-    "err_add_day": "Impossibile aggiungere la giornata."
+    "err_add_day": "Impossibile aggiungere la giornata.",
+    "no_entries": "Nessun contenuto in questo giorno."
   },
   "day": {
     "title": "Giorno {{number}}",
@@ -182,6 +203,9 @@
     "no_public_locations": "Nessun luogo pubblico trovato.\nI viaggiatori non hanno ancora condiviso le loro mete.",
     "location_permission_denied": "Il permesso di localizzazione è necessario per mostrare la tua posizione sulla mappa.",
     "tap_to_open": "Tocca per aprire il diario",
+    "loading_stories": "Caricamento storie di viaggio...",
+    "stories_here": "Storie da qui",
+    "view_diary": "Vedi diario",
     "center_on_me": "Centra su di me"
   },
   "cover": {

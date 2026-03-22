@@ -9,8 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import { PeopleToFollow } from '@/components/PeopleToFollow';
+import { WanderlustMap } from '@/components/WanderlustMap';
 import type { FeedDiary } from '@/types/supabase';
 import { Palette } from '@/constants/theme';
+
+type ExploreMode = 'browse' | 'map';
 
 const PAGE_SIZE = 20;
 
@@ -38,6 +41,7 @@ function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [durationFilter, setDurationFilter] = useState<DurationFilter>('all');
@@ -319,10 +323,36 @@ export default function DiscoveryScreen() {
     ? t('explore.no_results', { query: searchQuery })
     : t('explore.empty_browse');
 
+  // If map mode, show WanderlustMap full-screen
+  if (exploreMode === 'map') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.mapHeader}>
+          <Text style={styles.headerTitle}>{t('explore.wanderlust_map')}</Text>
+          <TouchableOpacity
+            style={styles.modeToggleBtn}
+            onPress={() => setExploreMode('browse')}
+          >
+            <Ionicons name="grid-outline" size={18} color={Palette.teal} />
+          </TouchableOpacity>
+        </View>
+        <WanderlustMap />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('explore.title')}</Text>
+        <View style={styles.headerTopRow}>
+          <Text style={styles.headerTitle}>{t('explore.title')}</Text>
+          <TouchableOpacity
+            style={styles.modeToggleBtn}
+            onPress={() => setExploreMode('map')}
+          >
+            <Ionicons name="globe-outline" size={18} color={Palette.teal} />
+          </TouchableOpacity>
+        </View>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={Palette.textMuted} style={styles.searchIcon} />
           <TextInput
@@ -388,11 +418,38 @@ const styles = StyleSheet.create({
     borderBottomColor: Palette.border,
     backgroundColor: Palette.bgPrimary,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  mapHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    backgroundColor: Palette.bgPrimary,
+    borderBottomWidth: 1,
+    borderBottomColor: Palette.border,
+    zIndex: 2,
+  },
+  modeToggleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Palette.bgElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Palette.border,
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
     color: Palette.textPrimary,
-    marginBottom: 16,
   },
   searchContainer: {
     flexDirection: 'row',

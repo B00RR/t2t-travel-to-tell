@@ -20,7 +20,24 @@
     "retry": "Retry",
     "upload_error": "Upload Error",
     "success": "Success",
-    "delete": "Delete"
+    "delete": "Delete",
+    "days": "days",
+    "views": "views",
+    "diary": "diary",
+    "diaries": "diaries"
+  },
+  "passport": {
+    "name": "NAME",
+    "handle": "HANDLE",
+    "issued": "ISSUED",
+    "style": "TRAVEL STYLE",
+    "journeys": "JOURNEYS",
+    "followers": "FOLLOWERS",
+    "following": "FOLLOWING",
+    "stamps": "COUNTRY STAMPS",
+    "my_journeys": "MY JOURNEYS",
+    "locations": "locations",
+    "no_journeys": "No journeys yet. Start exploring!"
   },
   "home": {
     "title": "T2T",
@@ -30,7 +47,8 @@
     "no_diaries_sub": "When travelers publish their diaries, you'll see them here!",
     "no_following": "Nothing from people you follow",
     "no_following_sub": "Follow other travelers to see their diaries here.",
-    "explore_people": "Explore travelers"
+    "explore_people": "Explore travelers",
+    "swipe_details": "Swipe up for details"
   },
   "explore": {
     "title": "Explore",
@@ -48,7 +66,8 @@
     "duration_medium": "Medium (5-14d)",
     "duration_long": "Long (15+d)",
     "suggestions_title": "People to follow",
-    "suggestions_diaries": "diaries"
+    "suggestions_diaries": "diaries",
+    "wanderlust_map": "Wanderlust Map"
   },
   "profile": {
     "title": "Profile",
@@ -78,7 +97,8 @@
     "following_button": "Following",
     "saved_diaries": "Saved",
     "no_saved": "No saved diaries yet.",
-    "explore_diaries": "Explore diaries"
+    "explore_diaries": "Explore diaries",
+    "edit": "Edit Profile"
   },
   "social": {
     "comments": "Comments",
@@ -115,7 +135,8 @@
     "date_placeholder": "e.g. 15/08/2026",
     "add_to_diary": "Add to Diary",
     "err_calc_day": "Unable to calculate day number.",
-    "err_add_day": "Unable to add day."
+    "err_add_day": "Unable to add day.",
+    "no_entries": "No entries in this day yet."
   },
   "day": {
     "title": "Day {{number}}",
@@ -182,7 +203,10 @@
     "no_public_locations": "No public locations found.\nTravelers haven't shared their destinations yet.",
     "location_permission_denied": "Location permission is required to show your position on the map.",
     "tap_to_open": "Tap to open diary",
-    "center_on_me": "Center on my location"
+    "center_on_me": "Center on my location",
+    "loading_stories": "Loading travel stories...",
+    "stories_here": "Stories from here",
+    "view_diary": "View diary"
   },
   "cover": {
     "title": "Cover Image",

@@ -2,10 +2,12 @@ import { Platform } from 'react-native';
 
 /**
  * Travel to Tell — Design System
- * Style: Modern / Minimalist — Dark-mode first
+ * Style: Immersive / Cinematic — Adaptive light & dark
  *
- * Primary accent: #00C9A7 (teal — evoca oceano, mappe, esplorazione)
+ * Primary accent: #00C9A7 (teal — oceano, mappe, esplorazione)
  * Warm accent:    #F97316 (arancio — tramonti, energia, avventura)
+ * Passport navy:  #0A1628 (deep navy — passport, premium)
+ * Passport gold:  #D4A853 (gold — stamps, premium details)
  */
 
 export const Palette = {
@@ -38,10 +40,20 @@ export const Palette = {
   gray700: '#333348',
   gray900: '#0D0D18',
 
+  // Passport & premium
+  navy:      '#0A1628',   // Deep passport navy
+  passGold:  '#D4A853',   // Passport gold accents
+  passStamp: '#1B3A5C',   // Passport stamp blue
+
   // Semitransparent overlays
   overlayLight: 'rgba(9,9,15,0.5)',
   overlayMid:   'rgba(9,9,15,0.75)',
   overlayHeavy: 'rgba(9,9,15,0.92)',
+
+  // Story scrim gradients (for full-screen immersive cards)
+  storyScrimTop:    'rgba(0,0,0,0.45)',
+  storyScrimBottom: 'rgba(0,0,0,0.75)',
+  storyScrimDeep:   'rgba(0,0,0,0.90)',
 } as const;
 
 export const Colors = {
@@ -140,13 +152,17 @@ export const Shadows = {
   },
 } as const;
 
-/** Glassmorphism tokens — frosted dark glass overlays */
+/** Glassmorphism tokens — frosted glass overlays (adaptive) */
 export const Glass = {
   bg:       'rgba(12,12,22,0.72)',
   bgLight:  'rgba(240,240,248,0.10)',
   bgTeal:   'rgba(0,201,167,0.14)',
   border:   'rgba(255,255,255,0.08)',
   borderTeal: 'rgba(0,201,167,0.28)',
+  // Story overlay glass — heavier for full-screen text readability
+  storyBg:       'rgba(0,0,0,0.55)',
+  storyBgLight:  'rgba(255,255,255,0.85)',
+  storyBorder:   'rgba(255,255,255,0.12)',
 } as const;
 
 /** Glow shadows keyed by color */
@@ -180,12 +196,15 @@ export const Motion = {
     normal:  { friction: 8,  tension: 120, useNativeDriver: true },
     snappy:  { friction: 6,  tension: 200, useNativeDriver: true },
     bouncy:  { friction: 4,  tension: 150, useNativeDriver: true },
+    morph:   { friction: 10, tension: 100, useNativeDriver: true },
   },
   duration: {
     instant:  80,
     fast:    150,
     normal:  280,
     slow:    420,
+    kenBurns: 15000,  // Slow cinematic zoom
+    typewriter: 40,   // Per-character delay
   },
 } as const;
 

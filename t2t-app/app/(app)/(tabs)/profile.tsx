@@ -7,6 +7,8 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '@/components/ProfileHeader';
+import { PassportCard } from '@/components/PassportCard';
+import { JourneyMap } from '@/components/JourneyMap';
 import { BadgesSection } from '@/components/BadgesSection';
 import { TravelStats } from '@/components/TravelStats';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -189,12 +191,31 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <ProfileHeader
-          profile={profile}
-          diaryCount={diaries.length}
+        {/* Passport Card — the new profile identity */}
+        <PassportCard
+          displayName={profile?.display_name || null}
+          username={profile?.username || null}
+          avatarUrl={profile?.avatar_url || null}
+          bio={profile?.bio || null}
+          travelStyle={profile?.travel_style || null}
+          memberSince={profile?.created_at || new Date().toISOString()}
+          countries={Array.from(new Set(
+            diaries
+              .filter(d => d.status === 'published')
+              .flatMap(d => d.destinations || [])
+          ))}
+          stats={{
+            diaries: diaries.length,
+            followers: (profile?.stats as any)?.followers ?? 0,
+            following: (profile?.stats as any)?.following ?? 0,
+          }}
           isOwnProfile={true}
           onEditPress={handleEditPress}
+          onSharePress={handleShareProfile}
         />
+
+        {/* Personal Journey Map */}
+        {user?.id && <JourneyMap userId={user.id} />}
 
         {/* Section: Travel Stats */}
         <TravelStats diaries={diaries} />

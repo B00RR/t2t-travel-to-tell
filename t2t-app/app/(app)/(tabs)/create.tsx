@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
+import { Palette } from '@/constants/theme';
 
 export default function CreateDiaryScreen() {
   const { t } = useTranslation();
@@ -62,7 +63,7 @@ export default function CreateDiaryScreen() {
         <TextInput
           style={styles.input}
           placeholder={t('create.title_placeholder')}
-          placeholderTextColor="#999"
+          placeholderTextColor={Palette.textMuted}
           value={title}
           onChangeText={setTitle}
         />
@@ -73,7 +74,7 @@ export default function CreateDiaryScreen() {
         <TextInput
           style={styles.input}
           placeholder={t('create.destinations_placeholder')}
-          placeholderTextColor="#999"
+          placeholderTextColor={Palette.textMuted}
           value={destinations}
           onChangeText={setDestinations}
         />
@@ -84,7 +85,7 @@ export default function CreateDiaryScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder={t('create.description_placeholder')}
-          placeholderTextColor="#999"
+          placeholderTextColor={Palette.textMuted}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -111,21 +112,21 @@ export default function CreateDiaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   contentContainer: {
     padding: 24,
-    paddingTop: 60, // Spazio per non sovrapporsi con la safe area in-app top
+    paddingTop: 60,
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: Palette.textSecondary,
     marginBottom: 32,
   },
   formGroup: {
@@ -134,39 +135,41 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Palette.textSecondary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   textArea: {
     minHeight: 120,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     borderRadius: 12,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
-    shadowColor: '#007AFF',
+    shadowColor: Palette.teal,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: Palette.bgElevated,
     shadowOpacity: 0,
     elevation: 0,
   },
   buttonText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

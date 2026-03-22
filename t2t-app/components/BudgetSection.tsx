@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ScrollView
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ScrollView, Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';

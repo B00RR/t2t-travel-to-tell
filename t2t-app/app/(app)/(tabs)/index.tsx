@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -10,6 +10,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
 import { ErrorView } from '@/components/ErrorView';
 import { FeedDiaryCard } from '@/components/FeedDiaryCard';
+import { Palette } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
 type FeedTab = 'discover' | 'following';
@@ -59,7 +60,6 @@ export default function HomeScreen() {
     if (!user) { setLoading(false); return; }
     if (!isRefreshing) setLoading(true);
 
-    // Fetch followed user ids
     const { data: follows } = await supabase
       .from('follows')
       .select('following_id')
@@ -136,13 +136,16 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={Palette.bgPrimary} />
+
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>T2T</Text>
+        <Text style={styles.headerLogo}>T2T</Text>
         <TouchableOpacity
-          style={styles.headerIcon}
+          style={styles.notifBtn}
           onPress={() => router.push('/(app)/notifications')}
         >
-          <Ionicons name="notifications-outline" size={24} color="#1a1a1a" />
+          <Ionicons name="notifications-outline" size={22} color={Palette.textPrimary} />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -151,37 +154,43 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabBar}>
+      {/* Feed Tabs */}
+      <View style={styles.tabRow}>
         <TouchableOpacity
-          style={[styles.tabBtn, tab === 'discover' && styles.tabBtnActive]}
+          style={styles.tabPill}
           onPress={() => handleTabChange('discover')}
+          activeOpacity={0.75}
         >
           <Text style={[styles.tabText, tab === 'discover' && styles.tabTextActive]}>
             {t('home.tab_discover')}
           </Text>
+          {tab === 'discover' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabBtn, tab === 'following' && styles.tabBtnActive]}
+          style={styles.tabPill}
           onPress={() => handleTabChange('following')}
+          activeOpacity={0.75}
         >
           <Text style={[styles.tabText, tab === 'following' && styles.tabTextActive]}>
             {t('home.tab_following')}
           </Text>
+          {tab === 'following' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
       </View>
 
+      {/* Content */}
       {errorVisible && !refreshing && diaries.length === 0 ? (
         <ErrorView onRetry={tab === 'discover' ? fetchDiscover : fetchFollowing} />
       ) : loading && !refreshing ? (
         <View style={styles.listContent}>
           <DiaryCardSkeleton />
           <DiaryCardSkeleton />
-          <DiaryCardSkeleton />
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name={emptyIcon} size={64} color="#ccc" />
+          <View style={styles.emptyIconWrap}>
+            <Ionicons name={emptyIcon} size={36} color={Palette.teal} />
+          </View>
           <Text style={styles.emptyTitle}>{emptyTitle}</Text>
           <Text style={styles.emptySub}>{emptySub}</Text>
           {tab === 'following' && (
@@ -201,7 +210,12 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#007AFF" />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Palette.teal}
+              colors={[Palette.teal]}
+            />
           }
         />
       )}
@@ -219,76 +233,83 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    paddingTop: 56,
+    paddingBottom: 14,
   },
-  headerTitle: {
-    fontSize: 28,
+  headerLogo: {
+    fontSize: 30,
     fontWeight: '900',
-    color: '#007AFF',
-    letterSpacing: -0.5,
+    color: Palette.teal,
+    letterSpacing: -1.5,
   },
-  headerIcon: {
-    padding: 4,
-    position: 'relative',
+  notifBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Palette.bgSurface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
   },
   badge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: '#FF3B30',
-    minWidth: 16,
-    height: 16,
+    top: 5,
+    right: 5,
+    backgroundColor: Palette.red,
+    minWidth: 15,
+    height: 15,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     borderWidth: 1.5,
-    borderColor: '#fff',
+    borderColor: Palette.bgPrimary,
   },
   badgeText: {
     color: '#fff',
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '800',
   },
-  tabBar: {
+  tabRow: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+    gap: 24,
   },
-  tabBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#f2f2f7',
-  },
-  tabBtnActive: {
-    backgroundColor: '#007AFF',
+  tabPill: {
+    paddingBottom: 10,
+    position: 'relative',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#666',
+    color: Palette.textMuted,
+    letterSpacing: -0.2,
   },
   tabTextActive: {
-    color: '#fff',
+    color: Palette.textPrimary,
+    fontWeight: '700',
+  },
+  tabUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Palette.teal,
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 4,
     paddingBottom: 32,
   },
   emptyState: {
@@ -297,30 +318,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
   },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Palette.bgSurface,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#999',
-    marginTop: 16,
+    color: Palette.textSecondary,
     textAlign: 'center',
   },
   emptySub: {
-    fontSize: 15,
-    color: '#bbb',
+    fontSize: 14,
+    color: Palette.textMuted,
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   exploreBtn: {
-    marginTop: 20,
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
+    marginTop: 24,
+    backgroundColor: Palette.teal,
+    paddingHorizontal: 28,
+    paddingVertical: 13,
+    borderRadius: 28,
   },
   exploreBtnText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
+    color: Palette.bgPrimary,
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
 });

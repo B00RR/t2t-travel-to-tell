@@ -258,8 +258,8 @@ describe('useMediaUpload', () => {
       await result.current.pickAndUploadMedia();
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Errore Upload:', expect.any(Error));
-    expect(alertSpy).toHaveBeenCalledWith('Errore Upload', 'Si è verificato un errore durante il caricamento del file. Riprova più tardi.');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Upload error:', expect.any(Error));
+    expect(alertSpy).toHaveBeenCalledWith('common.upload_error', 'media.upload_failed');
 
     consoleErrorSpy.mockRestore();
     alertSpy.mockRestore();

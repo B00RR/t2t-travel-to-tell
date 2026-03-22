@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, DimensionValue } from 'react-native';
+import { Palette } from '@/constants/theme';
 
 interface SkeletonProps {
   width?: DimensionValue;
@@ -9,29 +10,18 @@ interface SkeletonProps {
 }
 
 export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) => {
-  const shimmerAnimatedValue = useRef(new Animated.Value(0)).current;
+  const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmerAnimatedValue, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnimatedValue, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
       ])
     ).start();
-  }, [shimmerAnimatedValue]);
+  }, [shimmer]);
 
-  const opacity = shimmerAnimatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] });
 
   return (
     <Animated.View
@@ -40,7 +30,7 @@ export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) 
         {
           width: width || '100%',
           height: height || 20,
-          borderRadius: borderRadius || 4,
+          borderRadius: borderRadius || 6,
           opacity,
         },
         style,
@@ -51,18 +41,23 @@ export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) 
 
 export const DiaryCardSkeleton = () => (
   <View style={styles.cardSkeleton}>
-    <Skeleton height={180} borderRadius={20} style={{ marginBottom: 16 }} />
-    <View style={{ padding: 16 }}>
-       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-          <Skeleton width={36} height={36} borderRadius={18} />
-          <View style={{ marginLeft: 10, flex: 1 }}>
-             <Skeleton width="60%" height={14} style={{ marginBottom: 4 }} />
-             <Skeleton width="30%" height={10} />
-          </View>
-       </View>
-       <Skeleton width="90%" height={24} style={{ marginBottom: 8 }} />
-       <Skeleton width="100%" height={14} style={{ marginBottom: 4 }} />
-       <Skeleton width="80%" height={14} />
+    {/* Cover */}
+    <Skeleton height={200} borderRadius={0} />
+    <View style={styles.cardBody}>
+      {/* Author row */}
+      <View style={styles.authorRow}>
+        <Skeleton width={36} height={36} borderRadius={18} />
+        <View style={styles.authorText}>
+          <Skeleton width="50%" height={13} style={{ marginBottom: 5 }} />
+          <Skeleton width="30%" height={10} />
+        </View>
+      </View>
+      {/* Title */}
+      <Skeleton width="85%" height={22} style={{ marginBottom: 8 }} />
+      <Skeleton width="60%" height={22} style={{ marginBottom: 12 }} />
+      {/* Description */}
+      <Skeleton width="100%" height={13} style={{ marginBottom: 5 }} />
+      <Skeleton width="75%" height={13} />
     </View>
   </View>
 );
@@ -70,29 +65,45 @@ export const DiaryCardSkeleton = () => (
 export const EntryCardSkeleton = () => (
   <View style={styles.entrySkeleton}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-       <Skeleton width="30%" height={20} borderRadius={10} />
-       <Skeleton width={24} height={24} borderRadius={12} />
+      <Skeleton width="30%" height={20} borderRadius={10} />
+      <Skeleton width={24} height={24} borderRadius={12} />
     </View>
-    <Skeleton width="100%" height={16} style={{ marginBottom: 8 }} />
-    <Skeleton width="90%" height={16} style={{ marginBottom: 8 }} />
-    <Skeleton width="40%" height={16} />
+    <Skeleton width="100%" height={15} style={{ marginBottom: 6 }} />
+    <Skeleton width="90%" height={15} style={{ marginBottom: 6 }} />
+    <Skeleton width="45%" height={15} />
   </View>
 );
 
 const styles = StyleSheet.create({
   skeleton: {
-    backgroundColor: '#E1E9EE',
+    backgroundColor: Palette.bgElevated,
   },
   cardSkeleton: {
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  cardBody: {
+    padding: 16,
+  },
+  authorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+    gap: 10,
+  },
+  authorText: {
+    flex: 1,
   },
   entrySkeleton: {
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-  }
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
 });

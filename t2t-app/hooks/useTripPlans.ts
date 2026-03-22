@@ -32,7 +32,7 @@ export function useTripPlans(userId: string | undefined) {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setMyPlans(data as TripPlan[]);
+      setMyPlans(data as unknown as TripPlan[]);
     } else if (error) {
       Alert.alert(t('common.error'), t('common.error_generic'));
       console.error('fetchMyPlans error', error);
@@ -53,7 +53,7 @@ export function useTripPlans(userId: string | undefined) {
       .limit(30);
 
     if (!error && data) {
-      setPublicPlans(data as TripPlan[]);
+      setPublicPlans(data as unknown as TripPlan[]);
     } else if (error) {
       console.error('fetchPublicPlans error', error);
     }

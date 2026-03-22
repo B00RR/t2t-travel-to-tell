@@ -11,6 +11,7 @@ import { CommentsModal } from '@/components/CommentsModal';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
 import { DiaryMapCover } from '@/components/DiaryMapCover';
 import { Diary } from '@/types/supabase';
+import { Palette } from '@/constants/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -158,7 +159,7 @@ export default function DiaryDetailScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={Palette.teal} />
       </View>
     );
   }
@@ -178,10 +179,10 @@ export default function DiaryDetailScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backIcon} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={28} color={Palette.textPrimary} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.editIcon} onPress={handleOptions}>
-          <Ionicons name="ellipsis-horizontal" size={28} color="#1a1a1a" />
+          <Ionicons name="ellipsis-horizontal" size={28} color={Palette.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -198,7 +199,7 @@ export default function DiaryDetailScreen() {
               <Image source={{ uri: diary.cover_image_url }} style={styles.coverImage} />
             ) : (
               <View style={styles.coverPlaceholder}>
-                <Ionicons name="image-outline" size={40} color="#ccc" />
+                <Ionicons name="image-outline" size={40} color={Palette.textMuted} />
                 {user?.id === diary.author_id && (
                   <Text style={styles.coverPlaceholderText}>{t('cover.add_cover')}</Text>
                 )}
@@ -239,11 +240,11 @@ export default function DiaryDetailScreen() {
         {/* Stats row */}
         <View style={[styles.statsRow, styles.contentPadding]}>
           <View style={styles.statItem}>
-            <Ionicons name="eye-outline" size={15} color="#aaa" />
+            <Ionicons name="eye-outline" size={15} color={Palette.textMuted} />
             <Text style={styles.statText}>{diary.view_count || 0}</Text>
           </View>
           <View style={styles.statItem}>
-            <Ionicons name="heart" size={15} color="#FF3B30" />
+            <Ionicons name="heart" size={15} color={Palette.red} />
             <Text style={styles.statText}>{diary.like_count || 0}</Text>
           </View>
         </View>
@@ -260,7 +261,7 @@ export default function DiaryDetailScreen() {
                 <Ionicons
                   name={reorderDaysMode ? 'checkmark' : 'reorder-three-outline'}
                   size={18}
-                  color={reorderDaysMode ? '#fff' : '#007AFF'}
+                  color={reorderDaysMode ? Palette.bgPrimary : Palette.teal}
                 />
               </TouchableOpacity>
             )}
@@ -297,7 +298,7 @@ export default function DiaryDetailScreen() {
                     <Text style={styles.dayTitle}>{t('diary.day_label', { number: day.day_number })}{day.title ? `: ${day.title}` : ''}</Text>
                     {day.date && <Text style={styles.dayDate}>{day.date}</Text>}
                   </View>
-                  {!reorderDaysMode && <Ionicons name="chevron-forward" size={20} color="#ccc" />}
+                  {!reorderDaysMode && <Ionicons name="chevron-forward" size={20} color={Palette.border} />}
                 </TouchableOpacity>
                 {reorderDaysMode && (
                   <View style={styles.reorderBtns}>
@@ -306,14 +307,14 @@ export default function DiaryDetailScreen() {
                       onPress={() => idx > 0 && moveDay(day.id, 'up')}
                       disabled={idx === 0}
                     >
-                      <Ionicons name="chevron-up" size={20} color={idx === 0 ? '#ccc' : '#007AFF'} />
+                      <Ionicons name="chevron-up" size={20} color={idx === 0 ? Palette.textMuted : Palette.teal} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.reorderBtn, idx === days.length - 1 && styles.reorderBtnDisabled]}
                       onPress={() => idx < days.length - 1 && moveDay(day.id, 'down')}
                       disabled={idx === days.length - 1}
                     >
-                      <Ionicons name="chevron-down" size={20} color={idx === days.length - 1 ? '#ccc' : '#007AFF'} />
+                      <Ionicons name="chevron-down" size={20} color={idx === days.length - 1 ? Palette.textMuted : Palette.teal} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -359,13 +360,13 @@ export default function DiaryDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
@@ -374,6 +375,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 16,
+    backgroundColor: Palette.bgPrimary,
   },
   backIcon: {
     padding: 8,
@@ -396,14 +398,14 @@ const styles = StyleSheet.create({
   },
   coverPlaceholder: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
   coverPlaceholderText: {
     fontSize: 14,
-    color: '#999',
+    color: Palette.textMuted,
     fontWeight: '500',
   },
   contentPadding: {
@@ -413,7 +415,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 12,
     right: 12,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: Palette.overlayMid,
     borderRadius: 16,
     width: 32,
     height: 32,
@@ -430,27 +432,34 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 28,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginRight: 10,
   },
   followBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
   },
   followingBtn: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Palette.border,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   followBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '700',
     fontSize: 13,
   },
   followingBtnText: {
-    color: '#666',
+    color: Palette.textSecondary,
   },
   pillContainer: {
     flexDirection: 'row',
@@ -459,19 +468,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   pill: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.bgElevated,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   pillText: {
     fontSize: 14,
-    color: '#333',
+    color: Palette.textSecondary,
     fontWeight: '500',
   },
   description: {
     fontSize: 16,
-    color: '#444',
+    color: Palette.textSecondary,
     lineHeight: 24,
     marginBottom: 12,
   },
@@ -487,18 +498,18 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 13,
-    color: '#aaa',
+    color: Palette.textMuted,
     fontWeight: '600',
   },
   divider: {
     height: 1,
-    backgroundColor: '#eee',
+    backgroundColor: Palette.border,
     marginVertical: 24,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   daysHeader: {
     flexDirection: 'row',
@@ -509,50 +520,50 @@ const styles = StyleSheet.create({
   addDayButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   addDayText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '600',
     marginLeft: 4,
   },
   emptyDays: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Palette.border,
     borderStyle: 'dashed',
   },
   emptyDaysText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Palette.textSecondary,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyDaysSub: {
     fontSize: 14,
-    color: '#666',
+    color: Palette.textMuted,
     textAlign: 'center',
   },
   errorText: {
     fontSize: 18,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 16,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
   },
   backButtonText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '600',
     fontSize: 16,
   },
@@ -568,13 +579,15 @@ const styles = StyleSheet.create({
   dayCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   reorderToggleBtn: {
     width: 36, height: 36, borderRadius: 10,
-    borderWidth: 1.5, borderColor: '#007AFF',
+    borderWidth: 1.5, borderColor: Palette.teal,
     justifyContent: 'center', alignItems: 'center',
   },
   reorderToggleBtnActive: {
@@ -583,14 +596,15 @@ const styles = StyleSheet.create({
   reorderBtns: { gap: 4 },
   reorderBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#f0f4ff', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: Palette.bgElevated, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: Palette.border,
   },
-  reorderBtnDisabled: { backgroundColor: '#f9f9f9' },
+  reorderBtnDisabled: { backgroundColor: Palette.bgSurface, borderColor: Palette.borderLight },
   dayIconBox: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e6f2ff',
+    backgroundColor: Palette.tealDim,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -598,7 +612,7 @@ const styles = StyleSheet.create({
   dayIconText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: Palette.bgPrimary,
   },
   dayContent: {
     flex: 1,
@@ -606,11 +620,11 @@ const styles = StyleSheet.create({
   dayTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 4,
   },
   dayDate: {
     fontSize: 14,
-    color: '#666',
+    color: Palette.textMuted,
   },
 });

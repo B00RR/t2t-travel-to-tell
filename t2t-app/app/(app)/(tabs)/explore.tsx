@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import { PeopleToFollow } from '@/components/PeopleToFollow';
 import type { FeedDiary } from '@/types/supabase';
+import { Palette } from '@/constants/theme';
 
 const PAGE_SIZE = 20;
 
@@ -27,7 +28,7 @@ function getDurationDays(diary: FeedDiary): number | null {
 function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
   if (filter === 'all') return true;
   const days = getDurationDays(diary);
-  if (days === null) return filter === 'all';
+  if (days === null) return false;
   if (filter === 'short') return days <= 4;
   if (filter === 'medium') return days >= 5 && days <= 14;
   if (filter === 'long') return days >= 15;
@@ -255,7 +256,7 @@ export default function DiscoveryScreen() {
               <Ionicons
                 name={s.icon as any}
                 size={15}
-                color={sortMode === s.key ? '#fff' : '#555'}
+                color={sortMode === s.key ? Palette.bgPrimary : Palette.textSecondary}
               />
               <Text style={[styles.sortChipText, sortMode === s.key && styles.sortChipTextActive]}>
                 {s.label}
@@ -309,7 +310,7 @@ export default function DiscoveryScreen() {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#007AFF" />
+        <ActivityIndicator size="small" color={Palette.teal} />
       </View>
     );
   }, [loadingMore]);
@@ -323,17 +324,18 @@ export default function DiscoveryScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('explore.title')}</Text>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color={Palette.textMuted} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder={t('explore.search_placeholder')}
+            placeholderTextColor={Palette.textMuted}
             value={searchQuery}
             onChangeText={handleSearchChange}
             returnKeyType="search"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => handleSearchChange('')}>
-              <Ionicons name="close-circle" size={20} color="#ccc" />
+              <Ionicons name="close-circle" size={20} color={Palette.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -341,7 +343,7 @@ export default function DiscoveryScreen() {
 
       {loading && !refreshing ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={Palette.teal} />
         </View>
       ) : (
         <FlatList
@@ -357,12 +359,12 @@ export default function DiscoveryScreen() {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#007AFF" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Palette.teal} />
           }
           ListEmptyComponent={
             loading ? null : (
               <View style={styles.emptyContainer}>
-                <Ionicons name="search-outline" size={64} color="#ddd" />
+                <Ionicons name="search-outline" size={64} color={Palette.border} />
                 <Text style={styles.emptyText}>{emptyText}</Text>
               </View>
             )
@@ -376,28 +378,31 @@ export default function DiscoveryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Palette.border,
+    backgroundColor: Palette.bgPrimary,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 16,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 44,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   searchIcon: {
     marginRight: 8,
@@ -405,7 +410,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: Palette.textPrimary,
   },
   sortBar: {
     paddingHorizontal: 10,
@@ -420,21 +425,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: Palette.border,
   },
   sortChipActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: Palette.teal,
+    borderColor: Palette.teal,
   },
   sortChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#555',
+    color: Palette.textSecondary,
   },
   sortChipTextActive: {
-    color: '#fff',
+    color: Palette.bgPrimary,
   },
   durationBar: {
     paddingHorizontal: 10,
@@ -445,26 +450,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 14,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Palette.border,
   },
   durationChipActive: {
-    backgroundColor: '#e8f0fe',
-    borderColor: '#007AFF',
+    backgroundColor: Palette.tealDim,
+    borderColor: Palette.teal,
   },
   durationChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
+    color: Palette.textSecondary,
   },
   durationChipTextActive: {
-    color: '#007AFF',
+    color: Palette.teal,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     paddingHorizontal: 10,
     paddingTop: 4,
     paddingBottom: 10,
@@ -488,7 +493,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: Palette.textMuted,
     marginTop: 16,
     textAlign: 'center',
     paddingHorizontal: 40,

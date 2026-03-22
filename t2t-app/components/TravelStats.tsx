@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { Diary } from '@/types/supabase';
+import { Palette } from '@/constants/theme';
 
 interface TravelStatsProps {
   diaries: Diary[];
@@ -41,10 +42,10 @@ export function TravelStats({ diaries }: TravelStatsProps) {
   if (diaries.length === 0) return null;
 
   const items = [
-    { icon: 'journal-outline', value: stats.published, label: t('stats.published'), color: '#007AFF' },
-    { icon: 'flag-outline', value: stats.countries, label: t('stats.countries'), color: '#FF6B35' },
+    { icon: 'journal-outline', value: stats.published, label: t('stats.published'), color: Palette.teal },
+    { icon: 'flag-outline', value: stats.countries, label: t('stats.countries'), color: Palette.orange },
     { icon: 'sunny-outline', value: stats.totalDays, label: t('stats.days'), color: '#34C759' },
-    { icon: 'heart-outline', value: stats.totalLikes, label: t('stats.likes'), color: '#FF3B30' },
+    { icon: 'heart-outline', value: stats.totalLikes, label: t('stats.likes'), color: Palette.red },
   ] as const;
 
   return (
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 12,
   },
   grid: {
@@ -85,13 +86,13 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#fafafa',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 14,
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: Palette.border,
   },
   iconWrap: {
     width: 40,
@@ -103,12 +104,12 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   label: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#888',
+    color: Palette.textSecondary,
     textAlign: 'center',
   },
 });

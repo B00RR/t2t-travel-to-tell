@@ -18,8 +18,8 @@ export interface TripPlan {
   updated_at: string;
   // joined relations
   profiles?: {
-    username: string;
-    display_name: string;
+    username: string | null;
+    display_name: string | null;
     avatar_url: string | null;
   };
   stops?: TripPlanStop[];

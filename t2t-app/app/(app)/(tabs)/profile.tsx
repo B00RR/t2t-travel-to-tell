@@ -13,6 +13,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
 import i18n from '@/i18n';
 import type { Diary, FeedDiary } from '@/types/supabase';
+import { Palette } from '@/constants/theme';
 
 const BIO_MAX = 160;
 
@@ -168,13 +169,13 @@ export default function ProfileScreen() {
         <Text style={styles.headerTitle}>{t('profile.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerIcon} onPress={handleShareProfile}>
-            <Ionicons name="share-outline" size={24} color="#1a1a1a" />
+            <Ionicons name="share-outline" size={24} color={Palette.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIcon}
             onPress={() => router.push('/(app)/notifications')}
           >
-            <Ionicons name="notifications-outline" size={24} color="#1a1a1a" />
+            <Ionicons name="notifications-outline" size={24} color={Palette.textSecondary} />
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -182,7 +183,7 @@ export default function ProfileScreen() {
             )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIcon} onPress={() => router.push('/(app)/settings')}>
-            <Ionicons name="settings-outline" size={24} color="#1a1a1a" />
+            <Ionicons name="settings-outline" size={24} color={Palette.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -227,7 +228,7 @@ export default function ProfileScreen() {
             <Ionicons
               name="journal-outline"
               size={15}
-              color={diaryTab === 'mine' ? '#007AFF' : '#999'}
+              color={diaryTab === 'mine' ? Palette.teal : Palette.textMuted}
             />
             <Text style={[styles.diaryTabText, diaryTab === 'mine' && styles.diaryTabTextActive]}>
               {t('profile.my_diaries')}
@@ -240,7 +241,7 @@ export default function ProfileScreen() {
             <Ionicons
               name="bookmark-outline"
               size={15}
-              color={diaryTab === 'saved' ? '#007AFF' : '#999'}
+              color={diaryTab === 'saved' ? Palette.teal : Palette.textMuted}
             />
             <Text style={[styles.diaryTabText, diaryTab === 'saved' && styles.diaryTabTextActive]}>
               {t('profile.saved_diaries')}
@@ -251,19 +252,19 @@ export default function ProfileScreen() {
               style={styles.addBtn}
               onPress={() => router.push('/(app)/(tabs)/create')}
             >
-              <Ionicons name="add-circle" size={28} color="#007AFF" />
+              <Ionicons name="add-circle" size={28} color={Palette.teal} />
             </TouchableOpacity>
           )}
         </View>
 
         {isLoadingSection ? (
-          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 32 }} />
+          <ActivityIndicator size="large" color={Palette.teal} style={{ marginTop: 32 }} />
         ) : activeDiaries.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons
               name={diaryTab === 'mine' ? 'journal-outline' : 'bookmark-outline'}
               size={48}
-              color="#ccc"
+              color={Palette.border}
             />
             <Text style={styles.emptyText}>
               {diaryTab === 'mine' ? t('profile.no_diaries') : t('profile.no_saved')}
@@ -299,7 +300,7 @@ export default function ProfileScreen() {
                       <Image source={{ uri: diary.cover_image_url! }} style={styles.diaryGridCoverImg} />
                     ) : (
                       <View style={styles.diaryGridCoverPlaceholder}>
-                        <Ionicons name="image-outline" size={28} color="#d0d0d0" />
+                        <Ionicons name="image-outline" size={28} color={Palette.textMuted} />
                       </View>
                     )}
                     {diaryTab === 'mine' && (
@@ -325,9 +326,9 @@ export default function ProfileScreen() {
                       </Text>
                     )}
                     <View style={styles.diaryGridStats}>
-                      <Ionicons name="heart" size={12} color="#bbb" />
+                      <Ionicons name="heart" size={12} color={Palette.textMuted} />
                       <Text style={styles.diaryGridStatNum}>{diary.like_count || 0}</Text>
-                      <Ionicons name="eye" size={12} color="#bbb" style={{ marginLeft: 6 }} />
+                      <Ionicons name="eye" size={12} color={Palette.textMuted} style={{ marginLeft: 6 }} />
                       <Text style={styles.diaryGridStatNum}>{diary.view_count || 0}</Text>
                     </View>
                   </View>
@@ -354,7 +355,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setIsEditModalVisible(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Ionicons name="close" size={24} color="#1a1a1a" />
+              <Ionicons name="close" size={24} color={Palette.textSecondary} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>{t('profile.edit_profile')}</Text>
             <TouchableOpacity
@@ -383,7 +384,7 @@ export default function ProfileScreen() {
                     {profile?.avatar_url ? (
                       <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
                     ) : (
-                      <Ionicons name="person" size={40} color="#fff" />
+                      <Ionicons name="person" size={40} color={Palette.bgPrimary} />
                     )}
                   </View>
                 </View>
@@ -402,7 +403,7 @@ export default function ProfileScreen() {
                 value={editForm.display_name}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, display_name: text }))}
                 placeholder={t('profile.display_name')}
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
                 returnKeyType="next"
                 onFocus={() => setFocusedField('display_name')}
                 onBlur={() => setFocusedField(null)}
@@ -422,7 +423,7 @@ export default function ProfileScreen() {
                     setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-9_]/g, '') }));
                   }}
                   placeholder={t('profile.username_placeholder')}
-                  placeholderTextColor="#bbb"
+                  placeholderTextColor={Palette.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"
@@ -432,7 +433,7 @@ export default function ProfileScreen() {
               </View>
               {usernameError && (
                 <View style={styles.errorRow}>
-                  <Ionicons name="alert-circle" size={13} color="#FF3B30" />
+                  <Ionicons name="alert-circle" size={13} color={Palette.red} />
                   <Text style={styles.errorText}>{usernameError}</Text>
                 </View>
               )}
@@ -453,7 +454,7 @@ export default function ProfileScreen() {
                   if (text.length <= BIO_MAX) setEditForm(prev => ({ ...prev, bio: text }));
                 }}
                 placeholder={t('profile.bio_placeholder')}
-                placeholderTextColor="#bbb"
+                placeholderTextColor={Palette.textMuted}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -477,7 +478,7 @@ export default function ProfileScreen() {
 
             {/* Logout */}
             <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={18} color="#FF3B30" />
+              <Ionicons name="log-out-outline" size={18} color={Palette.red} />
               <Text style={styles.logoutText}>{t('common.logout')}</Text>
             </TouchableOpacity>
 
@@ -492,7 +493,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
@@ -501,14 +502,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: Palette.border,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   headerIcon: {
     padding: 4,
@@ -523,7 +524,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#FF3B30',
+    backgroundColor: Palette.red,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
@@ -531,10 +532,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 1.5,
-    borderColor: '#fff',
+    borderColor: Palette.bgPrimary,
   },
   badgeText: {
-    color: '#fff',
+    color: Palette.textPrimary,
     fontSize: 9,
     fontWeight: '800',
   },
@@ -552,7 +553,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   diaryTabsRow: {
     flexDirection: 'row',
@@ -569,18 +570,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   diaryTabBtnActive: {
-    backgroundColor: '#e8f0fe',
+    backgroundColor: Palette.tealDim,
+    borderColor: Palette.teal,
   },
   diaryTabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#999',
+    color: Palette.textMuted,
   },
   diaryTabTextActive: {
-    color: '#007AFF',
+    color: Palette.teal,
   },
   addBtn: {
     marginLeft: 'auto',
@@ -589,24 +593,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
     marginHorizontal: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   emptyText: {
     fontSize: 15,
-    color: '#999',
+    color: Palette.textMuted,
     textAlign: 'center',
     marginTop: 12,
     marginBottom: 20,
   },
   createBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
   },
   createBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -619,21 +625,23 @@ const styles = StyleSheet.create({
   diaryGridCardShadow: {
     width: '47.5%',
     borderRadius: 14,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
   diaryGridCard: {
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   diaryGridCover: {
     height: 120,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Palette.bgElevated,
     position: 'relative',
   },
   diaryGridCoverImg: {
@@ -644,27 +652,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Palette.bgElevated,
   },
   gridStatusBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: 'rgba(240,240,240,0.92)',
+    backgroundColor: Palette.overlayMid,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
   },
   gridStatusPublished: {
-    backgroundColor: 'rgba(52,199,89,0.18)',
+    backgroundColor: 'rgba(0,201,167,0.18)',
   },
   gridStatusText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#666',
+    color: Palette.textSecondary,
   },
   gridStatusTextPublished: {
-    color: '#22a045',
+    color: Palette.teal,
   },
   diaryGridInfo: {
     padding: 10,
@@ -672,19 +680,19 @@ const styles = StyleSheet.create({
   diaryGridTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     lineHeight: 18,
     marginBottom: 4,
   },
   diaryGridAuthor: {
     fontSize: 11,
-    color: '#007AFF',
+    color: Palette.teal,
     fontWeight: '600',
     marginBottom: 3,
   },
   diaryGridDest: {
     fontSize: 11,
-    color: '#888',
+    color: Palette.textMuted,
     marginBottom: 6,
   },
   diaryGridStats: {
@@ -693,7 +701,7 @@ const styles = StyleSheet.create({
   },
   diaryGridStatNum: {
     fontSize: 11,
-    color: '#bbb',
+    color: Palette.textMuted,
     fontWeight: '600',
     marginLeft: 2,
   },
@@ -701,7 +709,7 @@ const styles = StyleSheet.create({
   // Modal
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -711,15 +719,15 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Palette.border,
   },
   modalTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   modalSaveBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 20,
@@ -727,7 +735,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSaveBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -749,16 +757,20 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 2.5,
-    borderColor: '#007AFF',
+    borderColor: Palette.teal,
     padding: 3,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   avatarLarge: {
     width: 86,
     height: 86,
     borderRadius: 43,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.tealDim,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -772,18 +784,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 2,
     right: 2,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     width: 26,
     height: 26,
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Palette.bgSurface,
   },
   changeAvatarText: {
     marginTop: 10,
-    color: '#007AFF',
+    color: Palette.teal,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -799,56 +811,56 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#888',
+    color: Palette.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   charCount: {
     fontSize: 12,
-    color: '#bbb',
+    color: Palette.textMuted,
     fontWeight: '500',
   },
   charCountOver: {
-    color: '#FF3B30',
+    color: Palette.red,
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#e5e5e5',
+    borderColor: Palette.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 13,
     fontSize: 16,
-    color: '#1a1a1a',
-    backgroundColor: '#fafafa',
+    color: Palette.textPrimary,
+    backgroundColor: Palette.bgElevated,
   },
   inputFocused: {
-    borderColor: '#007AFF',
-    backgroundColor: '#fff',
+    borderColor: Palette.teal,
+    backgroundColor: Palette.bgElevated,
   },
   inputError: {
-    borderColor: '#FF3B30',
+    borderColor: Palette.red,
   },
   inputWithPrefix: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#e5e5e5',
+    borderColor: Palette.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    backgroundColor: '#fafafa',
+    backgroundColor: Palette.bgElevated,
   },
   inputPrefix: {
     fontSize: 16,
-    color: '#888',
+    color: Palette.textSecondary,
     fontWeight: '600',
     marginRight: 2,
   },
   inputInline: {
     flex: 1,
     fontSize: 16,
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     padding: 0,
   },
   errorRow: {
@@ -859,7 +871,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    color: '#FF3B30',
+    color: Palette.red,
     fontWeight: '500',
   },
   textArea: {
@@ -867,16 +879,21 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   saveBodyBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     height: 52,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 4,
     marginBottom: 16,
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveBodyBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -887,11 +904,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Palette.border,
   },
   logoutText: {
     fontSize: 15,
-    color: '#FF3B30',
+    color: Palette.red,
     fontWeight: '600',
   },
 });

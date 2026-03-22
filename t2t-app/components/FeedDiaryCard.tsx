@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SocialActionBar } from '@/components/SocialActionBar';
+import { Palette } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
 interface FeedDiaryCardProps {
@@ -38,24 +39,56 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
   return (
     <TouchableOpacity
       style={styles.card}
-      activeOpacity={0.9}
+      activeOpacity={0.92}
       onPress={() => router.push(`/diary/${item.id}`)}
     >
-      {/* Cover Image */}
+      {/* Cover — full bleed with gradient overlay */}
       {item.cover_image_url ? (
-        <Image source={{ uri: item.cover_image_url }} style={styles.coverImage} />
+        <ImageBackground
+          source={{ uri: item.cover_image_url }}
+          style={styles.coverImage}
+          imageStyle={styles.coverImageStyle}
+        >
+          <View style={styles.coverGradient}>
+            {/* Destination pills on cover */}
+            {item.destinations && item.destinations.length > 0 && (
+              <View style={styles.destRow}>
+                {item.destinations.slice(0, 2).map((dest, idx) => (
+                  <View key={idx} style={styles.destPill}>
+                    <Text style={styles.destPillText}>📍 {dest}</Text>
+                  </View>
+                ))}
+                {item.destinations.length > 2 && (
+                  <View style={styles.destPill}>
+                    <Text style={styles.destPillText}>+{item.destinations.length - 2}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </ImageBackground>
       ) : (
         <View style={styles.coverPlaceholder}>
-          <Ionicons name="image-outline" size={40} color="#ccc" />
+          <Ionicons name="earth-outline" size={36} color={Palette.textMuted} />
+          {item.destinations && item.destinations.length > 0 && (
+            <View style={styles.destRowFlat}>
+              {item.destinations.slice(0, 2).map((dest, idx) => (
+                <View key={idx} style={styles.destPillDark}>
+                  <Text style={styles.destPillText}>📍 {dest}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       )}
 
-      {/* Content */}
+      {/* Card body */}
       <View style={styles.cardBody}>
-        {/* Author Row */}
+        {/* Author row */}
         <TouchableOpacity
           style={styles.authorRow}
           onPress={() => router.push(`/profile/${item.author_id}`)}
+          activeOpacity={0.75}
         >
           {author?.avatar_url ? (
             <Image source={{ uri: author.avatar_url }} style={styles.avatar} />
@@ -68,27 +101,19 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
             <Text style={styles.authorName}>{authorName}</Text>
             <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
           </View>
+          <Ionicons name="chevron-forward" size={16} color={Palette.textMuted} />
         </TouchableOpacity>
 
-        {/* Title & Destinations */}
+        {/* Title */}
         <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
 
-        {item.destinations && item.destinations.length > 0 && (
-          <View style={styles.destinationRow}>
-            {item.destinations.slice(0, 3).map((dest, idx) => (
-              <View key={idx} style={styles.destPill}>
-                <Text style={styles.destPillText}>📍 {dest}</Text>
-              </View>
-            ))}
-            {item.destinations.length > 3 && (
-              <Text style={styles.moreText}>+{item.destinations.length - 3}</Text>
-            )}
-          </View>
-        )}
-
+        {/* Description */}
         {item.description ? (
           <Text style={styles.cardDescription} numberOfLines={2}>{item.description}</Text>
         ) : null}
+
+        {/* Divider */}
+        <View style={styles.divider} />
 
         {/* Social Actions */}
         <SocialActionBar
@@ -110,26 +135,74 @@ export const FeedDiaryCard = React.memo(FeedDiaryCardComponent);
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
     borderRadius: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 8,
   },
   coverImage: {
     width: '100%',
-    height: 180,
+    height: 200,
+    justifyContent: 'flex-end',
+  },
+  coverImageStyle: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  coverGradient: {
+    width: '100%',
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    paddingTop: 60,
+    backgroundColor: 'rgba(9,9,15,0.0)',
+  },
+  destRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  destRowFlat: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 12,
+  },
+  destPill: {
+    backgroundColor: 'rgba(9,9,15,0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  destPillDark: {
+    backgroundColor: Palette.bgElevated,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  destPillText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600',
   },
   coverPlaceholder: {
     width: '100%',
-    height: 120,
-    backgroundColor: '#f0f0f0',
+    height: 140,
+    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Palette.border,
   },
   cardBody: {
     padding: 16,
@@ -143,19 +216,22 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: Palette.border,
   },
   avatarPlaceholder: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
+    color: Palette.bgPrimary,
+    fontWeight: '800',
+    fontSize: 13,
+    letterSpacing: -0.3,
   },
   authorInfo: {
     marginLeft: 10,
@@ -164,47 +240,32 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
+    letterSpacing: -0.2,
   },
   dateText: {
     fontSize: 12,
-    color: '#999',
+    color: Palette.textMuted,
     marginTop: 1,
   },
   cardTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
     marginBottom: 8,
     lineHeight: 26,
-  },
-  destinationRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  destPill: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  destPillText: {
-    fontSize: 12,
-    color: '#555',
-    fontWeight: '500',
-  },
-  moreText: {
-    fontSize: 12,
-    color: '#999',
-    alignSelf: 'center',
-    marginLeft: 4,
+    letterSpacing: -0.5,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Palette.textSecondary,
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 4,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Palette.border,
+    marginTop: 12,
+    marginHorizontal: -16,
   },
 });

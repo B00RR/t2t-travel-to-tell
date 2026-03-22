@@ -1,15 +1,24 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useNotifications } from '@/hooks/useNotifications';
+import { Palette } from '@/constants/theme';
 
 function ProfileTabIcon({ color, size }: { color: string; size: number }) {
   const { unreadCount } = useNotifications();
   return (
     <View>
       <Ionicons name="person" size={size} color={color} />
-      {unreadCount > 0 && <View style={styles.badge} />}
+      {unreadCount > 0 && <View style={styles.notifDot} />}
+    </View>
+  );
+}
+
+function CreateTabIcon({ color, focused }: { color: string; focused: boolean }) {
+  return (
+    <View style={[styles.createBtn, focused && styles.createBtnFocused]}>
+      <Ionicons name="add" size={26} color={focused ? Palette.bgPrimary : '#fff'} />
     </View>
   );
 }
@@ -21,20 +30,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8e8e93',
-        tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#e5e5e5',
-          borderTopWidth: 1,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 88,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
+        tabBarActiveTintColor: Palette.teal,
+        tabBarInactiveTintColor: Palette.textMuted,
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarBackground: () => <View style={styles.tabBarBg} />,
       }}>
       <Tabs.Screen
         name="index"
@@ -53,8 +53,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: t('common.create'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="add-circle" size={size} color={color} />,
+          title: '',
+          tabBarIcon: ({ color, focused }) => <CreateTabIcon color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -83,15 +83,49 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  badge: {
+  tabBar: {
+    backgroundColor: Palette.bgSurface,
+    borderTopColor: Palette.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+    paddingTop: 10,
+    height: Platform.OS === 'ios' ? 88 : 68,
+  },
+  tabBarBg: {
+    flex: 1,
+    backgroundColor: Palette.bgSurface,
+  },
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  createBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: Palette.teal,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  createBtnFocused: {
+    backgroundColor: '#fff',
+  },
+  notifDot: {
     position: 'absolute',
     top: -1,
     right: -3,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: '#FF3B30',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Palette.red,
     borderWidth: 1.5,
-    borderColor: '#fff',
+    borderColor: Palette.bgSurface,
   },
 });

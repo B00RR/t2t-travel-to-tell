@@ -43,7 +43,7 @@ export function usePublicMapLocations(enabled: boolean) {
       if (dErr) { setError(dErr.message); setLocations([]); return; }
       if (!diaries || diaries.length === 0) { setLocations([]); return; }
 
-      const diaryMap = new Map((diaries as DiaryRow[]).map(d => [d.id, d]));
+      const diaryMap = new Map((diaries as unknown as DiaryRow[]).map(d => [d.id, d]));
       const diaryIds = diaries.map(d => d.id);
 
       const { data: days, error: dayErr } = await supabase

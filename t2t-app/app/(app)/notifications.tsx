@@ -37,7 +37,7 @@ function AvatarWithIcon({ name, avatarUrl, type }: { name: string; avatarUrl?: s
   );
 }
 
-function formatRelativeTime(dateStr: string, t: (key: string, opts?: object) => string): string {
+function formatRelativeTime(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const now = new Date();
   const date = new Date(dateStr);
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);

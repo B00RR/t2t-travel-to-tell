@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Palette } from '@/constants/theme';
 import type { Profile } from '@/types/supabase';
 
 interface ProfileHeaderProps {
@@ -35,7 +36,7 @@ export function ProfileHeader({
 
   return (
     <View style={styles.container}>
-      {/* Avatar + stats row */}
+      {/* Avatar + stats */}
       <View style={styles.topRow}>
         <View style={styles.avatarWrapper}>
           <View style={styles.avatarRing}>
@@ -65,7 +66,7 @@ export function ProfileHeader({
         {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
         {profile?.travel_style ? (
           <View style={styles.stylePill}>
-            <Ionicons name="airplane-outline" size={12} color="#e65100" />
+            <Ionicons name="airplane-outline" size={12} color={Palette.orange} />
             <Text style={styles.styleText}>{profile.travel_style}</Text>
           </View>
         ) : null}
@@ -75,7 +76,7 @@ export function ProfileHeader({
       <View style={styles.actionRow}>
         {isOwnProfile ? (
           <TouchableOpacity style={styles.editBtn} onPress={onEditPress} activeOpacity={0.75}>
-            <Ionicons name="pencil" size={15} color="#1a1a1a" />
+            <Ionicons name="pencil" size={15} color={Palette.textPrimary} />
             <Text style={styles.editBtnText}>{t('profile.edit_profile')}</Text>
           </TouchableOpacity>
         ) : (
@@ -83,7 +84,7 @@ export function ProfileHeader({
             <TouchableOpacity
               style={[styles.followBtn, isFollowing && styles.followingBtn]}
               onPress={onFollowToggle}
-              activeOpacity={0.8}
+              activeOpacity={0.82}
             >
               <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
                 {isFollowing ? t('profile.following_button') : t('profile.follow')}
@@ -95,7 +96,7 @@ export function ProfileHeader({
               accessibilityLabel={t('social.share_profile')}
               activeOpacity={0.75}
             >
-              <Ionicons name="share-outline" size={18} color="#1a1a1a" />
+              <Ionicons name="share-outline" size={18} color={Palette.textPrimary} />
             </TouchableOpacity>
           </>
         )}
@@ -107,7 +108,9 @@ export function ProfileHeader({
 function StatBox({ value, label }: { value: number; label: string }) {
   return (
     <View style={styles.statBox}>
-      <Text style={styles.statNumber}>{value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}</Text>
+      <Text style={styles.statNumber}>
+        {value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+      </Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
@@ -118,7 +121,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgSurface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Palette.border,
   },
   topRow: {
     flexDirection: 'row',
@@ -134,9 +139,14 @@ const styles = StyleSheet.create({
     borderRadius: 45,
     padding: 3,
     borderWidth: 2.5,
-    borderColor: '#007AFF',
+    borderColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatar: {
     width: 80,
@@ -147,14 +157,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
-    color: '#fff',
-    fontSize: 30,
-    fontWeight: '800',
+    color: Palette.bgPrimary,
+    fontSize: 28,
+    fontWeight: '900',
     letterSpacing: -0.5,
   },
   statsRow: {
@@ -168,21 +178,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statDivider: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 28,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Palette.border,
   },
   statNumber: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1a1a1a',
-    letterSpacing: -0.3,
+    color: Palette.textPrimary,
+    letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: 11,
-    color: '#999',
-    marginTop: 2,
-    fontWeight: '500',
+    color: Palette.textMuted,
+    marginTop: 3,
+    fontWeight: '600',
   },
   infoSection: {
     marginBottom: 16,
@@ -190,18 +200,18 @@ const styles = StyleSheet.create({
   displayName: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1a1a1a',
-    letterSpacing: -0.3,
+    color: Palette.textPrimary,
+    letterSpacing: -0.5,
   },
   username: {
     fontSize: 14,
-    color: '#888',
+    color: Palette.textMuted,
     marginTop: 2,
     fontWeight: '500',
   },
   bio: {
     fontSize: 14,
-    color: '#444',
+    color: Palette.textSecondary,
     lineHeight: 21,
     marginTop: 8,
   },
@@ -209,16 +219,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#fff3e0',
+    backgroundColor: Palette.bgElevated,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     marginTop: 10,
-    gap: 4,
+    gap: 5,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
   },
   styleText: {
     fontSize: 12,
-    color: '#e65100',
+    color: Palette.orange,
     fontWeight: '700',
   },
   actionRow: {
@@ -231,45 +243,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    height: 38,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#d0d0d0',
-    backgroundColor: '#fff',
+    height: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.bgElevated,
   },
   editBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   followBtn: {
     flex: 1,
-    height: 38,
-    borderRadius: 10,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
+    shadowColor: Palette.teal,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
   },
   followingBtn: {
-    backgroundColor: '#f0f0f0',
-    borderWidth: 1.5,
-    borderColor: '#d0d0d0',
+    backgroundColor: Palette.bgElevated,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   followBtnText: {
-    color: '#fff',
+    color: Palette.bgPrimary,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   followingBtnText: {
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#d0d0d0',
-    backgroundColor: '#fff',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useMapLocations } from '@/hooks/useMapLocations';
 import { usePublicMapLocations, type PublicMapLocation } from '@/hooks/usePublicMapLocations';
+import { Palette } from '@/constants/theme';
 
 type MapMode = 'mine' | 'discover';
 
@@ -97,7 +98,7 @@ export default function MapScreen() {
             style={[styles.toggleBtn, mode === 'mine' && styles.toggleBtnActive]}
             onPress={() => setMode('mine')}
           >
-            <Ionicons name="person" size={14} color={mode === 'mine' ? '#fff' : '#555'} />
+            <Ionicons name="person" size={14} color={mode === 'mine' ? Palette.bgPrimary : Palette.textSecondary} />
             <Text style={[styles.toggleText, mode === 'mine' && styles.toggleTextActive]}>
               {t('map.my_map')}
             </Text>
@@ -106,7 +107,7 @@ export default function MapScreen() {
             style={[styles.toggleBtn, mode === 'discover' && styles.toggleBtnActive]}
             onPress={() => setMode('discover')}
           >
-            <Ionicons name="globe-outline" size={14} color={mode === 'discover' ? '#fff' : '#555'} />
+            <Ionicons name="globe-outline" size={14} color={mode === 'discover' ? Palette.bgPrimary : Palette.textSecondary} />
             <Text style={[styles.toggleText, mode === 'discover' && styles.toggleTextActive]}>
               {t('map.discover')}
             </Text>
@@ -125,7 +126,7 @@ export default function MapScreen() {
           <Marker
             key={loc.id}
             coordinate={{ latitude: loc.lat, longitude: loc.lng }}
-            pinColor={mode === 'mine' ? '#007AFF' : '#FF6B35'}
+            pinColor={mode === 'mine' ? Palette.teal : Palette.orange}
           >
             <Callout onPress={() => router.push(`/diary/${loc.diary_id}`)}>
               <View style={styles.callout}>
@@ -150,15 +151,15 @@ export default function MapScreen() {
 
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={Palette.teal} />
         </View>
       )}
 
       {!loading && publicError && mode === 'discover' && (
         <View style={styles.emptyOverlay} pointerEvents="none">
           <View style={styles.emptyCard}>
-            <Ionicons name="cloud-offline-outline" size={32} color="#FF3B30" />
-            <Text style={[styles.emptyText, { color: '#FF3B30' }]}>{t('common.error_generic')}</Text>
+            <Ionicons name="cloud-offline-outline" size={32} color={Palette.red} />
+            <Text style={[styles.emptyText, { color: Palette.red }]}>{t('common.error_generic')}</Text>
           </View>
         </View>
       )}
@@ -166,7 +167,7 @@ export default function MapScreen() {
       {!loading && !publicError && locations.length === 0 && (
         <View style={styles.emptyOverlay} pointerEvents="none">
           <View style={styles.emptyCard}>
-            <Ionicons name={mode === 'mine' ? 'map-outline' : 'globe-outline'} size={32} color="#007AFF" />
+            <Ionicons name={mode === 'mine' ? 'map-outline' : 'globe-outline'} size={32} color={Palette.teal} />
             <Text style={styles.emptyText}>{emptyText}</Text>
           </View>
         </View>
@@ -177,7 +178,7 @@ export default function MapScreen() {
         onPress={centerOnMe}
         accessibilityLabel={t('map.center_on_me')}
       >
-        <Ionicons name="locate" size={24} color="#007AFF" />
+        <Ionicons name="locate" size={24} color={Palette.teal} />
       </TouchableOpacity>
     </View>
   );
@@ -186,29 +187,31 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgPrimary,
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    backgroundColor: '#fff',
+    borderBottomColor: Palette.border,
+    backgroundColor: Palette.bgPrimary,
     zIndex: 1,
     gap: 12,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: Palette.textPrimary,
   },
   toggle: {
     flexDirection: 'row',
-    backgroundColor: '#f2f2f7',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 12,
     padding: 3,
     gap: 3,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   toggleBtn: {
     flex: 1,
@@ -220,15 +223,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   toggleBtnActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Palette.teal,
   },
   toggleText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#555',
+    color: Palette.textSecondary,
   },
   toggleTextActive: {
-    color: '#fff',
+    color: Palette.bgPrimary,
   },
   map: {
     flex: 1,
@@ -268,7 +271,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: Palette.overlayMid,
   },
   emptyOverlay: {
     position: 'absolute',
@@ -278,21 +281,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyCard: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: Palette.bgElevated,
     borderRadius: 16,
     paddingHorizontal: 24,
     paddingVertical: 16,
     alignItems: 'center',
     gap: 8,
+    borderWidth: 1,
+    borderColor: Palette.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
   emptyText: {
     fontSize: 14,
-    color: '#666',
+    color: Palette.textSecondary,
     textAlign: 'center',
     maxWidth: 240,
   },
@@ -303,12 +308,14 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#fff',
+    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: Palette.border,
+    shadowColor: Palette.teal,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
   },

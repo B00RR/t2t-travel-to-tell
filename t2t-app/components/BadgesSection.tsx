@@ -5,7 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface BadgeDefinition {
   id: string;
@@ -98,12 +98,6 @@ const BADGE_DEFS: BadgeDefinition[] = [
   },
 ];
 
-const TIER_COLORS = {
-  bronze: { bg: 'rgba(249,115,22,0.12)', border: Palette.orange, text: Palette.orange },
-  silver: { bg: Palette.bgElevated, border: Palette.textMuted, text: Palette.textSecondary },
-  gold:   { bg: 'rgba(245,200,66,0.12)', border: Palette.gold, text: Palette.gold },
-};
-
 function computeLevel(stats: BadgeStats): { level: number; xp: number; nextXp: number } {
   const xp =
     stats.diaries * 10 +
@@ -146,7 +140,14 @@ function badgeHint(badge: BadgeDefinition, stats: BadgeStats): string | null {
 
 export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [showAll, setShowAll] = useState(false);
+
+  const tierColors = useMemo(() => ({
+    bronze: { bg: 'rgba(249,115,22,0.12)', border: theme.orange, text: theme.orange },
+    silver: { bg: theme.bgElevated, border: theme.textMuted, text: theme.textSecondary },
+    gold:   { bg: 'rgba(245,200,66,0.12)', border: theme.orange, text: theme.orange },
+  }), [theme]);
 
   const { earned, locked, level, xp, nextXp, nextBadge } = useMemo(() => {
     const earned = BADGE_DEFS.filter(b => b.check(stats));
@@ -173,29 +174,29 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
   return (
     <View>
       {/* Level bar */}
-      <View style={styles.levelCard}>
+      <View style={[styles.levelCard, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
         <View style={styles.levelTop}>
           <View>
-            <Text style={styles.levelNum}>Lv. {level}</Text>
-            <Text style={styles.levelTitle}>{levelTitle}</Text>
+            <Text style={[styles.levelNum, { color: theme.teal }]}>Lv. {level}</Text>
+            <Text style={[styles.levelTitle, { color: theme.textSecondary }]}>{levelTitle}</Text>
           </View>
-          <Text style={styles.xpText}>{xp} XP</Text>
+          <Text style={[styles.xpText, { color: theme.teal }]}>{xp} XP</Text>
         </View>
-        <View style={styles.progressBg}>
-          <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
+        <View style={[styles.progressBg, { backgroundColor: theme.bgElevated }]}>
+          <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%`, backgroundColor: theme.teal }]} />
         </View>
         {level < 10 && (
-          <Text style={styles.nextLevelText}>{t('badges.next_level', { xp: nextXp - xp })}</Text>
+          <Text style={[styles.nextLevelText, { color: theme.textMuted }]}>{t('badges.next_level', { xp: nextXp - xp })}</Text>
         )}
         {nextBadge && (
-          <View style={styles.nextBadgeRow}>
+          <View style={[styles.nextBadgeRow, { borderTopColor: theme.border }]}>
             <Text style={styles.nextBadgeEmoji}>{nextBadge.badge.emoji}</Text>
             <View style={styles.nextBadgeInfo}>
-              <Text style={styles.nextBadgeLabel}>{t('badges.next_badge')}</Text>
-              <Text style={styles.nextBadgeName}>{t(nextBadge.badge.titleKey)}</Text>
+              <Text style={[styles.nextBadgeLabel, { color: theme.textMuted }]}>{t('badges.next_badge')}</Text>
+              <Text style={[styles.nextBadgeName, { color: theme.teal }]}>{t(nextBadge.badge.titleKey)}</Text>
             </View>
-            <View style={styles.nextBadgeHintPill}>
-              <Text style={styles.nextBadgeHintText}>-{nextBadge.hint}</Text>
+            <View style={[styles.nextBadgeHintPill, { backgroundColor: theme.tealDim }]}>
+              <Text style={[styles.nextBadgeHintText, { color: theme.bg }]}>-{nextBadge.hint}</Text>
             </View>
           </View>
         )}
@@ -205,7 +206,7 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
       {earned.length > 0 && (
         <View style={styles.badgesRow}>
           {earned.map(badge => {
-            const colors = TIER_COLORS[badge.tier];
+            const colors = tierColors[badge.tier];
             return (
               <TouchableOpacity
                 key={badge.id}
@@ -220,9 +221,12 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
             );
           })}
           {locked.length > 0 && (
-            <TouchableOpacity style={[styles.badge, styles.badgeLocked]} onPress={() => setShowAll(true)}>
+            <TouchableOpacity
+              style={[styles.badge, styles.badgeLocked, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
+              onPress={() => setShowAll(true)}
+            >
               <Text style={styles.badgeEmoji}>🔒</Text>
-              <Text style={styles.badgeLockedText} numberOfLines={2}>
+              <Text style={[styles.badgeLockedText, { color: theme.textMuted }]} numberOfLines={2}>
                 {t('badges.more', { count: locked.length })}
               </Text>
             </TouchableOpacity>
@@ -231,45 +235,47 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
       )}
 
       {earned.length === 0 && isOwnProfile && (
-        <TouchableOpacity style={styles.noBadgesBtn} onPress={() => setShowAll(true)}>
-          <Text style={styles.noBadgesText}>{t('badges.none_yet')}</Text>
+        <TouchableOpacity style={[styles.noBadgesBtn, { borderColor: theme.border }]} onPress={() => setShowAll(true)}>
+          <Text style={[styles.noBadgesText, { color: theme.textMuted }]}>{t('badges.none_yet')}</Text>
         </TouchableOpacity>
       )}
 
       {/* All badges modal */}
       <Modal visible={showAll} animationType="slide" transparent onRequestClose={() => setShowAll(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
+          <View style={[styles.modal, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('badges.all_badges')}</Text>
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{t('badges.all_badges')}</Text>
               <TouchableOpacity onPress={() => setShowAll(false)}>
-                <Text style={styles.closeBtn}>✕</Text>
+                <Text style={[styles.closeBtn, { color: theme.textMuted }]}>✕</Text>
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               {BADGE_DEFS.map(badge => {
                 const unlocked = badge.check(stats);
-                const colors = TIER_COLORS[badge.tier];
+                const colors = tierColors[badge.tier];
                 return (
                   <View
                     key={badge.id}
-                    style={[styles.modalBadgeRow, !unlocked && styles.modalBadgeRowLocked]}
+                    style={[styles.modalBadgeRow, { borderBottomColor: theme.border }, !unlocked && styles.modalBadgeRowLocked]}
                   >
                     <View style={[
                       styles.modalBadgeIcon,
-                      unlocked ? { backgroundColor: colors.bg, borderColor: colors.border } : styles.lockedIcon,
+                      unlocked
+                        ? { backgroundColor: colors.bg, borderColor: colors.border }
+                        : { backgroundColor: theme.bgElevated, borderColor: theme.border },
                     ]}>
                       <Text style={[styles.modalBadgeEmoji, !unlocked && { opacity: 0.3 }]}>
                         {badge.emoji}
                       </Text>
                     </View>
                     <View style={styles.modalBadgeInfo}>
-                      <Text style={[styles.modalBadgeName, !unlocked && styles.lockedText]}>
+                      <Text style={[styles.modalBadgeName, { color: unlocked ? theme.textPrimary : theme.textMuted }]}>
                         {t(badge.titleKey)}
                       </Text>
-                      <Text style={styles.modalBadgeDesc}>{t(badge.descKey)}</Text>
+                      <Text style={[styles.modalBadgeDesc, { color: theme.textMuted }]}>{t(badge.descKey)}</Text>
                     </View>
-                    {unlocked && <Text style={styles.check}>✓</Text>}
+                    {unlocked && <Text style={[styles.check, { color: theme.teal }]}>✓</Text>}
                   </View>
                 );
               })}
@@ -284,12 +290,10 @@ export function BadgesSection({ stats, isOwnProfile }: BadgesSectionProps) {
 
 const styles = StyleSheet.create({
   levelCard: {
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   levelTop: {
     flexDirection: 'row',
@@ -300,33 +304,27 @@ const styles = StyleSheet.create({
   levelNum: {
     fontSize: 22,
     fontWeight: '800',
-    color: Palette.teal,
   },
   levelTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: Palette.textSecondary,
     marginTop: 2,
   },
   xpText: {
     fontSize: 15,
     fontWeight: '700',
-    color: Palette.teal,
   },
   progressBg: {
     height: 8,
-    backgroundColor: Palette.bgElevated,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: 8,
-    backgroundColor: Palette.teal,
     borderRadius: 4,
   },
   nextLevelText: {
     fontSize: 11,
-    color: Palette.textMuted,
     marginTop: 6,
     textAlign: 'right',
   },
@@ -336,7 +334,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: Palette.border,
     gap: 10,
   },
   nextBadgeEmoji: {
@@ -348,18 +345,15 @@ const styles = StyleSheet.create({
   nextBadgeLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: Palette.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   nextBadgeName: {
     fontSize: 13,
     fontWeight: '700',
-    color: Palette.teal,
     marginTop: 1,
   },
   nextBadgeHintPill: {
-    backgroundColor: Palette.tealDim,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
@@ -367,7 +361,6 @@ const styles = StyleSheet.create({
   nextBadgeHintText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Palette.bgPrimary,
   },
   badgesRow: {
     flexDirection: 'row',
@@ -384,8 +377,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   badgeLocked: {
-    backgroundColor: Palette.bgElevated,
-    borderColor: Palette.border,
     borderStyle: 'dashed',
   },
   badgeEmoji: {
@@ -399,7 +390,6 @@ const styles = StyleSheet.create({
   badgeLockedText: {
     fontSize: 10,
     fontWeight: '600',
-    color: Palette.textMuted,
     textAlign: 'center',
   },
   noBadgesBtn: {
@@ -408,19 +398,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Palette.border,
   },
   noBadgesText: {
     fontSize: 14,
-    color: Palette.textMuted,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: Palette.overlayHeavy,
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: Palette.bgSurface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -428,7 +414,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: Palette.border,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -439,11 +424,9 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Palette.textPrimary,
   },
   closeBtn: {
     fontSize: 18,
-    color: Palette.textMuted,
     padding: 4,
   },
   modalBadgeRow: {
@@ -452,7 +435,6 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.border,
   },
   modalBadgeRowLocked: {
     opacity: 0.5,
@@ -465,10 +447,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  lockedIcon: {
-    backgroundColor: Palette.bgElevated,
-    borderColor: Palette.border,
-  },
   modalBadgeEmoji: {
     fontSize: 26,
   },
@@ -478,20 +456,14 @@ const styles = StyleSheet.create({
   modalBadgeName: {
     fontSize: 15,
     fontWeight: '700',
-    color: Palette.textPrimary,
     marginBottom: 2,
   },
   modalBadgeDesc: {
     fontSize: 12,
-    color: Palette.textMuted,
     lineHeight: 16,
-  },
-  lockedText: {
-    color: Palette.textMuted,
   },
   check: {
     fontSize: 18,
-    color: Palette.teal,
     fontWeight: '700',
   },
 });

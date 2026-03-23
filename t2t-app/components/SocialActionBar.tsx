@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDiarySocial } from '@/hooks/useDiarySocial';
-import { Palette, Motion } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Motion } from '@/constants/theme';
 import type { SocialCounters } from '@/types/social';
 
 interface SocialActionBarProps {
@@ -15,13 +16,12 @@ interface SocialActionBarProps {
 }
 
 /** A heart icon that bounces + glows on activation */
-function AnimatedHeart({ active, size }: { active: boolean; size: number }) {
+function AnimatedHeart({ active, size, colors }: { active: boolean; size: number; colors: { red: string; muted: string } }) {
   const scale = useRef(new Animated.Value(1)).current;
   const prevActive = useRef(active);
 
   useEffect(() => {
     if (active && !prevActive.current) {
-      // Bouncy scale-up when liked
       Animated.sequence([
         Animated.spring(scale, { toValue: 1.4, ...Motion.spring.bouncy }),
         Animated.spring(scale, { toValue: 1,   ...Motion.spring.snappy }),
@@ -35,7 +35,7 @@ function AnimatedHeart({ active, size }: { active: boolean; size: number }) {
       <Ionicons
         name={active ? 'heart' : 'heart-outline'}
         size={size}
-        color={active ? Palette.red : Palette.textMuted}
+        color={active ? colors.red : colors.muted}
       />
     </Animated.View>
   );
@@ -45,13 +45,13 @@ export function SocialActionBar({
   diaryId, userId, initialCounters, onCommentPress, onSharePress,
 }: SocialActionBarProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const { hasLiked, hasSaved, counters, toggleLike, toggleSave } = useDiarySocial({
     diaryId,
     userId,
     initialCounters: initialCounters ?? { like_count: 0, comment_count: 0, save_count: 0 },
   });
 
-  // Save bookmark press scale
   const saveScale = useRef(new Animated.Value(1)).current;
 
   function handleSavePress() {
@@ -72,9 +72,9 @@ export function SocialActionBar({
           accessibilityRole="button"
           accessibilityLabel={hasLiked ? t('social.unlike') : t('social.like')}
         >
-          <AnimatedHeart active={hasLiked} size={22} />
+          <AnimatedHeart active={hasLiked} size={22} colors={{ red: theme.red, muted: theme.textMuted }} />
           {counters.like_count > 0 && (
-            <Text style={[styles.count, hasLiked && styles.countLiked]}>
+            <Text style={[styles.count, { color: theme.textMuted }, hasLiked && { color: theme.red }]}>
               {counters.like_count}
             </Text>
           )}
@@ -87,9 +87,9 @@ export function SocialActionBar({
           accessibilityRole="button"
           accessibilityLabel={t('social.comment_action')}
         >
-          <Ionicons name="chatbubble-outline" size={20} color={Palette.textMuted} />
+          <Ionicons name="chatbubble-outline" size={20} color={theme.textMuted} />
           {counters.comment_count > 0 && (
-            <Text style={styles.count}>{counters.comment_count}</Text>
+            <Text style={[styles.count, { color: theme.textMuted }]}>{counters.comment_count}</Text>
           )}
         </TouchableOpacity>
 
@@ -100,11 +100,11 @@ export function SocialActionBar({
           accessibilityRole="button"
           accessibilityLabel={t('social.share')}
         >
-          <Ionicons name="share-outline" size={20} color={Palette.textMuted} />
+          <Ionicons name="share-outline" size={20} color={theme.textMuted} />
         </TouchableOpacity>
       </View>
 
-      {/* Save — with bounce animation */}
+      {/* Save */}
       <TouchableOpacity
         style={styles.actionBtn}
         onPress={handleSavePress}
@@ -115,7 +115,7 @@ export function SocialActionBar({
           <Ionicons
             name={hasSaved ? 'bookmark' : 'bookmark-outline'}
             size={20}
-            color={hasSaved ? Palette.teal : Palette.textMuted}
+            color={hasSaved ? theme.teal : theme.textMuted}
           />
         </Animated.View>
       </TouchableOpacity>
@@ -145,9 +145,5 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 13,
     fontWeight: '600',
-    color: Palette.textMuted,
-  },
-  countLiked: {
-    color: Palette.red,
   },
 });

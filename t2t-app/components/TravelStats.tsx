@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { Diary } from '@/types/supabase';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface TravelStatsProps {
   diaries: Diary[];
@@ -37,28 +37,29 @@ function computeStats(diaries: Diary[]) {
 
 export function TravelStats({ diaries }: TravelStatsProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const stats = useMemo(() => computeStats(diaries), [diaries]);
 
   if (diaries.length === 0) return null;
 
   const items = [
-    { icon: 'journal-outline', value: stats.published, label: t('stats.published'), color: Palette.teal },
-    { icon: 'flag-outline', value: stats.countries, label: t('stats.countries'), color: Palette.orange },
+    { icon: 'journal-outline', value: stats.published, label: t('stats.published'), color: theme.teal },
+    { icon: 'flag-outline', value: stats.countries, label: t('stats.countries'), color: theme.orange },
     { icon: 'sunny-outline', value: stats.totalDays, label: t('stats.days'), color: '#34C759' },
-    { icon: 'heart-outline', value: stats.totalLikes, label: t('stats.likes'), color: Palette.red },
+    { icon: 'heart-outline', value: stats.totalLikes, label: t('stats.likes'), color: theme.red },
   ] as const;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('stats.title')}</Text>
+      <Text style={[styles.title, { color: theme.textPrimary }]}>{t('stats.title')}</Text>
       <View style={styles.grid}>
         {items.map(item => (
-          <View key={item.label} style={styles.card}>
+          <View key={item.label} style={[styles.card, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
             <View style={[styles.iconWrap, { backgroundColor: item.color + '18' }]}>
               <Ionicons name={item.icon as any} size={20} color={item.color} />
             </View>
-            <Text style={styles.value}>{item.value}</Text>
-            <Text style={styles.label}>{item.label}</Text>
+            <Text style={[styles.value, { color: theme.textPrimary }]}>{item.value}</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>{item.label}</Text>
           </View>
         ))}
       </View>
@@ -75,7 +76,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: Palette.textPrimary,
     marginBottom: 12,
   },
   grid: {
@@ -86,13 +86,11 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 14,
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   iconWrap: {
     width: 40,
@@ -104,12 +102,10 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 26,
     fontWeight: '800',
-    color: Palette.textPrimary,
   },
   label: {
     fontSize: 12,
     fontWeight: '600',
-    color: Palette.textSecondary,
     textAlign: 'center',
   },
 });

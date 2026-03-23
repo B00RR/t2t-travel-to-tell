@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, DimensionValue } from 'react-native';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface SkeletonProps {
   width?: DimensionValue;
@@ -10,6 +10,7 @@ interface SkeletonProps {
 }
 
 export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) => {
+  const { theme } = useAppTheme();
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) 
   return (
     <Animated.View
       style={[
-        styles.skeleton,
+        { backgroundColor: theme.bgElevated },
         {
           width: width || '100%',
           height: height || 20,
@@ -39,8 +40,10 @@ export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) 
   );
 };
 
-export const DiaryCardSkeleton = () => (
-  <View style={styles.cardSkeleton}>
+export const DiaryCardSkeleton = () => {
+  const { theme } = useAppTheme();
+  return (
+  <View style={[styles.cardSkeleton, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
     {/* Cover */}
     <Skeleton height={200} borderRadius={0} />
     <View style={styles.cardBody}>
@@ -60,10 +63,13 @@ export const DiaryCardSkeleton = () => (
       <Skeleton width="75%" height={13} />
     </View>
   </View>
-);
+  );
+};
 
-export const EntryCardSkeleton = () => (
-  <View style={styles.entrySkeleton}>
+export const EntryCardSkeleton = () => {
+  const { theme } = useAppTheme();
+  return (
+  <View style={[styles.entrySkeleton, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
       <Skeleton width="30%" height={20} borderRadius={10} />
       <Skeleton width={24} height={24} borderRadius={12} />
@@ -72,19 +78,15 @@ export const EntryCardSkeleton = () => (
     <Skeleton width="90%" height={15} style={{ marginBottom: 6 }} />
     <Skeleton width="45%" height={15} />
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
-  skeleton: {
-    backgroundColor: Palette.bgElevated,
-  },
   cardSkeleton: {
-    backgroundColor: Palette.bgSurface,
     borderRadius: 20,
     marginBottom: 16,
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
   },
   cardBody: {
     padding: 16,
@@ -99,11 +101,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   entrySkeleton: {
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
   },
 });

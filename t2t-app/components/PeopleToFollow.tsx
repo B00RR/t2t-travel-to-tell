@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface SuggestedUser {
   id: string;
@@ -23,6 +23,7 @@ interface Props {
 export function PeopleToFollow({ currentUserId }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useAppTheme();
   const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -76,24 +77,24 @@ export function PeopleToFollow({ currentUserId }: Props) {
 
     return (
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}
         onPress={() => router.push(`/(app)/profile/${item.id}`)}
         activeOpacity={0.85}
       >
-        <View style={styles.avatar}>
+        <View style={[styles.avatar, { backgroundColor: theme.tealDim }]}>
           {item.avatar_url ? null : (
-            <Text style={styles.initials}>{initials}</Text>
+            <Text style={[styles.initials, { color: theme.bg }]}>{initials}</Text>
           )}
         </View>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <Text style={[styles.name, { color: theme.textPrimary }]} numberOfLines={1}>{name}</Text>
         {diaryCount > 0 && (
-          <Text style={styles.sub}>{diaryCount} {t('explore.suggestions_diaries')}</Text>
+          <Text style={[styles.sub, { color: theme.textMuted }]}>{diaryCount} {t('explore.suggestions_diaries')}</Text>
         )}
         <TouchableOpacity
-          style={[styles.followBtn, isFollowed && styles.followingBtn]}
+          style={[styles.followBtn, { backgroundColor: theme.teal }, isFollowed && [styles.followingBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]]}
           onPress={() => isFollowed ? handleUnfollow(item.id) : handleFollow(item.id)}
         >
-          <Text style={[styles.followBtnText, isFollowed && styles.followingBtnText]}>
+          <Text style={[styles.followBtnText, { color: theme.bg }, isFollowed && { color: theme.textSecondary }]}>
             {isFollowed ? t('profile.following_button') : t('profile.follow')}
           </Text>
         </TouchableOpacity>
@@ -102,8 +103,8 @@ export function PeopleToFollow({ currentUserId }: Props) {
   };
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{t('explore.suggestions_title')}</Text>
+    <View style={[styles.section, { borderBottomColor: theme.border }]}>
+      <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.suggestions_title')}</Text>
       <FlatList
         data={suggestions}
         keyExtractor={item => item.id}
@@ -121,12 +122,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.border,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: Palette.textPrimary,
     paddingHorizontal: 16,
     marginBottom: 12,
   },
@@ -136,58 +135,47 @@ const styles = StyleSheet.create({
   },
   card: {
     width: 110,
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   avatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: Palette.tealDim,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   initials: {
-    color: Palette.bgPrimary,
     fontSize: 18,
     fontWeight: '800',
   },
   name: {
     fontSize: 13,
     fontWeight: '700',
-    color: Palette.textPrimary,
     textAlign: 'center',
     marginBottom: 2,
   },
   sub: {
     fontSize: 11,
-    color: Palette.textMuted,
     marginBottom: 8,
     textAlign: 'center',
   },
   followBtn: {
-    backgroundColor: Palette.teal,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 5,
     marginTop: 4,
   },
   followingBtn: {
-    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   followBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Palette.bgPrimary,
   },
   followingBtnText: {
-    color: Palette.textSecondary,
   },
 });

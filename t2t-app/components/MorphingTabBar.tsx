@@ -119,7 +119,7 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
                 color={isFocused ? theme.teal : theme.textMuted}
               />
               {route.name === 'profile' && unreadCount > 0 && (
-                <View style={[styles.notifDot, { backgroundColor: theme.red }]} />
+                <View style={[styles.notifDot, { backgroundColor: theme.red, borderColor: theme.bgSurface }]} />
               )}
             </View>
             <Text
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: '#fff',
+    borderColor: 'transparent',
   },
   label: {
     ...Typography.micro,

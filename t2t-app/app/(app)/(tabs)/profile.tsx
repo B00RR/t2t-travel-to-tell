@@ -6,16 +6,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ProfileHeader } from '@/components/ProfileHeader';
 import { PassportCard } from '@/components/PassportCard';
 import { JourneyMap } from '@/components/JourneyMap';
 import { BadgesSection } from '@/components/BadgesSection';
 import { TravelStats } from '@/components/TravelStats';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Spacing, Radius, Typography } from '@/constants/theme';
 import i18n from '@/i18n';
 import type { Diary, FeedDiary } from '@/types/supabase';
-import { Palette } from '@/constants/theme';
 
 const BIO_MAX = 160;
 
@@ -25,6 +25,7 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
+  const theme = useAppTheme();
   const { profile, loading: profileLoading, updateProfile, uploadAvatar, checkUsernameUnique } = useUserProfile(user?.id);
   const { unreadCount } = useNotifications();
   const [diaries, setDiaries] = useState<Diary[]>([]);
@@ -41,7 +42,6 @@ export default function ProfileScreen() {
   const [loadingDiaries, setLoadingDiaries] = useState(true);
   const [loadingSaved, setLoadingSaved] = useState(false);
 
-  // Edit State
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editForm, setEditForm] = useState({ display_name: '', username: '', bio: '' });
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -144,7 +144,7 @@ export default function ProfileScreen() {
     if (!profile) return;
     const name = profile.display_name || profile.username || 'Un viaggiatore';
     const bio = profile.bio ? `\n"${profile.bio}"` : '';
-    const message = `👤 ${name}${bio}\n\n🌍 Seguimi su T2T — Travel to Tell`;
+    const message = `${name}${bio}\n\nFollow me on T2T — Travel to Tell`;
     try {
       await Share.share({ message, title: name });
     } catch (_) {}
@@ -165,33 +165,33 @@ export default function ProfileScreen() {
   const activeDiaries = diaryTab === 'mine' ? diaries : savedDiaries;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
+      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('profile.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerIcon} onPress={handleShareProfile}>
-            <Ionicons name="share-outline" size={24} color={Palette.textSecondary} />
+            <Ionicons name="share-outline" size={22} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIcon}
             onPress={() => router.push('/(app)/notifications')}
           >
-            <Ionicons name="notifications-outline" size={24} color={Palette.textSecondary} />
+            <Ionicons name="notifications-outline" size={22} color={theme.textSecondary} />
             {unreadCount > 0 && (
-              <View style={styles.badge}>
+              <View style={[styles.badge, { backgroundColor: theme.red, borderColor: theme.bg }]}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
               </View>
             )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIcon} onPress={() => router.push('/(app)/settings')}>
-            <Ionicons name="settings-outline" size={24} color={Palette.textSecondary} />
+            <Ionicons name="settings-outline" size={22} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Passport Card — the new profile identity */}
+        {/* Passport Card */}
         <PassportCard
           displayName={profile?.display_name || null}
           username={profile?.username || null}
@@ -214,15 +214,15 @@ export default function ProfileScreen() {
           onSharePress={handleShareProfile}
         />
 
-        {/* Personal Journey Map */}
+        {/* Journey Map */}
         {user?.id && <JourneyMap userId={user.id} />}
 
-        {/* Section: Travel Stats */}
+        {/* Travel Stats */}
         <TravelStats diaries={diaries} />
 
-        {/* Section: Badges */}
+        {/* Badges */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('badges.title')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('badges.title')}</Text>
         </View>
         <View style={{ marginHorizontal: 16, marginBottom: 8 }}>
           <BadgesSection
@@ -243,28 +243,44 @@ export default function ProfileScreen() {
         {/* Diary Tabs */}
         <View style={styles.diaryTabsRow}>
           <TouchableOpacity
-            style={[styles.diaryTabBtn, diaryTab === 'mine' && styles.diaryTabBtnActive]}
+            style={[
+              styles.diaryTabBtn,
+              { backgroundColor: theme.bgElevated, borderColor: theme.border },
+              diaryTab === 'mine' && { backgroundColor: theme.tealAlpha15, borderColor: theme.teal },
+            ]}
             onPress={() => setDiaryTab('mine')}
           >
             <Ionicons
               name="journal-outline"
               size={15}
-              color={diaryTab === 'mine' ? Palette.teal : Palette.textMuted}
+              color={diaryTab === 'mine' ? theme.teal : theme.textMuted}
             />
-            <Text style={[styles.diaryTabText, diaryTab === 'mine' && styles.diaryTabTextActive]}>
+            <Text style={[
+              styles.diaryTabText,
+              { color: theme.textMuted },
+              diaryTab === 'mine' && { color: theme.teal },
+            ]}>
               {t('profile.my_diaries')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.diaryTabBtn, diaryTab === 'saved' && styles.diaryTabBtnActive]}
+            style={[
+              styles.diaryTabBtn,
+              { backgroundColor: theme.bgElevated, borderColor: theme.border },
+              diaryTab === 'saved' && { backgroundColor: theme.tealAlpha15, borderColor: theme.teal },
+            ]}
             onPress={() => setDiaryTab('saved')}
           >
             <Ionicons
               name="bookmark-outline"
               size={15}
-              color={diaryTab === 'saved' ? Palette.teal : Palette.textMuted}
+              color={diaryTab === 'saved' ? theme.teal : theme.textMuted}
             />
-            <Text style={[styles.diaryTabText, diaryTab === 'saved' && styles.diaryTabTextActive]}>
+            <Text style={[
+              styles.diaryTabText,
+              { color: theme.textMuted },
+              diaryTab === 'saved' && { color: theme.teal },
+            ]}>
               {t('profile.saved_diaries')}
             </Text>
           </TouchableOpacity>
@@ -273,30 +289,36 @@ export default function ProfileScreen() {
               style={styles.addBtn}
               onPress={() => router.push('/(app)/(tabs)/create')}
             >
-              <Ionicons name="add-circle" size={28} color={Palette.teal} />
+              <Ionicons name="add-circle" size={28} color={theme.teal} />
             </TouchableOpacity>
           )}
         </View>
 
         {isLoadingSection ? (
-          <ActivityIndicator size="large" color={Palette.teal} style={{ marginTop: 32 }} />
+          <ActivityIndicator size="large" color={theme.teal} style={{ marginTop: 32 }} />
         ) : activeDiaries.length === 0 ? (
-          <View style={styles.emptyState}>
+          <View style={[styles.emptyState, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
             <Ionicons
               name={diaryTab === 'mine' ? 'journal-outline' : 'bookmark-outline'}
               size={48}
-              color={Palette.border}
+              color={theme.border}
             />
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: theme.textMuted }]}>
               {diaryTab === 'mine' ? t('profile.no_diaries') : t('profile.no_saved')}
             </Text>
             {diaryTab === 'mine' && (
-              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/(tabs)/create')}>
+              <TouchableOpacity
+                style={[styles.createBtn, { backgroundColor: theme.teal }]}
+                onPress={() => router.push('/(app)/(tabs)/create')}
+              >
                 <Text style={styles.createBtnText}>{t('profile.create_first')}</Text>
               </TouchableOpacity>
             )}
             {diaryTab === 'saved' && (
-              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/(tabs)/explore')}>
+              <TouchableOpacity
+                style={[styles.createBtn, { backgroundColor: theme.teal }]}
+                onPress={() => router.push('/(app)/(tabs)/explore')}
+              >
                 <Text style={styles.createBtnText}>{t('profile.explore_diaries')}</Text>
               </TouchableOpacity>
             )}
@@ -310,49 +332,55 @@ export default function ProfileScreen() {
               return (
                 <TouchableOpacity
                   key={diary.id}
-                  style={styles.diaryGridCardShadow}
+                  style={[styles.diaryGridCardShadow, { backgroundColor: theme.bgSurface }]}
                   onPress={() => router.push(`/diary/${diary.id}`)}
                   activeOpacity={0.85}
                 >
-                  <View style={styles.diaryGridCard}>
-                  {/* Cover image or placeholder */}
-                  <View style={styles.diaryGridCover}>
-                    {hasCover ? (
-                      <Image source={{ uri: diary.cover_image_url! }} style={styles.diaryGridCoverImg} />
-                    ) : (
-                      <View style={styles.diaryGridCoverPlaceholder}>
-                        <Ionicons name="image-outline" size={28} color={Palette.textMuted} />
-                      </View>
-                    )}
-                    {diaryTab === 'mine' && (
-                      <View style={[styles.gridStatusBadge, diary.status === 'published' && styles.gridStatusPublished]}>
-                        <Text style={[styles.gridStatusText, diary.status === 'published' && styles.gridStatusTextPublished]}>
-                          {diary.status === 'draft' ? t('profile.status_draft') : t('profile.status_published')}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Info below cover */}
-                  <View style={styles.diaryGridInfo}>
-                    <Text style={styles.diaryGridTitle} numberOfLines={2}>{diary.title}</Text>
-                    {isFeed && authorProfile && (
-                      <Text style={styles.diaryGridAuthor} numberOfLines={1}>
-                        @{authorProfile.username || authorProfile.display_name}
-                      </Text>
-                    )}
-                    {diary.destinations && diary.destinations.length > 0 && (
-                      <Text style={styles.diaryGridDest} numberOfLines={1}>
-                        📍 {diary.destinations[0]}{diary.destinations.length > 1 ? ` +${diary.destinations.length - 1}` : ''}
-                      </Text>
-                    )}
-                    <View style={styles.diaryGridStats}>
-                      <Ionicons name="heart" size={12} color={Palette.textMuted} />
-                      <Text style={styles.diaryGridStatNum}>{diary.like_count || 0}</Text>
-                      <Ionicons name="eye" size={12} color={Palette.textMuted} style={{ marginLeft: 6 }} />
-                      <Text style={styles.diaryGridStatNum}>{diary.view_count || 0}</Text>
+                  <View style={[styles.diaryGridCard, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
+                    <View style={[styles.diaryGridCover, { backgroundColor: theme.bgElevated }]}>
+                      {hasCover ? (
+                        <Image source={{ uri: diary.cover_image_url! }} style={styles.diaryGridCoverImg} />
+                      ) : (
+                        <View style={[styles.diaryGridCoverPlaceholder, { backgroundColor: theme.bgElevated }]}>
+                          <Ionicons name="image-outline" size={28} color={theme.textMuted} />
+                        </View>
+                      )}
+                      {diaryTab === 'mine' && (
+                        <View style={[
+                          styles.gridStatusBadge,
+                          { backgroundColor: theme.overlay },
+                          diary.status === 'published' && { backgroundColor: theme.tealAlpha15 },
+                        ]}>
+                          <Text style={[
+                            styles.gridStatusText,
+                            { color: theme.textSecondary },
+                            diary.status === 'published' && { color: theme.teal },
+                          ]}>
+                            {diary.status === 'draft' ? t('profile.status_draft') : t('profile.status_published')}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  </View>
+
+                    <View style={styles.diaryGridInfo}>
+                      <Text style={[styles.diaryGridTitle, { color: theme.textPrimary }]} numberOfLines={2}>{diary.title}</Text>
+                      {isFeed && authorProfile && (
+                        <Text style={[styles.diaryGridAuthor, { color: theme.teal }]} numberOfLines={1}>
+                          @{authorProfile.username || authorProfile.display_name}
+                        </Text>
+                      )}
+                      {diary.destinations && diary.destinations.length > 0 && (
+                        <Text style={[styles.diaryGridDest, { color: theme.textMuted }]} numberOfLines={1}>
+                          {diary.destinations[0]}{diary.destinations.length > 1 ? ` +${diary.destinations.length - 1}` : ''}
+                        </Text>
+                      )}
+                      <View style={styles.diaryGridStats}>
+                        <Ionicons name="heart" size={12} color={theme.textMuted} />
+                        <Text style={[styles.diaryGridStatNum, { color: theme.textMuted }]}>{diary.like_count || 0}</Text>
+                        <Ionicons name="eye" size={12} color={theme.textMuted} style={{ marginLeft: 6 }} />
+                        <Text style={[styles.diaryGridStatNum, { color: theme.textMuted }]}>{diary.view_count || 0}</Text>
+                      </View>
+                    </View>
                   </View>
                 </TouchableOpacity>
               );
@@ -360,7 +388,7 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Edit Profile Modal */}
@@ -371,16 +399,16 @@ export default function ProfileScreen() {
         onRequestClose={() => setIsEditModalVisible(false)}
       >
         <KeyboardAvoidingView
-          style={styles.modalContainer}
+          style={[styles.modalContainer, { backgroundColor: theme.bgSurface }]}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
             <TouchableOpacity onPress={() => setIsEditModalVisible(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Ionicons name="close" size={24} color={Palette.textSecondary} />
+              <Ionicons name="close" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>{t('profile.edit_profile')}</Text>
+            <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{t('profile.edit_profile')}</Text>
             <TouchableOpacity
-              style={[styles.modalSaveBtn, profileLoading && { opacity: 0.5 }]}
+              style={[styles.modalSaveBtn, { backgroundColor: theme.teal }, profileLoading && { opacity: 0.5 }]}
               onPress={handleSaveProfile}
               disabled={profileLoading}
             >
@@ -398,33 +426,36 @@ export default function ProfileScreen() {
           >
             {/* Avatar */}
             <TouchableOpacity style={styles.avatarEdit} onPress={handlePickAvatar} activeOpacity={0.8}>
-              {/* Wrapper a dimensione fissa: il badge assoluto è relativo a questo */}
               <View style={styles.avatarEditWrapper}>
-                <View style={styles.avatarLargeRing}>
-                  <View style={styles.avatarLarge}>
+                <View style={[styles.avatarLargeRing, { borderColor: theme.teal }]}>
+                  <View style={[styles.avatarLarge, { backgroundColor: theme.bgElevated }]}>
                     {profile?.avatar_url ? (
                       <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
                     ) : (
-                      <Ionicons name="person" size={40} color={Palette.bgPrimary} />
+                      <Ionicons name="person" size={40} color={theme.textMuted} />
                     )}
                   </View>
                 </View>
-                <View style={styles.avatarEditBadge}>
+                <View style={[styles.avatarEditBadge, { backgroundColor: theme.teal, borderColor: theme.bgSurface }]}>
                   <Ionicons name="camera" size={14} color="#fff" />
                 </View>
               </View>
-              <Text style={styles.changeAvatarText}>{t('profile.change_avatar')}</Text>
+              <Text style={[styles.changeAvatarText, { color: theme.teal }]}>{t('profile.change_avatar')}</Text>
             </TouchableOpacity>
 
             {/* Display Name */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('profile.display_name')}</Text>
+              <Text style={[styles.label, { color: theme.textMuted }]}>{t('profile.display_name')}</Text>
               <TextInput
-                style={[styles.input, focusedField === 'display_name' && styles.inputFocused]}
+                style={[
+                  styles.input,
+                  { backgroundColor: theme.bgElevated, borderColor: theme.border, color: theme.textPrimary },
+                  focusedField === 'display_name' && { borderColor: theme.teal },
+                ]}
                 value={editForm.display_name}
                 onChangeText={(text) => setEditForm(prev => ({ ...prev, display_name: text }))}
                 placeholder={t('profile.display_name')}
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={theme.textMuted}
                 returnKeyType="next"
                 onFocus={() => setFocusedField('display_name')}
                 onBlur={() => setFocusedField(null)}
@@ -433,18 +464,23 @@ export default function ProfileScreen() {
 
             {/* Username */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('profile.username')}</Text>
-              <View style={[styles.inputWithPrefix, focusedField === 'username' && styles.inputFocused, usernameError ? styles.inputError : null]}>
-                <Text style={styles.inputPrefix}>@</Text>
+              <Text style={[styles.label, { color: theme.textMuted }]}>{t('profile.username')}</Text>
+              <View style={[
+                styles.inputWithPrefix,
+                { backgroundColor: theme.bgElevated, borderColor: theme.border },
+                focusedField === 'username' && { borderColor: theme.teal },
+                usernameError ? { borderColor: theme.red } : null,
+              ]}>
+                <Text style={[styles.inputPrefix, { color: theme.textSecondary }]}>@</Text>
                 <TextInput
-                  style={styles.inputInline}
+                  style={[styles.inputInline, { color: theme.textPrimary }]}
                   value={editForm.username}
                   onChangeText={(text) => {
                     setUsernameError(null);
                     setEditForm(prev => ({ ...prev, username: text.toLowerCase().replace(/[^a-z0-9_]/g, '') }));
                   }}
                   placeholder={t('profile.username_placeholder')}
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={theme.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"
@@ -454,8 +490,8 @@ export default function ProfileScreen() {
               </View>
               {usernameError && (
                 <View style={styles.errorRow}>
-                  <Ionicons name="alert-circle" size={13} color={Palette.red} />
-                  <Text style={styles.errorText}>{usernameError}</Text>
+                  <Ionicons name="alert-circle" size={13} color={theme.red} />
+                  <Text style={[styles.errorText, { color: theme.red }]}>{usernameError}</Text>
                 </View>
               )}
             </View>
@@ -463,19 +499,23 @@ export default function ProfileScreen() {
             {/* Bio */}
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
-                <Text style={styles.label}>{t('profile.bio')}</Text>
-                <Text style={[styles.charCount, editForm.bio.length > BIO_MAX && styles.charCountOver]}>
+                <Text style={[styles.label, { color: theme.textMuted }]}>{t('profile.bio')}</Text>
+                <Text style={[styles.charCount, { color: theme.textMuted }, editForm.bio.length > BIO_MAX && { color: theme.red }]}>
                   {editForm.bio.length}/{BIO_MAX}
                 </Text>
               </View>
               <TextInput
-                style={[styles.input, styles.textArea, focusedField === 'bio' && styles.inputFocused]}
+                style={[
+                  styles.input, styles.textArea,
+                  { backgroundColor: theme.bgElevated, borderColor: theme.border, color: theme.textPrimary },
+                  focusedField === 'bio' && { borderColor: theme.teal },
+                ]}
                 value={editForm.bio}
                 onChangeText={(text) => {
                   if (text.length <= BIO_MAX) setEditForm(prev => ({ ...prev, bio: text }));
                 }}
                 placeholder={t('profile.bio_placeholder')}
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={theme.textMuted}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -484,9 +524,8 @@ export default function ProfileScreen() {
               />
             </View>
 
-            {/* Save button in body */}
             <TouchableOpacity
-              style={[styles.saveBodyBtn, profileLoading && { opacity: 0.6 }]}
+              style={[styles.saveBodyBtn, { backgroundColor: theme.teal }, profileLoading && { opacity: 0.6 }]}
               onPress={handleSaveProfile}
               disabled={profileLoading}
               activeOpacity={0.8}
@@ -498,9 +537,9 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             {/* Logout */}
-            <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={18} color={Palette.red} />
-              <Text style={styles.logoutText}>{t('common.logout')}</Text>
+            <TouchableOpacity style={[styles.logoutRow, { borderTopColor: theme.border }]} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={18} color={theme.red} />
+              <Text style={[styles.logoutText, { color: theme.red }]}>{t('common.logout')}</Text>
             </TouchableOpacity>
 
             <View style={{ height: 40 }} />
@@ -514,23 +553,18 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.bgPrimary,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingBottom: 16,
-    backgroundColor: Palette.bgPrimary,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.border,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Palette.textPrimary,
+    ...Typography.h1,
   },
   headerIcon: {
     padding: 4,
@@ -545,7 +579,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: Palette.red,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
@@ -553,10 +586,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 1.5,
-    borderColor: Palette.bgPrimary,
   },
   badgeText: {
-    color: Palette.textPrimary,
+    color: '#fff',
     fontSize: 9,
     fontWeight: '800',
   },
@@ -568,20 +600,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Palette.textPrimary,
+    ...Typography.h2,
   },
   diaryTabsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
     gap: 8,
   },
   diaryTabBtn: {
@@ -590,22 +620,11 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Palette.bgElevated,
+    borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  diaryTabBtnActive: {
-    backgroundColor: Palette.tealDim,
-    borderColor: Palette.teal,
   },
   diaryTabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Palette.textMuted,
-  },
-  diaryTabTextActive: {
-    color: Palette.teal,
+    ...Typography.label,
   },
   addBtn: {
     marginLeft: 'auto',
@@ -614,26 +633,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
     marginHorizontal: 16,
-    backgroundColor: Palette.bgSurface,
-    borderRadius: 16,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   emptyText: {
-    fontSize: 15,
-    color: Palette.textMuted,
+    ...Typography.body,
     textAlign: 'center',
     marginTop: 12,
     marginBottom: 20,
   },
   createBtn: {
-    backgroundColor: Palette.teal,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
   },
   createBtnText: {
-    color: Palette.bgPrimary,
+    color: '#fff',
     fontWeight: '700',
     fontSize: 15,
   },
@@ -645,24 +660,15 @@ const styles = StyleSheet.create({
   },
   diaryGridCardShadow: {
     width: '47.5%',
-    borderRadius: 14,
-    backgroundColor: Palette.bgSurface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: Radius.sm,
   },
   diaryGridCard: {
-    borderRadius: 14,
+    borderRadius: Radius.sm,
     overflow: 'hidden',
-    backgroundColor: Palette.bgSurface,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   diaryGridCover: {
     height: 120,
-    backgroundColor: Palette.bgElevated,
     position: 'relative',
   },
   diaryGridCoverImg: {
@@ -673,47 +679,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Palette.bgElevated,
   },
   gridStatusBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: Palette.overlayMid,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
-  },
-  gridStatusPublished: {
-    backgroundColor: 'rgba(0,201,167,0.18)',
+    borderRadius: Radius.xs,
   },
   gridStatusText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Palette.textSecondary,
-  },
-  gridStatusTextPublished: {
-    color: Palette.teal,
+    ...Typography.micro,
   },
   diaryGridInfo: {
     padding: 10,
   },
   diaryGridTitle: {
-    fontSize: 13,
+    ...Typography.caption,
     fontWeight: '700',
-    color: Palette.textPrimary,
     lineHeight: 18,
     marginBottom: 4,
   },
   diaryGridAuthor: {
     fontSize: 11,
-    color: Palette.teal,
     fontWeight: '600',
     marginBottom: 3,
   },
   diaryGridDest: {
     fontSize: 11,
-    color: Palette.textMuted,
     marginBottom: 6,
   },
   diaryGridStats: {
@@ -722,7 +715,6 @@ const styles = StyleSheet.create({
   },
   diaryGridStatNum: {
     fontSize: 11,
-    color: Palette.textMuted,
     fontWeight: '600',
     marginLeft: 2,
   },
@@ -730,7 +722,6 @@ const styles = StyleSheet.create({
   // Modal
   modalContainer: {
     flex: 1,
-    backgroundColor: Palette.bgSurface,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -740,25 +731,20 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.border,
   },
   modalTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Palette.textPrimary,
+    ...Typography.h3,
   },
   modalSaveBtn: {
-    backgroundColor: Palette.teal,
     paddingHorizontal: 16,
     paddingVertical: 7,
-    borderRadius: 20,
+    borderRadius: Radius.full,
     minWidth: 64,
     alignItems: 'center',
   },
   modalSaveBtnText: {
-    color: Palette.bgPrimary,
-    fontSize: 14,
-    fontWeight: '700',
+    color: '#fff',
+    ...Typography.label,
   },
   modalBody: {
     flex: 1,
@@ -778,20 +764,14 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 2.5,
-    borderColor: Palette.teal,
     padding: 3,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Palette.teal,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
   },
   avatarLarge: {
     width: 86,
     height: 86,
     borderRadius: 43,
-    backgroundColor: Palette.tealDim,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -805,19 +785,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 2,
     right: 2,
-    backgroundColor: Palette.teal,
     width: 26,
     height: 26,
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: Palette.bgSurface,
   },
   changeAvatarText: {
     marginTop: 10,
-    color: Palette.teal,
-    fontSize: 13,
+    ...Typography.caption,
     fontWeight: '600',
   },
   inputGroup: {
@@ -830,58 +807,37 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   label: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Palette.textMuted,
+    ...Typography.label,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   charCount: {
-    fontSize: 12,
-    color: Palette.textMuted,
-    fontWeight: '500',
-  },
-  charCountOver: {
-    color: Palette.red,
+    ...Typography.caption,
   },
   input: {
     borderWidth: 1.5,
-    borderColor: Palette.border,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 13,
     fontSize: 16,
-    color: Palette.textPrimary,
-    backgroundColor: Palette.bgElevated,
-  },
-  inputFocused: {
-    borderColor: Palette.teal,
-    backgroundColor: Palette.bgElevated,
-  },
-  inputError: {
-    borderColor: Palette.red,
   },
   inputWithPrefix: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: Palette.border,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    backgroundColor: Palette.bgElevated,
   },
   inputPrefix: {
     fontSize: 16,
-    color: Palette.textSecondary,
     fontWeight: '600',
     marginRight: 2,
   },
   inputInline: {
     flex: 1,
     fontSize: 16,
-    color: Palette.textPrimary,
     padding: 0,
   },
   errorRow: {
@@ -891,30 +847,22 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   errorText: {
-    fontSize: 12,
-    color: Palette.red,
-    fontWeight: '500',
+    ...Typography.caption,
   },
   textArea: {
     height: 110,
     textAlignVertical: 'top',
   },
   saveBodyBtn: {
-    backgroundColor: Palette.teal,
     height: 52,
-    borderRadius: 14,
+    borderRadius: Radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 4,
     marginBottom: 16,
-    shadowColor: Palette.teal,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
   },
   saveBodyBtnText: {
-    color: Palette.bgPrimary,
+    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -925,11 +873,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: Palette.border,
   },
   logoutText: {
     fontSize: 15,
-    color: Palette.red,
     fontWeight: '600',
   },
 });

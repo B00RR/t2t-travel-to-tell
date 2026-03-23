@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList, ScrollView,
-  TouchableOpacity, ActivityIndicator, RefreshControl, Alert
+  TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
@@ -10,8 +10,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import { PeopleToFollow } from '@/components/PeopleToFollow';
 import { WanderlustMap } from '@/components/WanderlustMap';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Spacing, Radius, Typography } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
-import { Palette } from '@/constants/theme';
 
 type ExploreMode = 'browse' | 'map';
 
@@ -41,6 +42,7 @@ function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const theme = useAppTheme();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
@@ -61,10 +63,7 @@ export default function DiscoveryScreen() {
   }, []);
 
   const fetchBrowse = useCallback(async (pageNum: number, refresh = false, sort: SortMode = sortMode) => {
-    if (sort === 'trending') {
-      // Trending uses its own dataset, no pagination needed
-      return;
-    }
+    if (sort === 'trending') return;
 
     if (pageNum === 0) {
       if (refresh) setRefreshing(true);
@@ -254,15 +253,23 @@ export default function DiscoveryScreen() {
           {sorts.map(s => (
             <TouchableOpacity
               key={s.key}
-              style={[styles.sortChip, sortMode === s.key && styles.sortChipActive]}
+              style={[
+                styles.sortChip,
+                { backgroundColor: theme.bgElevated, borderColor: theme.border },
+                sortMode === s.key && { backgroundColor: theme.teal, borderColor: theme.teal },
+              ]}
               onPress={() => handleSortChange(s.key)}
             >
               <Ionicons
                 name={s.icon as keyof typeof Ionicons.glyphMap}
                 size={15}
-                color={sortMode === s.key ? Palette.bgPrimary : Palette.textSecondary}
+                color={sortMode === s.key ? '#fff' : theme.textSecondary}
               />
-              <Text style={[styles.sortChipText, sortMode === s.key && styles.sortChipTextActive]}>
+              <Text style={[
+                styles.sortChipText,
+                { color: theme.textSecondary },
+                sortMode === s.key && { color: '#fff' },
+              ]}>
                 {s.label}
               </Text>
             </TouchableOpacity>
@@ -276,10 +283,18 @@ export default function DiscoveryScreen() {
           {(['all', 'short', 'medium', 'long'] as DurationFilter[]).map(d => (
             <TouchableOpacity
               key={d}
-              style={[styles.durationChip, durationFilter === d && styles.durationChipActive]}
+              style={[
+                styles.durationChip,
+                { backgroundColor: theme.bgElevated, borderColor: theme.border },
+                durationFilter === d && { backgroundColor: theme.tealAlpha15, borderColor: theme.teal },
+              ]}
               onPress={() => setDurationFilter(d)}
             >
-              <Text style={[styles.durationChipText, durationFilter === d && styles.durationChipTextActive]}>
+              <Text style={[
+                styles.durationChipText,
+                { color: theme.textSecondary },
+                durationFilter === d && { color: theme.teal },
+              ]}>
                 {t(`explore.duration_${d}`)}
               </Text>
             </TouchableOpacity>
@@ -287,7 +302,7 @@ export default function DiscoveryScreen() {
         </ScrollView>
       </View>
     );
-  }, [isSearchMode, sortMode, durationFilter, t, handleSortChange]);
+  }, [isSearchMode, sortMode, durationFilter, t, handleSortChange, theme]);
 
   const ListHeader = useCallback(() => {
     if (isSearchMode) return null;
@@ -298,42 +313,41 @@ export default function DiscoveryScreen() {
           <PeopleToFollow currentUserId={user.id} />
         )}
         {sortMode === 'recent' && (
-          <Text style={styles.sectionTitle}>{t('explore.all_diaries')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.all_diaries')}</Text>
         )}
         {sortMode === 'popular' && (
-          <Text style={styles.sectionTitle}>{t('explore.sort_popular')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.sort_popular')}</Text>
         )}
         {sortMode === 'trending' && (
-          <Text style={styles.sectionTitle}>{t('explore.sort_trending')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.sort_trending')}</Text>
         )}
       </View>
     );
-  }, [isSearchMode, sortMode, t, SortBar, user?.id]);
+  }, [isSearchMode, sortMode, t, SortBar, user?.id, theme]);
 
   const ListFooter = useCallback(() => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={Palette.teal} />
+        <ActivityIndicator size="small" color={theme.teal} />
       </View>
     );
-  }, [loadingMore]);
+  }, [loadingMore, theme]);
 
   const emptyText = isSearchMode
     ? t('explore.no_results', { query: searchQuery })
     : t('explore.empty_browse');
 
-  // If map mode, show WanderlustMap full-screen
   if (exploreMode === 'map') {
     return (
-      <View style={styles.container}>
-        <View style={styles.mapHeader}>
-          <Text style={styles.headerTitle}>{t('explore.wanderlust_map')}</Text>
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
+        <View style={[styles.mapHeader, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('explore.wanderlust_map')}</Text>
           <TouchableOpacity
-            style={styles.modeToggleBtn}
+            style={[styles.modeToggleBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
             onPress={() => setExploreMode('browse')}
           >
-            <Ionicons name="grid-outline" size={18} color={Palette.teal} />
+            <Ionicons name="grid-outline" size={18} color={theme.teal} />
           </TouchableOpacity>
         </View>
         <WanderlustMap />
@@ -342,30 +356,30 @@ export default function DiscoveryScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
         <View style={styles.headerTopRow}>
-          <Text style={styles.headerTitle}>{t('explore.title')}</Text>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('explore.title')}</Text>
           <TouchableOpacity
-            style={styles.modeToggleBtn}
+            style={[styles.modeToggleBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
             onPress={() => setExploreMode('map')}
           >
-            <Ionicons name="globe-outline" size={18} color={Palette.teal} />
+            <Ionicons name="globe-outline" size={18} color={theme.teal} />
           </TouchableOpacity>
         </View>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={Palette.textMuted} style={styles.searchIcon} />
+        <View style={[styles.searchContainer, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
+          <Ionicons name="search" size={20} color={theme.textMuted} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.textPrimary }]}
             placeholder={t('explore.search_placeholder')}
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={theme.textMuted}
             value={searchQuery}
             onChangeText={handleSearchChange}
             returnKeyType="search"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => handleSearchChange('')}>
-              <Ionicons name="close-circle" size={20} color={Palette.textMuted} />
+              <Ionicons name="close-circle" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -373,7 +387,7 @@ export default function DiscoveryScreen() {
 
       {loading && !refreshing ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={Palette.teal} />
+          <ActivityIndicator size="large" color={theme.teal} />
         </View>
       ) : (
         <FlatList
@@ -389,13 +403,13 @@ export default function DiscoveryScreen() {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Palette.teal} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.teal} />
           }
           ListEmptyComponent={
             loading ? null : (
               <View style={styles.emptyContainer}>
-                <Ionicons name="search-outline" size={64} color={Palette.border} />
-                <Text style={styles.emptyText}>{emptyText}</Text>
+                <Ionicons name="search-outline" size={64} color={theme.border} />
+                <Text style={[styles.emptyText, { color: theme.textMuted }]}>{emptyText}</Text>
               </View>
             )
           }
@@ -408,58 +422,47 @@ export default function DiscoveryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.bgPrimary,
   },
   header: {
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingHorizontal: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.border,
-    backgroundColor: Palette.bgPrimary,
   },
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.md,
   },
   mapHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingHorizontal: 20,
     paddingBottom: 12,
-    backgroundColor: Palette.bgPrimary,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.border,
     zIndex: 2,
   },
   modeToggleBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Palette.textPrimary,
+    ...Typography.h1,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.bgSurface,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     paddingHorizontal: 12,
     height: 44,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   searchIcon: {
     marginRight: 8,
@@ -467,7 +470,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: Palette.textPrimary,
   },
   sortBar: {
     paddingHorizontal: 10,
@@ -481,22 +483,11 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Palette.bgElevated,
+    borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  sortChipActive: {
-    backgroundColor: Palette.teal,
-    borderColor: Palette.teal,
   },
   sortChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-  },
-  sortChipTextActive: {
-    color: Palette.bgPrimary,
+    ...Typography.label,
   },
   durationBar: {
     paddingHorizontal: 10,
@@ -506,33 +497,21 @@ const styles = StyleSheet.create({
   durationChip: {
     paddingHorizontal: 12,
     paddingVertical: 5,
-    borderRadius: 14,
-    backgroundColor: Palette.bgElevated,
+    borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  durationChipActive: {
-    backgroundColor: Palette.tealDim,
-    borderColor: Palette.teal,
   },
   durationChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-  },
-  durationChipTextActive: {
-    color: Palette.teal,
+    ...Typography.label,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Palette.textPrimary,
+    ...Typography.h2,
     paddingHorizontal: 10,
     paddingTop: 4,
     paddingBottom: 10,
   },
   listContent: {
     padding: 10,
+    paddingBottom: 100,
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -550,7 +529,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Palette.textMuted,
     marginTop: 16,
     textAlign: 'center',
     paddingHorizontal: 40,

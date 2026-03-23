@@ -7,10 +7,12 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius, Typography } from '@/constants/theme';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,43 +55,46 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: theme.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" backgroundColor={Palette.bgPrimary} />
+      <StatusBar
+        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.bg}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.container}>
-
+        <View style={[styles.container, { backgroundColor: theme.bg }]}>
           {/* Brand */}
           <View style={styles.brandSection}>
-            <View style={styles.logoMark}>
-              <Ionicons name="earth" size={32} color={Palette.bgPrimary} />
+            <View style={[styles.logoMark, { backgroundColor: theme.teal }]}>
+              <Ionicons name="earth" size={28} color="#fff" />
             </View>
-            <Text style={styles.logoText}>T2T</Text>
-            <Text style={styles.tagline}>Travel to Tell</Text>
+            <Text style={[styles.logoText, { color: theme.textPrimary }]}>Travel to Tell</Text>
+            <Text style={[styles.tagline, { color: theme.textMuted }]}>
+              Share your journeys with the world
+            </Text>
           </View>
 
           {/* Heading */}
           <View style={styles.headingSection}>
-            <Text style={styles.title}>{t('common.register')}</Text>
-            <Text style={styles.subtitle}>{t('auth.register_welcome')}</Text>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>{t('common.register')}</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>{t('auth.register_welcome')}</Text>
           </View>
 
           {/* Form */}
           <View style={styles.form}>
-            {/* Username */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('profile.username')}</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="at-outline" size={18} color={Palette.textMuted} style={styles.inputIcon} />
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('profile.username')}</Text>
+              <View style={[styles.inputWrapper, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
+                <Ionicons name="at-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: theme.textPrimary }]}
                   placeholder={t('profile.username_placeholder')}
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={theme.textMuted}
                   autoCapitalize="none"
                   value={username}
                   onChangeText={setUsername}
@@ -97,15 +102,14 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            {/* Email */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('auth.email')}</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="mail-outline" size={18} color={Palette.textMuted} style={styles.inputIcon} />
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('auth.email')}</Text>
+              <View style={[styles.inputWrapper, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
+                <Ionicons name="mail-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: theme.textPrimary }]}
                   placeholder="email@example.com"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={theme.textMuted}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   value={email}
@@ -114,15 +118,14 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            {/* Password */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('auth.password')}</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={18} color={Palette.textMuted} style={styles.inputIcon} />
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('auth.password')}</Text>
+              <View style={[styles.inputWrapper, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
+                <Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={[styles.input, styles.inputFlex]}
+                  style={[styles.input, { color: theme.textPrimary }]}
                   placeholder="••••••••"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={theme.textMuted}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   value={password}
@@ -135,33 +138,31 @@ export default function RegisterScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={Palette.textMuted}
+                    color={theme.textMuted}
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* CTA */}
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, { backgroundColor: theme.teal }, loading && styles.buttonDisabled]}
               onPress={signUpWithEmail}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color={Palette.bgPrimary} />
+                <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>{t('common.register')}</Text>
               )}
             </TouchableOpacity>
 
-            {/* Login link */}
             <TouchableOpacity
               style={styles.footerRow}
               onPress={() => router.push('/(auth)/login')}
               activeOpacity={0.75}
             >
-              <Text style={styles.footerText}>{t('auth.have_account')}</Text>
+              <Text style={[styles.footerText, { color: theme.teal }]}>{t('auth.have_account')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -173,7 +174,6 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: Palette.bgPrimary,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 28,
     paddingVertical: 40,
-    backgroundColor: Palette.bgPrimary,
     justifyContent: 'center',
   },
   brandSection: {
@@ -191,47 +190,30 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
   logoMark: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: Palette.teal,
+    width: 56,
+    height: 56,
+    borderRadius: Radius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14,
-    shadowColor: Palette.teal,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
+    marginBottom: 16,
   },
   logoText: {
-    fontSize: 34,
-    fontWeight: '900',
-    color: Palette.textPrimary,
-    letterSpacing: -2,
+    ...Typography.h1,
+    marginBottom: 4,
   },
   tagline: {
-    fontSize: 13,
-    color: Palette.textMuted,
-    fontWeight: '500',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginTop: 2,
+    ...Typography.caption,
+    letterSpacing: 0.5,
   },
   headingSection: {
     marginBottom: 28,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Palette.textPrimary,
-    letterSpacing: -1,
+    ...Typography.display,
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 15,
-    color: Palette.textSecondary,
-    lineHeight: 22,
+    ...Typography.body,
   },
   form: {
     gap: 16,
@@ -240,19 +222,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Palette.textSecondary,
-    letterSpacing: 0.2,
+    ...Typography.label,
     textTransform: 'uppercase',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.bgSurface,
-    borderRadius: 14,
+    borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: Palette.border,
   },
   inputIcon: {
     paddingLeft: 16,
@@ -260,46 +237,34 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 12,
     fontSize: 16,
-    color: Palette.textPrimary,
-  },
-  inputFlex: {
-    flex: 1,
   },
   eyeBtn: {
     paddingHorizontal: 14,
     paddingVertical: 14,
   },
   button: {
-    backgroundColor: Palette.teal,
-    borderRadius: 14,
-    height: 56,
+    borderRadius: Radius.sm,
+    height: 52,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 4,
-    shadowColor: Palette.teal,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: Palette.bgPrimary,
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.2,
+    fontWeight: '700',
   },
   footerRow: {
     alignItems: 'center',
     paddingVertical: 8,
   },
   footerText: {
-    color: Palette.teal,
     fontSize: 14,
     fontWeight: '600',
   },

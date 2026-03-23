@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react';
 import {
-  View, TouchableOpacity, StyleSheet, Platform,
+  View, Text, TouchableOpacity, StyleSheet, Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   interpolate,
-  SharedValue,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Palette, Glass } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { useNotifications } from '@/hooks/useNotifications';
+import { Spacing, Radius, Typography } from '@/constants/theme';
 
 interface MorphingTabBarProps {
   state: { routes: Array<{ key: string; name: string }>; index: number };
@@ -21,75 +21,73 @@ interface MorphingTabBarProps {
 }
 
 const TAB_ICONS: Record<string, { default: string; active: string }> = {
-  index:   { default: 'compass-outline',  active: 'compass' },
-  create:  { default: 'add',              active: 'add' },
+  index:   { default: 'home-outline',     active: 'home' },
+  explore: { default: 'compass-outline',  active: 'compass' },
+  create:  { default: 'add-circle-outline', active: 'add-circle' },
+  map:     { default: 'map-outline',      active: 'map' },
   profile: { default: 'person-outline',   active: 'person' },
 };
 
+const TAB_LABELS: Record<string, string> = {
+  index:   'Home',
+  explore: 'Explore',
+  create:  'Create',
+  map:     'Map',
+  profile: 'Profile',
+};
+
 /**
- * 3-tab morphing navigation bar.
- * Clean, minimal design with a glowing center Create button.
- * Adapts to both light and dark themes via glassmorphism.
+ * Terra — 5-tab clean bottom bar.
+ * Warm, minimal design with labels and a subtle active indicator.
  */
 export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBarProps) {
+  const theme = useAppTheme();
   const { unreadCount } = useNotifications();
 
-  // Animate in on mount
   const mountProgress = useSharedValue(0);
   useEffect(() => {
-    mountProgress.value = withSpring(1, { damping: 15, stiffness: 100 });
+    mountProgress.value = withSpring(1, { damping: 18, stiffness: 90 });
   }, []);
 
   const containerStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: interpolate(mountProgress.value, [0, 1], [100, 0]) },
-      { scale: interpolate(mountProgress.value, [0, 1], [0.8, 1]) },
+      { translateY: interpolate(mountProgress.value, [0, 1], [80, 0]) },
     ],
     opacity: mountProgress.value,
   }));
 
   return (
-    <Animated.View style={[styles.container, containerStyle]}>
-      <View style={styles.bar}>
-        {state.routes.map((route: any, index: number) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const isCreate = route.name === 'create';
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.bgSurface,
+          borderTopColor: theme.border,
+        },
+        containerStyle,
+      ]}
+    >
+      {state.routes.map((route: any, index: number) => {
+        const isFocused = state.index === index;
+        const isCreate = route.name === 'create';
 
-          const iconConfig = TAB_ICONS[route.name] || TAB_ICONS.index;
-          const iconName = isFocused ? iconConfig.active : iconConfig.default;
+        const iconConfig = TAB_ICONS[route.name] || TAB_ICONS.index;
+        const iconName = isFocused ? iconConfig.active : iconConfig.default;
+        const label = TAB_LABELS[route.name] || route.name;
 
-          const onPress = () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
-
-          if (isCreate) {
-            return (
-              <TouchableOpacity
-                key={route.key}
-                style={styles.createBtnOuter}
-                onPress={onPress}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.createBtn, isFocused && styles.createBtnFocused]}>
-                  <Ionicons
-                    name="add"
-                    size={28}
-                    color={isFocused ? Palette.bgPrimary : '#fff'}
-                  />
-                </View>
-              </TouchableOpacity>
-            );
+        const onPress = () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
           }
+        };
 
+        if (isCreate) {
           return (
             <TouchableOpacity
               key={route.key}
@@ -97,105 +95,102 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
               onPress={onPress}
               activeOpacity={0.7}
             >
-              <View style={styles.tabIconWrap}>
-                <Ionicons
-                  name={iconName as keyof typeof Ionicons.glyphMap}
-                  size={24}
-                  color={isFocused ? Palette.teal : 'rgba(255,255,255,0.5)'}
-                />
-                {/* Active indicator dot */}
-                {isFocused && <View style={styles.activeDot} />}
-                {/* Notification badge on profile */}
-                {route.name === 'profile' && unreadCount > 0 && (
-                  <View style={styles.notifDot} />
-                )}
+              <View style={[styles.createBtn, { backgroundColor: theme.teal }]}>
+                <Ionicons name="add" size={22} color="#fff" />
               </View>
+              <Text style={[styles.label, { color: isFocused ? theme.teal : theme.textMuted }]}>
+                {label}
+              </Text>
             </TouchableOpacity>
           );
-        })}
-      </View>
+        }
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            style={styles.tabBtn}
+            onPress={onPress}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconWrap}>
+              <Ionicons
+                name={iconName as keyof typeof Ionicons.glyphMap}
+                size={22}
+                color={isFocused ? theme.teal : theme.textMuted}
+              />
+              {route.name === 'profile' && unreadCount > 0 && (
+                <View style={[styles.notifDot, { backgroundColor: theme.red }]} />
+              )}
+            </View>
+            <Text
+              style={[
+                styles.label,
+                { color: isFocused ? theme.teal : theme.textMuted },
+                isFocused && styles.labelActive,
+              ]}
+            >
+              {label}
+            </Text>
+            {isFocused && (
+              <View style={[styles.activeIndicator, { backgroundColor: theme.teal }]} />
+            )}
+          </TouchableOpacity>
+        );
+      })}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 30 : 16,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 50,
-  },
-  bar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(15,15,25,0.85)',
-    borderRadius: 40,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    gap: 6,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.1)',
-    // Deep shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.7,
-    shadowRadius: 28,
-    elevation: 24,
+    borderTopWidth: 1,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+    paddingTop: 8,
   },
-
   tabBtn: {
-    width: 56,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 24,
-  },
-  tabIconWrap: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 4,
+    position: 'relative',
   },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Palette.teal,
-    marginTop: 4,
+  iconWrap: {
+    position: 'relative',
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notifDot: {
     position: 'absolute',
-    top: -2,
-    right: -4,
+    top: 0,
+    right: -2,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Palette.red,
     borderWidth: 1.5,
-    borderColor: 'rgba(15,15,25,0.85)',
+    borderColor: '#fff',
   },
-
-  // Center Create button — the star of the show
-  createBtnOuter: {
-    marginHorizontal: 8,
+  label: {
+    ...Typography.micro,
+    marginTop: 2,
+  },
+  labelActive: {
+    fontWeight: '700',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    top: 0,
+    width: 20,
+    height: 2.5,
+    borderRadius: 2,
   },
   createBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Palette.teal,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    // Teal glow aura
-    shadowColor: Palette.teal,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.7,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  createBtnFocused: {
-    backgroundColor: '#fff',
-    shadowColor: '#fff',
-    shadowOpacity: 0.5,
   },
 });

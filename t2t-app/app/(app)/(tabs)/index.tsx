@@ -1,34 +1,25 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  RefreshControl, StatusBar, Dimensions, Platform,
+  RefreshControl, StatusBar, Platform,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { CommentsModal } from '@/components/CommentsModal';
+import { FeedDiaryCard } from '@/components/FeedDiaryCard';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
-import { ImmersiveStoryCard } from '@/components/ImmersiveStoryCard';
-import { StoryProgressBar } from '@/components/StoryProgressBar';
-import { Palette, Glass, Motion } from '@/constants/theme';
+import { Spacing, Typography, Radius } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList<FeedDiary>
-);
 
 type FeedTab = 'discover' | 'following';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const theme = useAppTheme();
   const [tab, setTab] = useState<FeedTab>('discover');
   const [discoverDiaries, setDiscoverDiaries] = useState<FeedDiary[]>([]);
   const [followingDiaries, setFollowingDiaries] = useState<FeedDiary[]>([]);
@@ -39,16 +30,6 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // Shared value for scroll-driven animations
-  const scrollX = useSharedValue(0);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
 
   const fetchDiscover = useCallback(async (isRefreshing = false) => {
     if (!isRefreshing) setLoading(true);
@@ -131,90 +112,78 @@ export default function HomeScreen() {
   function handleTabChange(newTab: FeedTab) {
     setTab(newTab);
     setErrorVisible(false);
-    setActiveIndex(0);
     if (newTab === 'discover') fetchDiscover(false);
     else fetchFollowing(false);
   }
 
   const diaries = tab === 'discover' ? discoverDiaries : followingDiaries;
 
-  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
-    if (viewableItems.length > 0) {
-      setActiveIndex(viewableItems[0].index ?? 0);
-    }
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 60,
-  }).current;
-
-  const renderStoryCard = useCallback(
-    ({ item, index: idx }: { item: FeedDiary; index: number }) => (
-      <ImmersiveStoryCard
+  const renderCard = useCallback(
+    ({ item }: { item: FeedDiary }) => (
+      <FeedDiaryCard
         item={item}
         userId={user?.id}
-        scrollX={scrollX}
-        index={idx}
         onCommentPress={setSelectedDiaryId}
-        isActive={idx === activeIndex}
       />
     ),
-    [user?.id, activeIndex]
+    [user?.id]
   );
 
-  const emptyIcon = tab === 'following' ? 'people-outline' : 'globe-outline';
+  const emptyIcon = tab === 'following' ? 'people-outline' : 'compass-outline';
   const emptyTitle = tab === 'following' ? t('home.no_following') : t('home.no_diaries');
   const emptySub = tab === 'following' ? t('home.no_following_sub') : t('home.no_diaries_sub');
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <StatusBar
+        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.bg}
+      />
 
-      {/* Story Progress Bar */}
-      {diaries.length > 1 && (
-        <StoryProgressBar
-          count={diaries.length}
-          scrollX={scrollX}
-          screenWidth={SCREEN_WIDTH}
-        />
-      )}
-
-      {/* Floating header overlay */}
-      <View style={styles.header}>
-        <Text style={styles.headerLogo}>T2T</Text>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerLogo, { color: theme.teal }]}>T2T</Text>
         <View style={styles.headerRight}>
           {/* Tab toggle */}
-          <View style={styles.miniToggle}>
+          <View style={[styles.toggle, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}>
             <TouchableOpacity
-              style={[styles.miniToggleBtn, tab === 'discover' && styles.miniToggleBtnActive]}
+              style={[
+                styles.toggleBtn,
+                tab === 'discover' && { backgroundColor: theme.teal },
+              ]}
               onPress={() => handleTabChange('discover')}
             >
-              <Ionicons
-                name="globe-outline"
-                size={14}
-                color={tab === 'discover' ? '#fff' : 'rgba(255,255,255,0.5)'}
-              />
+              <Text style={[
+                styles.toggleText,
+                { color: tab === 'discover' ? '#fff' : theme.textMuted },
+              ]}>
+                {t('home.discover') || 'Discover'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.miniToggleBtn, tab === 'following' && styles.miniToggleBtnActive]}
+              style={[
+                styles.toggleBtn,
+                tab === 'following' && { backgroundColor: theme.teal },
+              ]}
               onPress={() => handleTabChange('following')}
             >
-              <Ionicons
-                name="people-outline"
-                size={14}
-                color={tab === 'following' ? '#fff' : 'rgba(255,255,255,0.5)'}
-              />
+              <Text style={[
+                styles.toggleText,
+                { color: tab === 'following' ? '#fff' : theme.textMuted },
+              ]}>
+                {t('home.following') || 'Following'}
+              </Text>
             </TouchableOpacity>
           </View>
 
           {/* Notifications */}
           <TouchableOpacity
-            style={styles.notifBtn}
+            style={[styles.notifBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
             onPress={() => router.push('/(app)/notifications')}
           >
-            <Ionicons name="notifications-outline" size={20} color="#fff" />
+            <Ionicons name="notifications-outline" size={20} color={theme.textSecondary} />
             {unreadCount > 0 && (
-              <View style={styles.badge}>
+              <View style={[styles.badge, { backgroundColor: theme.red }]}>
                 <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
               </View>
             )}
@@ -225,17 +194,19 @@ export default function HomeScreen() {
       {/* Content */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <View style={styles.loadingPulse}>
-            <Ionicons name="earth" size={48} color={Palette.teal} />
-            <Text style={styles.loadingText}>{t('common.loading')}</Text>
-          </View>
+          <Ionicons name="compass-outline" size={48} color={theme.teal} />
+          <Text style={[styles.loadingText, { color: theme.textMuted }]}>
+            {t('common.loading')}
+          </Text>
         </View>
       ) : errorVisible && diaries.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="cloud-offline-outline" size={48} color={Palette.red} />
-          <Text style={styles.emptyTitle}>{t('common.error_generic')}</Text>
+          <Ionicons name="cloud-offline-outline" size={48} color={theme.red} />
+          <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>
+            {t('common.error_generic')}
+          </Text>
           <TouchableOpacity
-            style={styles.retryBtn}
+            style={[styles.retryBtn, { backgroundColor: theme.teal }]}
             onPress={() => tab === 'discover' ? fetchDiscover() : fetchFollowing()}
           >
             <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
@@ -243,14 +214,14 @@ export default function HomeScreen() {
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
-          <View style={styles.emptyIconWrap}>
-            <Ionicons name={emptyIcon} size={44} color={Palette.teal} />
+          <View style={[styles.emptyIconWrap, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}>
+            <Ionicons name={emptyIcon} size={36} color={theme.teal} />
           </View>
-          <Text style={styles.emptyTitle}>{emptyTitle}</Text>
-          <Text style={styles.emptySub}>{emptySub}</Text>
+          <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>{emptyTitle}</Text>
+          <Text style={[styles.emptySub, { color: theme.textMuted }]}>{emptySub}</Text>
           {tab === 'following' && (
             <TouchableOpacity
-              style={styles.exploreBtn}
+              style={[styles.exploreBtn, { backgroundColor: theme.teal }]}
               onPress={() => router.push('/(app)/(tabs)/explore')}
             >
               <Text style={styles.exploreBtnText}>{t('home.explore_people')}</Text>
@@ -258,28 +229,18 @@ export default function HomeScreen() {
           )}
         </View>
       ) : (
-        <AnimatedFlatList
+        <FlatList
           data={diaries}
           keyExtractor={(item) => item.id}
-          renderItem={renderStoryCard}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          getItemLayout={(_, index) => ({
-            length: SCREEN_WIDTH,
-            offset: SCREEN_WIDTH * index,
-            index,
-          })}
+          renderItem={renderCard}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={Palette.teal}
-              colors={[Palette.teal]}
+              tintColor={theme.teal}
+              colors={[theme.teal]}
             />
           }
         />
@@ -298,162 +259,122 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
   },
-
-  // Floating header (over the full-screen images)
   header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingBottom: 12,
-    zIndex: 20,
+    borderBottomWidth: 1,
   },
   headerLogo: {
     fontSize: 28,
-    fontWeight: '900',
-    color: '#fff',
+    fontWeight: '800',
     letterSpacing: -2,
-    textShadowColor: 'rgba(0,201,167,0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-
-  // Mini toggle for discover/following
-  miniToggle: {
+  toggle: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.15)',
-    padding: 2,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    padding: 3,
     gap: 2,
   },
-  miniToggleBtn: {
-    width: 32,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+  toggleBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
   },
-  miniToggleBtnActive: {
-    backgroundColor: Palette.teal,
+  toggleText: {
+    ...Typography.label,
   },
-
-  // Notification button
   notifBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
   },
   badge: {
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: Palette.red,
     minWidth: 14,
     height: 14,
     borderRadius: 7,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 3,
-    borderWidth: 1.5,
-    borderColor: '#000',
   },
   badgeText: {
     color: '#fff',
     fontSize: 8,
     fontWeight: '800',
   },
-
-  // Loading state
+  listContent: {
+    paddingTop: Spacing.md,
+    paddingBottom: 100,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Palette.bgPrimary,
-  },
-  loadingPulse: {
     alignItems: 'center',
     gap: 16,
   },
   loadingText: {
     fontSize: 14,
-    color: Palette.textMuted,
     fontWeight: '600',
   },
-
-  // Empty state
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: Palette.bgPrimary,
   },
   emptyIconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Palette.bgSurface,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     borderWidth: 1,
-    borderColor: Palette.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Palette.textSecondary,
+    ...Typography.h3,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptySub: {
-    fontSize: 14,
-    color: Palette.textMuted,
+    ...Typography.body,
     textAlign: 'center',
     lineHeight: 20,
   },
   exploreBtn: {
     marginTop: 24,
-    backgroundColor: Palette.teal,
     paddingHorizontal: 28,
     paddingVertical: 13,
-    borderRadius: 28,
+    borderRadius: Radius.full,
   },
   exploreBtnText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.2,
+    ...Typography.label,
   },
   retryBtn: {
     marginTop: 16,
-    backgroundColor: Palette.teal,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 24,
+    borderRadius: Radius.full,
   },
   retryBtnText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
+    ...Typography.label,
   },
 });

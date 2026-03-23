@@ -2,15 +2,15 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Palette } from '@/constants/theme';
 
 /**
- * Semantic design tokens — adapts to system light/dark mode.
+ * Terra design tokens — adapts to system light/dark mode.
  * Use this hook in every component instead of importing Palette directly.
  */
 export interface AppTheme {
   // Backgrounds
-  bg: string;           // main screen background
-  bgSurface: string;    // card / list item background
-  bgElevated: string;   // modal, bottom-sheet, elevated surfaces
-  bgSubtle: string;     // subtle section backgrounds, input fills
+  bg: string;
+  bgSurface: string;
+  bgElevated: string;
+  bgSubtle: string;
 
   // Borders
   border: string;
@@ -21,98 +21,108 @@ export interface AppTheme {
   textSecondary: string;
   textMuted: string;
 
-  // Accents (same in both themes, slight lightness adjustment)
-  teal: string;
-  tealDim: string;
-  orange: string;
-  red: string;
+  // Brand accents
+  teal: string;       // primary (terracotta)
+  tealDim: string;    // primary dimmed
+  orange: string;     // warm accent (amber)
+  red: string;        // error / like
 
   // Passport & premium
   navy: string;
   passGold: string;
 
-  // Teal alpha helpers (for backgrounds, borders)
-  tealAlpha10: string;   // rgba teal 10%
-  tealAlpha15: string;   // rgba teal 15%
-  tealAlpha25: string;   // rgba teal 25% (borders)
-  tealAlpha50: string;   // rgba teal 50% (cover badge border)
+  // Alpha helpers
+  tealAlpha10: string;
+  tealAlpha15: string;
+  tealAlpha25: string;
+  tealAlpha50: string;
   orangeAlpha10: string;
 
   // Overlays
   overlay: string;
+
+  // Secondary accent
+  ocean: string;
+  sage: string;
 
   // Scheme
   scheme: 'light' | 'dark';
   isDark: boolean;
 }
 
-const dark: AppTheme = {
-  bg:          Palette.bgPrimary,
-  bgSurface:   Palette.bgSurface,
-  bgElevated:  Palette.bgElevated,
-  bgSubtle:    Palette.bgSubtle,
-
-  border:      Palette.border,
-  borderLight: Palette.borderLight,
-
-  textPrimary:   Palette.textPrimary,
-  textSecondary: Palette.textSecondary,
-  textMuted:     Palette.textMuted,
-
-  teal:    Palette.teal,
-  tealDim: Palette.tealDim,
-  orange:  Palette.orange,
-  red:     Palette.red,
-
-  navy:     Palette.navy,
-  passGold: Palette.passGold,
-
-  tealAlpha10:   'rgba(0,201,167,0.10)',
-  tealAlpha15:   'rgba(0,201,167,0.15)',
-  tealAlpha25:   'rgba(0,201,167,0.25)',
-  tealAlpha50:   'rgba(0,201,167,0.50)',
-  orangeAlpha10: 'rgba(249,115,22,0.10)',
-
-  overlay: 'rgba(0,0,0,0.70)',
-
-  scheme: 'dark',
-  isDark: true,
-};
-
 const light: AppTheme = {
-  bg:          '#F6F6FC',
-  bgSurface:   '#FFFFFF',
-  bgElevated:  '#EEEEF8',
-  bgSubtle:    '#E6E6F4',
+  bg:          Palette.cream,
+  bgSurface:   Palette.white,
+  bgElevated:  Palette.sandLight,
+  bgSubtle:    Palette.sand,
 
-  border:      '#DDDDF0',
-  borderLight: '#EAEAF8',
+  border:      Palette.borderLight,
+  borderLight: '#F0EBE2',
 
-  textPrimary:   '#0A0A14',
-  textSecondary: '#555570',
-  textMuted:     '#9999B8',
+  textPrimary:   Palette.inkPrimary,
+  textSecondary: Palette.inkSecondary,
+  textMuted:     Palette.inkMuted,
 
-  teal:    '#00A88A',   // slightly darker for legibility on white
-  tealDim: '#008870',
-  orange:  '#E86A0A',   // slightly darker for contrast on white
-  red:     '#E83050',
+  teal:    Palette.terracotta,
+  tealDim: Palette.terracottaDim,
+  orange:  Palette.amber,
+  red:     Palette.error,
 
-  navy:     '#0A1628',
-  passGold: '#B8903C',   // slightly warmer on light bg
+  navy:     Palette.ocean,
+  passGold: Palette.amber,
 
-  tealAlpha10:   'rgba(0,168,138,0.10)',
-  tealAlpha15:   'rgba(0,168,138,0.15)',
-  tealAlpha25:   'rgba(0,168,138,0.25)',
-  tealAlpha50:   'rgba(0,168,138,0.50)',
-  orangeAlpha10: 'rgba(232,106,10,0.10)',
+  tealAlpha10:   'rgba(212,101,74,0.10)',
+  tealAlpha15:   'rgba(212,101,74,0.15)',
+  tealAlpha25:   'rgba(212,101,74,0.25)',
+  tealAlpha50:   'rgba(212,101,74,0.50)',
+  orangeAlpha10: 'rgba(232,168,76,0.10)',
 
-  overlay: 'rgba(0,0,0,0.50)',
+  overlay: 'rgba(28,28,30,0.50)',
+
+  ocean: Palette.ocean,
+  sage:  Palette.sage,
 
   scheme: 'light',
   isDark: false,
 };
 
+const dark: AppTheme = {
+  bg:          Palette.charcoal,
+  bgSurface:   Palette.slate,
+  bgElevated:  Palette.slateMid,
+  bgSubtle:    Palette.slateLight,
+
+  border:      Palette.borderDark,
+  borderLight: '#333333',
+
+  textPrimary:   Palette.snowPrimary,
+  textSecondary: Palette.snowSecondary,
+  textMuted:     Palette.snowMuted,
+
+  teal:    '#E07A62',
+  tealDim: '#C06850',
+  orange:  Palette.amber,
+  red:     '#E86060',
+
+  navy:     '#2A6B8F',
+  passGold: Palette.amber,
+
+  tealAlpha10:   'rgba(224,122,98,0.10)',
+  tealAlpha15:   'rgba(224,122,98,0.15)',
+  tealAlpha25:   'rgba(224,122,98,0.25)',
+  tealAlpha50:   'rgba(224,122,98,0.50)',
+  orangeAlpha10: 'rgba(232,168,76,0.10)',
+
+  overlay: 'rgba(0,0,0,0.65)',
+
+  ocean: '#4A9BC5',
+  sage:  '#6BB57E',
+
+  scheme: 'dark',
+  isDark: true,
+};
+
 export function useAppTheme(): AppTheme {
-  const scheme = useColorScheme() ?? 'dark';
+  const scheme = useColorScheme() ?? 'light';
   return scheme === 'dark' ? dark : light;
 }

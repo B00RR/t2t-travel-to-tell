@@ -2,8 +2,8 @@ import { Tabs } from 'expo-router';
 import { MorphingTabBar } from '@/components/MorphingTabBar';
 
 /**
- * 3-tab immersive navigation: Discover / Create / You
- * Uses custom MorphingTabBar — minimal, floating, glassmorphic.
+ * 5-tab navigation: Home / Explore / Create / Map / Profile
+ * Terra design — clean, warm, organic tab bar.
  */
 export default function TabLayout() {
   return (
@@ -15,29 +15,25 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: 'Discover' }}
+        options={{ title: 'Home' }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{ title: 'Explore' }}
       />
       <Tabs.Screen
         name="create"
-        options={{ title: '' }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{ title: 'You' }}
-      />
-      {/* Hidden screens — still accessible via navigation but not shown in tab bar */}
-      <Tabs.Screen
-        name="explore"
-        options={{
-          href: null,
-        }}
+        options={{ title: 'Create' }}
       />
       <Tabs.Screen
         name="map"
-        options={{
-          href: null,
-        }}
+        options={{ title: 'Map' }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: 'Profile' }}
+      />
+      {/* Planner accessible via navigation but not in tab bar */}
       <Tabs.Screen
         name="planner"
         options={{

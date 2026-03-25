@@ -149,7 +149,7 @@ function getMoodAmbientColor(emoji: string): string {
     '\u{1F929}': 'rgba(255,215,0,0.08)',    // Fantastico — gold
     '\u{1F60A}': 'rgba(0,201,167,0.06)',     // Felice — teal
     '\u{1F60C}': 'rgba(100,149,237,0.06)',   // Rilassato — cornflower
-    '\u{1F929}': 'rgba(249,115,22,0.06)',    // Entusiasta — orange
+    '\u{1F92A}': 'rgba(249,115,22,0.06)',    // Entusiasta — orange
     '\u{1F924}': 'rgba(249,115,22,0.08)',    // Goloso — orange
     '\u{1F634}': 'rgba(100,100,180,0.06)',   // Stanco — lavender
     '\u{1F624}': 'rgba(255,64,96,0.06)',     // Frustrato — red

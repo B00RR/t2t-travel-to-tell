@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import { PeopleToFollow } from '@/components/PeopleToFollow';
 import { WanderlustMap } from '@/components/WanderlustMap';
+import InteractiveGlobe from '@/components/InteractiveGlobe';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
@@ -306,14 +307,27 @@ export default function DiscoveryScreen() {
 
   const ListHeader = useCallback(() => {
     if (isSearchMode) return null;
+    
+    // Attempting to infer dark theme from background color heuristically, or assuming false.
+    // In a real scenario we could check `useColorScheme()`
+    const isDark = theme.bg === '#1A1A1A' || theme.bg === '#000000';
+
     return (
       <View>
+        {/* WOW ELEMENT: 3D Interactive Moleskine Globe */}
+        <View style={{ marginVertical: Spacing.md }}>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary, paddingHorizontal: 20 }]}>
+            Il Tuo Mondo Diari
+          </Text>
+          <InteractiveGlobe isDarkTheme={isDark} />
+        </View>
+
         <SortBar />
         {user?.id && sortMode === 'recent' && (
           <PeopleToFollow currentUserId={user.id} />
         )}
         {sortMode === 'recent' && (
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.all_diaries')}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary, paddingHorizontal: 20 }]}>{t('explore.all_diaries')}</Text>
         )}
         {sortMode === 'popular' && (
           <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.sort_popular')}</Text>

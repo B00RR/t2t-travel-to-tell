@@ -13,8 +13,8 @@ const IMAGE_WIDTH = SCREEN_WIDTH - 40;
 
 interface EntryCardProps {
   entry: DayEntry;
-  onPress: (entry: DayEntry) => void;
-  onLongPress: (entryId: string) => void;
+  onPress?: (entry: DayEntry) => void;
+  onLongPress?: (entryId: string) => void;
 }
 
 export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
@@ -25,7 +25,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
     return (
       <TouchableOpacity
         style={styles.moodCard}
-        onLongPress={() => onLongPress(entry.id)}
+        onLongPress={() => onLongPress?.(entry.id)}
         delayLongPress={600}
       >
         <Text style={styles.moodEmoji}>{entry.content}</Text>
@@ -44,7 +44,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
     return (
       <TouchableOpacity
         style={styles.photoCard}
-        onLongPress={() => onLongPress(entry.id)}
+        onLongPress={() => onLongPress?.(entry.id)}
         delayLongPress={600}
       >
         <Image
@@ -61,7 +61,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 
   // --- VIDEO ---
   if (entry.type === 'video') {
-    return <VideoEntryCard entry={entry as VideoDayEntry} onLongPress={onLongPress} />;
+    return <VideoEntryCard entry={entry as VideoDayEntry} onLongPress={() => onLongPress?.(entry.id)} />;
   }
 
   // --- LOCATION ---
@@ -69,8 +69,8 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
     return (
       <TouchableOpacity
         style={styles.locationCard}
-        onPress={() => onPress(entry)}
-        onLongPress={() => onLongPress(entry.id)}
+        onPress={() => onPress?.(entry)}
+        onLongPress={() => onLongPress?.(entry.id)}
         delayLongPress={600}
       >
         <Ionicons name="location" size={20} color={Palette.red} />
@@ -83,8 +83,8 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   return (
     <TouchableOpacity
       style={[styles.entryCard, entry.type === 'tip' && styles.entryCardTip]}
-      onPress={() => onPress(entry)}
-      onLongPress={() => onLongPress(entry.id)}
+      onPress={() => onPress?.(entry)}
+      onLongPress={() => onLongPress?.(entry.id)}
       delayLongPress={600}
     >
       <View style={styles.entryHeader}>

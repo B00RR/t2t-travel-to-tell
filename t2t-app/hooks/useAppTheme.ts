@@ -51,36 +51,36 @@ export interface AppTheme {
 }
 
 const light: AppTheme = {
-  bg:          Palette.cream,
-  bgSurface:   Palette.white,
-  bgElevated:  Palette.sandLight,
+  bg:          Palette.sandLight,
+  bgSurface:   Palette.paper,
+  bgElevated:  Palette.paper,
   bgSubtle:    Palette.sand,
 
   border:      Palette.borderLight,
   borderLight: '#F0EBE2',
 
-  textPrimary:   Palette.inkPrimary,
-  textSecondary: Palette.inkSecondary,
-  textMuted:     Palette.inkMuted,
+  textPrimary:   Palette.ink,
+  textSecondary: Palette.inkMuted,
+  textMuted:     Palette.inkFaint,
 
   teal:    Palette.terracotta,
   tealDim: Palette.terracottaDim,
   orange:  Palette.amber,
   red:     Palette.error,
 
-  navy:     Palette.ocean,
+  navy:     Palette.forest,
   passGold: Palette.amber,
 
-  tealAlpha10:   'rgba(212,101,74,0.10)',
-  tealAlpha15:   'rgba(212,101,74,0.15)',
-  tealAlpha25:   'rgba(212,101,74,0.25)',
-  tealAlpha50:   'rgba(212,101,74,0.50)',
-  orangeAlpha10: 'rgba(232,168,76,0.10)',
+  tealAlpha10:   'rgba(200,90,66,0.10)',
+  tealAlpha15:   'rgba(200,90,66,0.15)',
+  tealAlpha25:   'rgba(200,90,66,0.25)',
+  tealAlpha50:   'rgba(200,90,66,0.50)',
+  orangeAlpha10: 'rgba(217,150,50,0.10)',
 
-  overlay: 'rgba(28,28,30,0.50)',
+  overlay: Palette.overlayLight,
 
-  ocean: Palette.ocean,
-  sage:  Palette.sage,
+  ocean: Palette.info,
+  sage:  Palette.success,
 
   scheme: 'light',
   isDark: false,
@@ -89,22 +89,22 @@ const light: AppTheme = {
 const dark: AppTheme = {
   bg:          Palette.charcoal,
   bgSurface:   Palette.slate,
-  bgElevated:  Palette.slateMid,
-  bgSubtle:    Palette.slateLight,
+  bgElevated:  '#2E2D2B',
+  bgSubtle:    '#3D3A38',
 
   border:      Palette.borderDark,
   borderLight: '#333333',
 
-  textPrimary:   Palette.snowPrimary,
-  textSecondary: Palette.snowSecondary,
-  textMuted:     Palette.snowMuted,
+  textPrimary:   Palette.snow,
+  textSecondary: Palette.snowMuted,
+  textMuted:     '#7A7670',
 
   teal:    '#E07A62',
   tealDim: '#C06850',
-  orange:  Palette.amber,
+  orange:  Palette.warning,
   red:     '#E86060',
 
-  navy:     '#2A6B8F',
+  navy:     Palette.forestLight,
   passGold: Palette.amber,
 
   tealAlpha10:   'rgba(224,122,98,0.10)',
@@ -113,10 +113,10 @@ const dark: AppTheme = {
   tealAlpha50:   'rgba(224,122,98,0.50)',
   orangeAlpha10: 'rgba(232,168,76,0.10)',
 
-  overlay: 'rgba(0,0,0,0.65)',
+  overlay: Palette.overlayDark,
 
-  ocean: '#4A9BC5',
-  sage:  '#6BB57E',
+  ocean: Palette.info,
+  sage:  Palette.success,
 
   scheme: 'dark',
   isDark: true,

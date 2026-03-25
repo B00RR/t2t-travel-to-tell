@@ -12,7 +12,7 @@ import Animated, {
 
 interface KenBurnsImageProps {
   uri: string;
-  style?: ViewStyle;
+  style?: import('react-native').ImageStyle;
   duration?: number;
   maxScale?: number;
   paused?: boolean;

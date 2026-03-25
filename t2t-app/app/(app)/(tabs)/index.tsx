@@ -12,6 +12,7 @@ import { CommentsModal } from '@/components/CommentsModal';
 import { FeedDiaryCard } from '@/components/FeedDiaryCard';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
+import { Button } from '@/components/ui/Button';
 import { Spacing, Typography, Radius } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
@@ -205,12 +206,11 @@ export default function HomeScreen() {
           <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>
             {t('common.error_generic')}
           </Text>
-          <TouchableOpacity
-            style={[styles.retryBtn, { backgroundColor: theme.teal }]}
-            onPress={() => tab === 'discover' ? fetchDiscover() : fetchFollowing()}
-          >
-            <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
-          </TouchableOpacity>
+          <Button 
+            title={t('common.retry')} 
+            onPress={() => tab === 'discover' ? fetchDiscover() : fetchFollowing()} 
+            style={{ marginTop: Spacing.md }} 
+          />
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
@@ -220,12 +220,12 @@ export default function HomeScreen() {
           <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>{emptyTitle}</Text>
           <Text style={[styles.emptySub, { color: theme.textMuted }]}>{emptySub}</Text>
           {tab === 'following' && (
-            <TouchableOpacity
-              style={[styles.exploreBtn, { backgroundColor: theme.teal }]}
-              onPress={() => router.push('/(app)/(tabs)/explore')}
-            >
-              <Text style={styles.exploreBtnText}>{t('home.explore_people')}</Text>
-            </TouchableOpacity>
+            <Button 
+              title={t('home.explore_people')} 
+              onPress={() => router.push('/(app)/(tabs)/explore')} 
+              variant="primary"
+              style={{ marginTop: Spacing.lg }}
+            />
           )}
         </View>
       ) : (

@@ -10,19 +10,19 @@ interface SkeletonProps {
 }
 
 export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) => {
-  const { theme } = useAppTheme();
-  const shimmer = useRef(new Animated.Value(0)).current;
+  const theme = useAppTheme();
+  const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0, duration: 900, useNativeDriver: true }),
       ])
     ).start();
-  }, [shimmer]);
+  }, [pulseAnim]);
 
-  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] });
+  const opacity = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] });
 
   return (
     <Animated.View
@@ -41,7 +41,7 @@ export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) 
 };
 
 export const DiaryCardSkeleton = () => {
-  const { theme } = useAppTheme();
+  const theme = useAppTheme();
   return (
   <View style={[styles.cardSkeleton, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
     {/* Cover */}
@@ -67,7 +67,7 @@ export const DiaryCardSkeleton = () => {
 };
 
 export const EntryCardSkeleton = () => {
-  const { theme } = useAppTheme();
+  const theme = useAppTheme();
   return (
   <View style={[styles.entrySkeleton, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>

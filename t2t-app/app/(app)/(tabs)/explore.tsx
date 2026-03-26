@@ -7,7 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
+import { DiaryCardSkeleton } from '@/components/Skeleton';
 import { PeopleToFollow } from '@/components/PeopleToFollow';
 import { WanderlustMap } from '@/components/WanderlustMap';
 import InteractiveGlobe from '@/components/InteractiveGlobe';
@@ -173,6 +175,7 @@ export default function DiscoveryScreen() {
   }, []);
 
   const handleSortChange = useCallback((mode: SortMode) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSortMode(mode);
     setPage(0);
     setDurationFilter('all');
@@ -224,7 +227,9 @@ export default function DiscoveryScreen() {
   }, [loading, loadingMore, hasMore, searchQuery, page, fetchBrowse, sortMode]);
 
   const renderItem = useCallback(
-    ({ item }: { item: FeedDiary }) => <ExploreDiaryCard item={item} />,
+    ({ item, index }: { item: FeedDiary; index: number }) => (
+      <ExploreDiaryCard item={item} index={index} />
+    ),
     []
   );
 
@@ -400,8 +405,15 @@ export default function DiscoveryScreen() {
       </View>
 
       {loading && !refreshing ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={theme.teal} />
+        <View style={styles.listContent}>
+          <View style={styles.columnWrapper}>
+            <View style={{ width: '48%' }}><DiaryCardSkeleton /></View>
+            <View style={{ width: '48%' }}><DiaryCardSkeleton /></View>
+          </View>
+          <View style={styles.columnWrapper}>
+            <View style={{ width: '48%' }}><DiaryCardSkeleton /></View>
+            <View style={{ width: '48%' }}><DiaryCardSkeleton /></View>
+          </View>
         </View>
       ) : (
         <FlatList

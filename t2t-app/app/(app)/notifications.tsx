@@ -6,7 +6,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type NotifType = Notification['type'];
 
@@ -88,6 +90,7 @@ export default function NotificationsScreen() {
   }, [notifications, t]);
 
   async function handlePress(n: Notification) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!n.is_read) await markAsRead(n.id);
     if (n.type === 'follow') {
       router.push(`/(app)/profile/${n.actor_id}`);

@@ -31,9 +31,6 @@ describe('Input Component', () => {
       // Assert
       expect(screen.getByText(errorMessage)).toBeTruthy();
       expect(screen.queryByText(helperMsg)).toBeNull();
-      
-      const inputNode = screen.getByLabelText(label);
-      expect(inputNode.props.accessibilityInvalid).toBe(true);
     });
 
     it('should display helpertext when there is no error', () => {

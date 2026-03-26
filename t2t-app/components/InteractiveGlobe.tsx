@@ -62,7 +62,7 @@ export const InteractiveGlobe = ({ isDarkTheme = false }: InteractiveGlobeProps)
         <directionalLight 
           position={[10, 10, 5]} 
           intensity={1.2} 
-          color={theme.orange} 
+          color={theme.tint} 
         />
         <directionalLight 
           position={[-10, -10, -5]} 

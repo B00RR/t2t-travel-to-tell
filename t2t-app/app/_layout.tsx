@@ -1,6 +1,22 @@
 import { Stack, useRouter, useSegments, SplashScreen, ErrorBoundary } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useFonts } from 'expo-font';
+import {
+  PlayfairDisplay_400Regular,
+  PlayfairDisplay_600SemiBold,
+  PlayfairDisplay_700Bold,
+} from '@expo-google-fonts/playfair-display';
+import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+} from '@expo-google-fonts/dm-sans';
+import {
+  Caveat_400Regular,
+  Caveat_600SemiBold,
+} from '@expo-google-fonts/caveat';
 import 'react-native-reanimated';
 import '../i18n';
 import { useEffect } from 'react';
@@ -16,10 +32,22 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  useEffect(() => {
-    if (loading) return;
+  const [fontsLoaded, fontError] = useFonts({
+    PlayfairDisplay_400Regular,
+    PlayfairDisplay_600SemiBold,
+    PlayfairDisplay_700Bold,
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_600SemiBold,
+    DMSans_700Bold,
+    Caveat_400Regular,
+    Caveat_600SemiBold,
+  });
 
-    // Auth verificato: nascondi splash
+  useEffect(() => {
+    if (loading || (!fontsLoaded && !fontError)) return;
+
+    // Auth verificato e font caricati: nascondi splash
     SplashScreen.hideAsync();
 
     const inAuthGroup = segments[0] === '(auth)';
@@ -29,7 +57,7 @@ function RootLayoutNav() {
     } else if (session && inAuthGroup) {
       router.replace('/(app)/(tabs)');
     }
-  }, [session, loading, router, segments]);
+  }, [session, loading, fontsLoaded, fontError, router, segments]);
 
   return (
     <>

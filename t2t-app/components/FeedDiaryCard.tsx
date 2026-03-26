@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View, Text, StyleSheet, Image, Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate,
+  Extrapolation,
+  runOnJS,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
@@ -16,6 +25,9 @@ interface FeedDiaryCardProps {
   item: FeedDiary;
   userId?: string;
   onCommentPress?: (id: string) => void;
+  onLike?: (id: string) => void;
+  onSave?: (id: string) => void;
+  onLongPress?: (id: string) => void;
   index?: number;
 }
 
@@ -25,12 +37,16 @@ function getTripDays(start: string | null, end: string | null): number | null {
   return Math.max(1, Math.round(diff) + 1);
 }
 
+const SWIPE_THRESHOLD = 80;
+
 /**
- * Terra Evolved — Vertical feed diary card.
- * Staggered entry animation, press haptic, terracotta border glow,
- * cover with gradient overlay, glass duration badge.
+ * Terra Evolved — Feed diary card with swipe gestures.
+ * Swipe right → like, swipe left → save, long press → context menu.
+ * Staggered entry, haptic feedback, terracotta glow border.
  */
-const FeedDiaryCardComponent = ({ item, userId, onCommentPress, index = 0 }: FeedDiaryCardProps) => {
+const FeedDiaryCardComponent = ({
+  item, userId, onCommentPress, onLike, onSave, onLongPress, index = 0,
+}: FeedDiaryCardProps) => {
   const theme = useAppTheme();
   const router = useRouter();
   const profile = item.profiles;
@@ -38,7 +54,11 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress, index = 0 }: Fee
   const destinations = item.destinations || [];
   const days = getTripDays(item.start_date, item.end_date);
 
-  const handlePress = () => {
+  // Swipe gesture
+  const translateX = useSharedValue(0);
+  const swipeActive = useSharedValue(0); // -1 = left (save), 1 = right (like)
+
+  const handleNavigate = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/diary/${item.id}`);
   };
@@ -50,115 +70,194 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress, index = 0 }: Fee
     }
   };
 
+  const handleLongPressAction = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    onLongPress?.(item.id);
+  };
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .onUpdate((e) => {
+      translateX.value = e.translationX;
+      if (e.translationX > SWIPE_THRESHOLD) {
+        swipeActive.value = 1;
+      } else if (e.translationX < -SWIPE_THRESHOLD) {
+        swipeActive.value = -1;
+      } else {
+        swipeActive.value = 0;
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationX > SWIPE_THRESHOLD) {
+        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
+        runOnJS(() => onLike?.(item.id))();
+      } else if (e.translationX < -SWIPE_THRESHOLD) {
+        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
+        runOnJS(() => onSave?.(item.id))();
+      }
+      translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
+      swipeActive.value = 0;
+    });
+
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const likeIndicatorStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0, 1], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(translateX.value, [0, SWIPE_THRESHOLD], [0.5, 1], Extrapolation.CLAMP) }],
+  }));
+
+  const saveIndicatorStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [1, 0], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(translateX.value, [-SWIPE_THRESHOLD, 0], [1, 0.5], Extrapolation.CLAMP) }],
+  }));
+
   return (
-    <AnimatedPressable
-      entering={FadeInUp.delay(index * 80).duration(400)}
-      style={[
-        styles.card,
-        {
-          backgroundColor: theme.bgSurface,
-          borderColor: theme.tealAlpha15,
-        },
-        Shadows.card,
-      ]}
-      onPress={handlePress}
-    >
-      {/* Cover Image */}
-      {hasCover ? (
-        <View style={styles.coverContainer}>
-          <Image source={{ uri: item.cover_image_url! }} style={styles.cover} />
-          <View style={styles.coverGradient} />
-        </View>
-      ) : (
-        <View style={[styles.coverPlaceholder, { backgroundColor: theme.bgElevated }]}>
-          <Ionicons name="image-outline" size={40} color={theme.textMuted} />
-        </View>
-      )}
+    <View style={styles.swipeContainer}>
+      {/* Like indicator (right) */}
+      <Animated.View style={[styles.swipeIndicator, styles.likeIndicator, likeIndicatorStyle]}>
+        <Ionicons name="heart" size={28} color={theme.red} />
+      </Animated.View>
 
-      {/* Duration badge — glass effect */}
-      {days !== null && (
-        <View style={[styles.durationBadge, { backgroundColor: 'rgba(250,246,240,0.88)' }]}>
-          <Ionicons name="calendar-outline" size={12} color={theme.teal} />
-          <Text style={[styles.durationText, { color: theme.textPrimary }]}>
-            {days}d
-          </Text>
-        </View>
-      )}
+      {/* Save indicator (left) */}
+      <Animated.View style={[styles.swipeIndicator, styles.saveIndicator, saveIndicatorStyle]}>
+        <Ionicons name="bookmark" size={28} color={theme.teal} />
+      </Animated.View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Author row */}
-        <Pressable style={styles.authorRow} onPress={handleAuthorPress}>
-          <View style={[styles.avatar, { backgroundColor: theme.bgElevated, borderColor: theme.tealAlpha15 }]}>
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
-            ) : (
-              <Ionicons name="person" size={14} color={theme.textMuted} />
-            )}
-          </View>
-          <Text style={[styles.authorName, { color: theme.textSecondary }]} numberOfLines={1}>
-            {profile?.display_name || profile?.username || 'Traveler'}
-          </Text>
-        </Pressable>
+      {/* Card */}
+      <GestureDetector gesture={panGesture}>
+        <AnimatedPressable
+          entering={FadeInUp.delay(index * 80).duration(400)}
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.bgSurface,
+              borderColor: theme.tealAlpha15,
+            },
+            Shadows.card,
+            cardStyle,
+          ]}
+          onPress={handleNavigate}
+          onLongPress={handleLongPressAction}
+          delayLongPress={500}
+        >
+          {/* Cover Image */}
+          {hasCover ? (
+            <View style={styles.coverContainer}>
+              <Image source={{ uri: item.cover_image_url! }} style={styles.cover} />
+              <View style={styles.coverGradient} />
+            </View>
+          ) : (
+            <View style={[styles.coverPlaceholder, { backgroundColor: theme.bgElevated }]}>
+              <Ionicons name="image-outline" size={40} color={theme.textMuted} />
+            </View>
+          )}
 
-        {/* Title — Serif (Playfair Display) */}
-        <Text style={[styles.title, { color: theme.textPrimary }]} numberOfLines={2}>
-          {item.title}
-        </Text>
+          {/* Duration badge */}
+          {days !== null && (
+            <View style={[styles.durationBadge, { backgroundColor: 'rgba(250,246,240,0.88)' }]}>
+              <Ionicons name="calendar-outline" size={12} color={theme.teal} />
+              <Text style={[styles.durationText, { color: theme.textPrimary }]}>{days}d</Text>
+            </View>
+          )}
 
-        {/* Destinations */}
-        {destinations.length > 0 && (
-          <View style={styles.destRow}>
-            <Ionicons name="location-outline" size={14} color={theme.teal} />
-            <Text style={[styles.destText, { color: theme.textSecondary }]} numberOfLines={1}>
-              {destinations.join(' · ')}
+          {/* Content */}
+          <View style={styles.content}>
+            {/* Author row */}
+            <Pressable style={styles.authorRow} onPress={handleAuthorPress}>
+              <View style={[styles.avatar, { backgroundColor: theme.bgElevated, borderColor: theme.tealAlpha15 }]}>
+                {profile?.avatar_url ? (
+                  <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
+                ) : (
+                  <Ionicons name="person" size={14} color={theme.textMuted} />
+                )}
+              </View>
+              <Text style={[styles.authorName, { color: theme.textSecondary }]} numberOfLines={1}>
+                {profile?.display_name || profile?.username || 'Traveler'}
+              </Text>
+            </Pressable>
+
+            {/* Title */}
+            <Text style={[styles.title, { color: theme.textPrimary }]} numberOfLines={2}>
+              {item.title}
             </Text>
-          </View>
-        )}
 
-        {/* Description preview */}
-        {item.description ? (
-          <Text style={[styles.description, { color: theme.textMuted }]} numberOfLines={2}>
-            {item.description}
-          </Text>
-        ) : null}
+            {/* Destinations */}
+            {destinations.length > 0 && (
+              <View style={styles.destRow}>
+                <Ionicons name="location-outline" size={14} color={theme.teal} />
+                <Text style={[styles.destText, { color: theme.textSecondary }]} numberOfLines={1}>
+                  {destinations.join(' · ')}
+                </Text>
+              </View>
+            )}
 
-        {/* Social stats bar */}
-        <View style={[styles.statsBar, { borderTopColor: theme.border }]}>
-          <View style={styles.statGroup}>
-            <Ionicons name="heart-outline" size={16} color={theme.textMuted} />
-            <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.like_count || 0}</Text>
+            {/* Description */}
+            {item.description ? (
+              <Text style={[styles.description, { color: theme.textMuted }]} numberOfLines={2}>
+                {item.description}
+              </Text>
+            ) : null}
+
+            {/* Social stats */}
+            <View style={[styles.statsBar, { borderTopColor: theme.border }]}>
+              <View style={styles.statGroup}>
+                <Ionicons name="heart-outline" size={16} color={theme.textMuted} />
+                <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.like_count || 0}</Text>
+              </View>
+              <Pressable
+                style={styles.statGroup}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  onCommentPress?.(item.id);
+                }}
+              >
+                <Ionicons name="chatbubble-outline" size={15} color={theme.textMuted} />
+                <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.comment_count || 0}</Text>
+              </Pressable>
+              <View style={styles.statGroup}>
+                <Ionicons name="eye-outline" size={16} color={theme.textMuted} />
+                <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.view_count || 0}</Text>
+              </View>
+              <View style={{ flex: 1 }} />
+              <Ionicons name="bookmark-outline" size={16} color={theme.textMuted} />
+            </View>
           </View>
-          <Pressable
-            style={styles.statGroup}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              onCommentPress?.(item.id);
-            }}
-          >
-            <Ionicons name="chatbubble-outline" size={15} color={theme.textMuted} />
-            <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.comment_count || 0}</Text>
-          </Pressable>
-          <View style={styles.statGroup}>
-            <Ionicons name="eye-outline" size={16} color={theme.textMuted} />
-            <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.view_count || 0}</Text>
-          </View>
-          <View style={{ flex: 1 }} />
-          <Ionicons name="bookmark-outline" size={16} color={theme.textMuted} />
-        </View>
-      </View>
-    </AnimatedPressable>
+        </AnimatedPressable>
+      </GestureDetector>
+    </View>
   );
 };
 
 export const FeedDiaryCard = React.memo(FeedDiaryCardComponent);
 
 const styles = StyleSheet.create({
+  swipeContainer: {
+    position: 'relative',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  swipeIndicator: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: -1,
+  },
+  likeIndicator: {
+    right: -50,
+  },
+  saveIndicator: {
+    left: -50,
+  },
   card: {
     borderRadius: Radius.lg,
     borderWidth: 1,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
     overflow: 'hidden',
   },
   coverContainer: {

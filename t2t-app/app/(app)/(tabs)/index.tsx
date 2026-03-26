@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  RefreshControl, StatusBar, Platform,
+  RefreshControl, StatusBar, Platform, Alert, Share,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { supabase } from '@/lib/supabase';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -120,15 +121,43 @@ export default function HomeScreen() {
 
   const diaries = tab === 'discover' ? discoverDiaries : followingDiaries;
 
+  const handleLongPress = useCallback((diaryId: string) => {
+    const diary = diaries.find(d => d.id === diaryId);
+    Alert.alert(
+      diary?.title || 'Diary',
+      undefined,
+      [
+        {
+          text: t('social.share') || 'Share',
+          onPress: () => {
+            Share.share({
+              message: `Check out this travel diary: ${diary?.title}`,
+              url: `t2tapp://diary/${diaryId}`,
+            });
+          },
+        },
+        {
+          text: t('social.save') || 'Save',
+          onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            // Save action via social hook would need diary context
+          },
+        },
+        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+      ],
+    );
+  }, [diaries, t]);
+
   const renderCard = useCallback(
     ({ item }: { item: FeedDiary }) => (
       <FeedDiaryCard
         item={item}
         userId={user?.id}
         onCommentPress={setSelectedDiaryId}
+        onLongPress={handleLongPress}
       />
     ),
-    [user?.id]
+    [user?.id, handleLongPress]
   );
 
   const emptyIcon = tab === 'following' ? 'people-outline' : 'compass-outline';

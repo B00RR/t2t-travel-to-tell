@@ -1,17 +1,22 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image,
+  View, Text, StyleSheet, Image, Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface FeedDiaryCardProps {
   item: FeedDiary;
   userId?: string;
   onCommentPress?: (id: string) => void;
+  index?: number;
 }
 
 function getTripDays(start: string | null, end: string | null): number | null {
@@ -21,10 +26,11 @@ function getTripDays(start: string | null, end: string | null): number | null {
 }
 
 /**
- * Terra — Vertical feed diary card.
- * Clean card with cover image, author info, title, destinations, and social stats.
+ * Terra Evolved — Vertical feed diary card.
+ * Staggered entry animation, press haptic, terracotta border glow,
+ * cover with gradient overlay, glass duration badge.
  */
-const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardProps) => {
+const FeedDiaryCardComponent = ({ item, userId, onCommentPress, index = 0 }: FeedDiaryCardProps) => {
   const theme = useAppTheme();
   const router = useRouter();
   const profile = item.profiles;
@@ -32,31 +38,46 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
   const destinations = item.destinations || [];
   const days = getTripDays(item.start_date, item.end_date);
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push(`/diary/${item.id}`);
+  };
+
+  const handleAuthorPress = () => {
+    if (profile) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push(`/profile/${item.author_id}`);
+    }
+  };
+
   return (
-    <TouchableOpacity
+    <AnimatedPressable
+      entering={FadeInUp.delay(index * 80).duration(400)}
       style={[
         styles.card,
         {
           backgroundColor: theme.bgSurface,
-          borderColor: theme.border,
+          borderColor: theme.tealAlpha15,
         },
         Shadows.card,
       ]}
-      onPress={() => router.push(`/diary/${item.id}`)}
-      activeOpacity={0.92}
+      onPress={handlePress}
     >
       {/* Cover Image */}
       {hasCover ? (
-        <Image source={{ uri: item.cover_image_url! }} style={styles.cover} />
+        <View style={styles.coverContainer}>
+          <Image source={{ uri: item.cover_image_url! }} style={styles.cover} />
+          <View style={styles.coverGradient} />
+        </View>
       ) : (
         <View style={[styles.coverPlaceholder, { backgroundColor: theme.bgElevated }]}>
           <Ionicons name="image-outline" size={40} color={theme.textMuted} />
         </View>
       )}
 
-      {/* Duration badge on cover */}
+      {/* Duration badge — glass effect */}
       {days !== null && (
-        <View style={[styles.durationBadge, { backgroundColor: theme.bgSurface }]}>
+        <View style={[styles.durationBadge, { backgroundColor: 'rgba(250,246,240,0.88)' }]}>
           <Ionicons name="calendar-outline" size={12} color={theme.teal} />
           <Text style={[styles.durationText, { color: theme.textPrimary }]}>
             {days}d
@@ -67,11 +88,8 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
       {/* Content */}
       <View style={styles.content}>
         {/* Author row */}
-        <TouchableOpacity
-          style={styles.authorRow}
-          onPress={() => profile && router.push(`/profile/${item.author_id}`)}
-        >
-          <View style={[styles.avatar, { backgroundColor: theme.bgElevated }]}>
+        <Pressable style={styles.authorRow} onPress={handleAuthorPress}>
+          <View style={[styles.avatar, { backgroundColor: theme.bgElevated, borderColor: theme.tealAlpha15 }]}>
             {profile?.avatar_url ? (
               <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
             ) : (
@@ -81,9 +99,9 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
           <Text style={[styles.authorName, { color: theme.textSecondary }]} numberOfLines={1}>
             {profile?.display_name || profile?.username || 'Traveler'}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        {/* Title */}
+        {/* Title — Serif (Playfair Display) */}
         <Text style={[styles.title, { color: theme.textPrimary }]} numberOfLines={2}>
           {item.title}
         </Text>
@@ -111,13 +129,16 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
             <Ionicons name="heart-outline" size={16} color={theme.textMuted} />
             <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.like_count || 0}</Text>
           </View>
-          <TouchableOpacity
+          <Pressable
             style={styles.statGroup}
-            onPress={() => onCommentPress?.(item.id)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onCommentPress?.(item.id);
+            }}
           >
             <Ionicons name="chatbubble-outline" size={15} color={theme.textMuted} />
             <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.comment_count || 0}</Text>
-          </TouchableOpacity>
+          </Pressable>
           <View style={styles.statGroup}>
             <Ionicons name="eye-outline" size={16} color={theme.textMuted} />
             <Text style={[styles.statNum, { color: theme.textMuted }]}>{item.view_count || 0}</Text>
@@ -126,7 +147,7 @@ const FeedDiaryCardComponent = ({ item, userId, onCommentPress }: FeedDiaryCardP
           <Ionicons name="bookmark-outline" size={16} color={theme.textMuted} />
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 };
 
@@ -134,15 +155,26 @@ export const FeedDiaryCard = React.memo(FeedDiaryCardComponent);
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
     overflow: 'hidden',
+  },
+  coverContainer: {
+    position: 'relative',
   },
   cover: {
     width: '100%',
-    height: 200,
+    height: 220,
+  },
+  coverGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'rgba(0,0,0,0.12)',
   },
   coverPlaceholder: {
     width: '100%',
@@ -158,63 +190,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: Radius.full,
+    borderWidth: 0.5,
+    borderColor: 'rgba(200,90,66,0.15)',
   },
   durationText: {
-    ...Typography.label,
+    fontFamily: Typography.label.fontFamily,
+    fontSize: 12,
+    fontWeight: '600',
   },
   content: {
-    padding: Spacing.md,
+    padding: Spacing.lg,
   },
   authorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    borderWidth: 1.5,
   },
   avatarImg: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   authorName: {
-    ...Typography.caption,
+    fontFamily: Typography.caption.fontFamily,
+    fontSize: 13,
+    fontWeight: '500',
     flex: 1,
   },
   title: {
-    ...Typography.h3,
+    fontFamily: Typography.h3.fontFamily,
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 26,
     marginBottom: 6,
   },
   destRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   destText: {
-    ...Typography.caption,
+    fontFamily: Typography.caption.fontFamily,
+    fontSize: 13,
+    fontWeight: '400',
     flex: 1,
   },
   description: {
-    ...Typography.body,
-    marginBottom: 4,
+    fontFamily: Typography.body.fontFamily,
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 8,
   },
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: Spacing.sm + 4,
+    paddingTop: Spacing.md,
     marginTop: Spacing.sm,
     borderTopWidth: 1,
-    gap: Spacing.lg,
+    gap: Spacing.xl,
   },
   statGroup: {
     flexDirection: 'row',
@@ -222,6 +268,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statNum: {
-    ...Typography.caption,
+    fontFamily: Typography.caption.fontFamily,
+    fontSize: 12,
   },
 });

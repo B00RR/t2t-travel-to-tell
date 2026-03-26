@@ -1,11 +1,20 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useDiarySocial } from '@/hooks/useDiarySocial';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Motion } from '@/constants/theme';
+import { Typography } from '@/constants/theme';
 import type { SocialCounters } from '@/types/social';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface SocialActionBarProps {
   diaryId: string;
@@ -15,27 +24,63 @@ interface SocialActionBarProps {
   onSharePress?: () => void;
 }
 
-/** A heart icon that bounces + glows on activation */
+/**
+ * Terra Evolved — Social action bar with spring bounce animations.
+ * Heart bounces on like, bookmark pulses on save, haptic feedback everywhere.
+ */
 function AnimatedHeart({ active, size, colors }: { active: boolean; size: number; colors: { red: string; muted: string } }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useSharedValue(1);
   const prevActive = useRef(active);
 
   useEffect(() => {
     if (active && !prevActive.current) {
-      Animated.sequence([
-        Animated.spring(scale, { toValue: 1.4, ...Motion.spring.bouncy }),
-        Animated.spring(scale, { toValue: 1,   ...Motion.spring.snappy }),
-      ]).start();
+      scale.value = withSequence(
+        withSpring(1.5, { damping: 4, stiffness: 300 }),
+        withSpring(1, { damping: 8, stiffness: 200 })
+      );
     }
     prevActive.current = active;
-  }, [active, scale]);
+  }, [active]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
+    <Animated.View style={animatedStyle}>
       <Ionicons
         name={active ? 'heart' : 'heart-outline'}
         size={size}
         color={active ? colors.red : colors.muted}
+      />
+    </Animated.View>
+  );
+}
+
+function AnimatedBookmark({ active, size, colors }: { active: boolean; size: number; colors: { teal: string; muted: string } }) {
+  const scale = useSharedValue(1);
+  const prevActive = useRef(active);
+
+  useEffect(() => {
+    if (active && !prevActive.current) {
+      scale.value = withSequence(
+        withSpring(1.4, { damping: 5, stiffness: 250 }),
+        withSpring(1, { damping: 8, stiffness: 200 })
+      );
+    }
+    prevActive.current = active;
+  }, [active]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Ionicons
+        name={active ? 'bookmark' : 'bookmark-outline'}
+        size={size}
+        color={active ? colors.teal : colors.muted}
       />
     </Animated.View>
   );
@@ -52,38 +97,41 @@ export function SocialActionBar({
     initialCounters: initialCounters ?? { like_count: 0, comment_count: 0, save_count: 0 },
   });
 
-  const saveScale = useRef(new Animated.Value(1)).current;
+  const handleLike = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    toggleLike();
+  };
 
-  function handleSavePress() {
-    Animated.sequence([
-      Animated.spring(saveScale, { toValue: 1.35, ...Motion.spring.bouncy }),
-      Animated.spring(saveScale, { toValue: 1,    ...Motion.spring.snappy }),
-    ]).start();
+  const handleSave = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleSave();
-  }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.leftActions}>
         {/* Like */}
-        <TouchableOpacity
+        <Pressable
           style={styles.actionBtn}
-          onPress={toggleLike}
+          onPress={handleLike}
           accessibilityRole="button"
           accessibilityLabel={hasLiked ? t('social.unlike') : t('social.like')}
         >
           <AnimatedHeart active={hasLiked} size={22} colors={{ red: theme.red, muted: theme.textMuted }} />
           {counters.like_count > 0 && (
-            <Text style={[styles.count, { color: theme.textMuted }, hasLiked && { color: theme.red }]}>
+            <Text style={[styles.count, { color: hasLiked ? theme.red : theme.textMuted }]}>
               {counters.like_count}
             </Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Comment */}
-        <TouchableOpacity
+        <Pressable
           style={styles.actionBtn}
-          onPress={onCommentPress}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onCommentPress();
+          }}
           accessibilityRole="button"
           accessibilityLabel={t('social.comment_action')}
         >
@@ -91,34 +139,31 @@ export function SocialActionBar({
           {counters.comment_count > 0 && (
             <Text style={[styles.count, { color: theme.textMuted }]}>{counters.comment_count}</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Share */}
-        <TouchableOpacity
+        <Pressable
           style={styles.actionBtn}
-          onPress={onSharePress}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onSharePress?.();
+          }}
           accessibilityRole="button"
           accessibilityLabel={t('social.share')}
         >
           <Ionicons name="share-outline" size={20} color={theme.textMuted} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Save */}
-      <TouchableOpacity
+      <Pressable
         style={styles.actionBtn}
-        onPress={handleSavePress}
+        onPress={handleSave}
         accessibilityRole="button"
         accessibilityLabel={hasSaved ? t('social.unsave') : t('social.save')}
       >
-        <Animated.View style={{ transform: [{ scale: saveScale }] }}>
-          <Ionicons
-            name={hasSaved ? 'bookmark' : 'bookmark-outline'}
-            size={20}
-            color={hasSaved ? theme.teal : theme.textMuted}
-          />
-        </Animated.View>
-      </TouchableOpacity>
+        <AnimatedBookmark active={hasSaved} size={20} colors={{ teal: theme.teal, muted: theme.textMuted }} />
+      </Pressable>
     </View>
   );
 }
@@ -143,6 +188,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   count: {
+    fontFamily: Typography.caption.fontFamily,
     fontSize: 13,
     fontWeight: '600',
   },

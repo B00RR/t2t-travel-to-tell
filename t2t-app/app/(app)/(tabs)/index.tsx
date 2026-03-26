@@ -13,6 +13,7 @@ import { FeedDiaryCard } from '@/components/FeedDiaryCard';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/Button';
+import { DiaryCardSkeleton } from '@/components/Skeleton';
 import { Spacing, Typography, Radius } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
@@ -195,10 +196,8 @@ export default function HomeScreen() {
       {/* Content */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <Ionicons name="compass-outline" size={48} color={theme.teal} />
-          <Text style={[styles.loadingText, { color: theme.textMuted }]}>
-            {t('common.loading')}
-          </Text>
+          <DiaryCardSkeleton />
+          <DiaryCardSkeleton />
         </View>
       ) : errorVisible && diaries.length === 0 ? (
         <View style={styles.emptyState}>

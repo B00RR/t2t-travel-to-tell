@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { MorphingTabBar } from '@/components/MorphingTabBar';
 
 /**
- * 5-tab navigation: Home / Explore / Create / Map / Profile
+ * 3-tab navigation: Home / Explore / Profile
  * Terra design — clean, warm, organic tab bar.
  */
 export default function TabLayout() {
@@ -14,31 +14,21 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{ title: 'Home' }}
       />
       <Tabs.Screen
         name="explore"
-        options={{ title: 'Explore' }}
-      />
-      <Tabs.Screen
-        name="create"
-        options={{ title: 'Create' }}
-      />
-      <Tabs.Screen
-        name="map"
-        options={{ title: 'Map' }}
+        options={{ title: 'Esplora' }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: 'Profile' }}
+        options={{ title: 'Profilo' }}
       />
-      {/* Planner accessible via navigation but not in tab bar */}
+      {/* Hidden screens — accessible via navigation, not in tab bar */}
       <Tabs.Screen
-        name="planner"
-        options={{
-          href: null,
-        }}
+        name="create"
+        options={{ href: null }}
       />
     </Tabs>
   );

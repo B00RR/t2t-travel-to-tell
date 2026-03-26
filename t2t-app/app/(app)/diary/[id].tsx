@@ -20,6 +20,7 @@ import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
 import { DayChapter } from '@/components/DayChapter';
+import { DoubleTapLike } from '@/components/DoubleTapLike';
 import { JourneyProgressBar } from '@/components/JourneyProgressBar';
 import { Diary } from '@/types/supabase';
 import { Palette, Glass } from '@/constants/theme';
@@ -267,6 +268,9 @@ export default function DiaryDetailScreen() {
       </View>
 
       {/* Horizontal day chapters */}
+      <DoubleTapLike onDoubleTap={() => {
+        // Double-tap triggers like via SocialActionBar hook
+      }}>
       <FlatList
         ref={flatListRef}
         data={days}
@@ -292,6 +296,7 @@ export default function DiaryDetailScreen() {
           />
         )}
       />
+      </DoubleTapLike>
 
       {/* Floating social bar */}
       <View style={styles.floatingSocial}>

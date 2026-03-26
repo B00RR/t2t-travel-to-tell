@@ -4,6 +4,7 @@ import {
   TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +45,7 @@ function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
 
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { user } = useAuth();
   const theme = useAppTheme();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
@@ -327,6 +329,25 @@ export default function DiscoveryScreen() {
           <InteractiveGlobe isDarkTheme={isDark} />
         </View>
 
+        {/* Travel search CTA */}
+        <TouchableOpacity
+          style={[styles.travelSearchCta, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
+          onPress={() => router.push('/(app)/(tabs)/explore/search')}
+        >
+          <View style={[styles.travelSearchIcon, { backgroundColor: theme.tealAlpha15 }]}>
+            <Ionicons name="airplane" size={20} color={theme.teal} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.travelSearchTitle, { color: theme.textPrimary }]}>
+              {t('explore.travel_search', 'Cerca viaggio')}
+            </Text>
+            <Text style={[styles.travelSearchSub, { color: theme.textMuted }]}>
+              {t('explore.travel_search_sub', 'Voli, hotel e trasporti')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+        </TouchableOpacity>
+
         <SortBar />
         {user?.id && sortMode === 'recent' && (
           <PeopleToFollow currentUserId={user.id} />
@@ -562,5 +583,30 @@ const styles = StyleSheet.create({
   footerLoader: {
     paddingVertical: 20,
     alignItems: 'center',
+  },
+  travelSearchCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  travelSearchIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  travelSearchTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  travelSearchSub: {
+    fontSize: 12,
+    marginTop: 2,
   },
 });

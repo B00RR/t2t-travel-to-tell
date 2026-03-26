@@ -1,36 +1,45 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { InteractiveGlobe } from './InteractiveGlobe';
 
-// Mocking @react-three/fiber/native because testing WebGL context natively is extremely complex and flaky
-jest.mock('@react-three/fiber/native', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  return {
-    Canvas: ({ children, testID }: any) => <View testID={testID}>{children}</View>,
-    useFrame: jest.fn(),
-  };
-});
+jest.mock('@react-three/fiber/native', () => ({
+  Canvas: ({ children, testID }: any) => {
+    const { View } = require('react-native');
+    return <View testID={testID}>{children}</View>;
+  },
+  useFrame: () => {},
+}));
 
-describe('InteractiveGlobe Component', () => {
-  
-  describe('Rendering', () => {
-    it('should render the globe container without crashing', () => {
-      // Arrange
-      render(<InteractiveGlobe />);
+jest.mock('@/hooks/useAppTheme', () => ({
+  useAppTheme: () => ({
+    bg: '#000000',
+    bgElevated: '#1E1E1E',
+    teal: '#00D9FF',
+    orange: '#FF9500',
+    textPrimary: '#fff',
+  }),
+}));
 
-      // Assert
-      expect(screen.getByTestId('globe-container')).toBeTruthy();
-      expect(screen.getByTestId('three-canvas')).toBeTruthy();
-    });
-
-    it('should mount with dark theme props without error', () => {
-      // Arrange
-      render(<InteractiveGlobe isDarkTheme={true} />);
-
-      // Assert
-      expect(screen.getByTestId('globe-container')).toBeTruthy();
-    });
+describe('InteractiveGlobe', () => {
+  it('renders without crashing', () => {
+    const { getByTestId } = render(<InteractiveGlobe />);
+    expect(getByTestId('globe-container')).toBeTruthy();
+    expect(getByTestId('three-canvas')).toBeTruthy();
   });
 
+  it('applies custom height', () => {
+    const { getByTestId } = render(<InteractiveGlobe height={500} />);
+    const container = getByTestId('globe-container');
+    expect(container.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ height: 500 })])
+    );
+  });
+
+  it('renders with default height', () => {
+    const { getByTestId } = render(<InteractiveGlobe />);
+    const container = getByTestId('globe-container');
+    expect(container.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ height: 350 })])
+    );
+  });
 });

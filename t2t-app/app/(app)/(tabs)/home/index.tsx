@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/Button';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
+import { HomeHero } from '@/components/HomeHero';
 import { Spacing, Typography, Radius } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
@@ -263,6 +264,9 @@ export default function HomeScreen() {
           renderItem={renderCard}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            <HomeHero stats={{ diaries: discoverDiaries.length, countries: 42, travelers: 1280 }} />
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { DiaryCardSkeleton } from '@/components/Skeleton';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -295,7 +296,10 @@ export default function ProfileScreen() {
         </View>
 
         {isLoadingSection ? (
-          <ActivityIndicator size="large" color={theme.teal} style={{ marginTop: 32 }} />
+          <View style={{ paddingHorizontal: Spacing.md, paddingTop: Spacing.md }}>
+            <DiaryCardSkeleton />
+            <DiaryCardSkeleton />
+          </View>
         ) : activeDiaries.length === 0 ? (
           <View style={[styles.emptyState, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
             <Ionicons

@@ -9,17 +9,25 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppTheme } from '@/hooks/useAppTheme';
 
 type NotifType = Notification['type'];
 
-const TYPE_CONFIG: Record<NotifType, { icon: string; color: string; bg: string }> = {
-  like:    { icon: 'heart',        color: '#FF3B30', bg: '#fff0ee' },
-  comment: { icon: 'chatbubble',   color: '#34C759', bg: '#edfaf1' },
-  follow:  { icon: 'person-add',   color: '#007AFF', bg: '#e8f0fe' },
-};
+function getTypeConfig(theme: AppTheme) {
+  return {
+    like:    { icon: 'heart' as const,       color: theme.red,            bg: theme.red + '18' },
+    comment: { icon: 'chatbubble' as const,  color: theme.sage,           bg: theme.sage + '18' },
+    follow:  { icon: 'person-add' as const,  color: theme.teal,           bg: theme.tealAlpha10 },
+  };
+}
 
-function AvatarWithIcon({ name, avatarUrl, type }: { name: string; avatarUrl?: string | null; type: NotifType }) {
-  const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.like;
+function AvatarWithIcon({
+  name, avatarUrl, type, theme,
+}: {
+  name: string; avatarUrl?: string | null; type: NotifType; theme: AppTheme;
+}) {
+  const config = getTypeConfig(theme);
+  const cfg = config[type] ?? config.like;
   const initials = name
     .split(' ')
     .map(w => w[0])
@@ -33,7 +41,7 @@ function AvatarWithIcon({ name, avatarUrl, type }: { name: string; avatarUrl?: s
         <Text style={[styles.avatarInitials, { color: cfg.color }]}>{initials}</Text>
       </View>
       <View style={[styles.typeIcon, { backgroundColor: cfg.color }]}>
-        <Ionicons name={cfg.icon as any} size={11} color="#fff" />
+        <Ionicons name={cfg.icon} size={11} color={theme.bgSurface} />
       </View>
     </View>
   );
@@ -68,6 +76,7 @@ type ListItem =
 export default function NotificationsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useAppTheme();
   const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications();
 
   const listData = useMemo<ListItem[]>(() => {
@@ -101,7 +110,11 @@ export default function NotificationsScreen() {
 
   const renderItem = ({ item }: { item: ListItem }) => {
     if (item.kind === 'header') {
-      return <Text style={styles.sectionHeader}>{item.label}</Text>;
+      return (
+        <Text style={[styles.sectionHeader, { color: theme.textMuted, backgroundColor: theme.bg }]}>
+          {item.label}
+        </Text>
+      );
     }
     const n = item.data;
     const actorName = n.actor?.username || t('common.anonymous');
@@ -109,18 +122,24 @@ export default function NotificationsScreen() {
 
     return (
       <TouchableOpacity
-        style={[styles.item, !n.is_read && styles.unreadItem]}
+        style={[
+          styles.item,
+          { borderBottomColor: theme.borderLight },
+          !n.is_read && { backgroundColor: theme.tealAlpha10 },
+        ]}
         onPress={() => handlePress(n)}
       >
-        <AvatarWithIcon name={actorName} avatarUrl={n.actor?.avatar_url} type={n.type} />
+        <AvatarWithIcon name={actorName} avatarUrl={n.actor?.avatar_url} type={n.type} theme={theme} />
         <View style={styles.textBlock}>
-          <Text style={styles.text}>
-            <Text style={styles.bold}>{actorName}</Text>
+          <Text style={{ fontSize: 14, color: theme.textPrimary, lineHeight: 20 }}>
+            <Text style={{ fontWeight: '700' as const }}>{actorName}</Text>
             {'  '}{actionText}
           </Text>
-          <Text style={styles.time}>{formatRelativeTime(n.created_at, t)}</Text>
+          <Text style={{ fontSize: 12, color: theme.textMuted, marginTop: 3 }}>
+            {formatRelativeTime(n.created_at, t)}
+          </Text>
         </View>
-        {!n.is_read && <View style={styles.unreadDot} />}
+        {!n.is_read && <View style={[styles.unreadDot, { backgroundColor: theme.teal }]} />}
       </TouchableOpacity>
     );
   };
@@ -128,15 +147,17 @@ export default function NotificationsScreen() {
   const hasUnread = useMemo(() => notifications.some(n => !n.is_read), [notifications]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.header, { borderBottomColor: theme.borderLight }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('notifications.title')}</Text>
+        <Text style={[styles.title, { color: theme.textPrimary }]}>{t('notifications.title')}</Text>
         {hasUnread ? (
           <TouchableOpacity onPress={markAllAsRead}>
-            <Text style={styles.markReadText}>{t('notifications.mark_all_read')}</Text>
+            <Text style={[styles.markReadText, { color: theme.teal }]}>
+              {t('notifications.mark_all_read')}
+            </Text>
           </TouchableOpacity>
         ) : (
           <View style={{ width: 80 }} />
@@ -145,7 +166,7 @@ export default function NotificationsScreen() {
 
       {loading && notifications.length === 0 ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={theme.teal} />
         </View>
       ) : (
         <FlatList
@@ -156,12 +177,14 @@ export default function NotificationsScreen() {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={fetchNotifications} tintColor="#007AFF" />
+            <RefreshControl refreshing={loading} onRefresh={fetchNotifications} tintColor={theme.teal} />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="notifications-off-outline" size={60} color="#ccc" />
-              <Text style={styles.emptyText}>{t('notifications.empty')}</Text>
+              <Ionicons name="notifications-off-outline" size={60} color={theme.textMuted} />
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>
+                {t('notifications.empty')}
+              </Text>
             </View>
           }
         />
@@ -171,7 +194,7 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -180,23 +203,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   backBtn: { padding: 4 },
-  title: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  markReadText: { fontSize: 13, color: '#007AFF', fontWeight: '600', textAlign: 'right', width: 80 },
+  title: { fontSize: 18, fontWeight: '700' },
+  markReadText: { fontSize: 13, fontWeight: '600', textAlign: 'right', width: 80 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { flexGrow: 1, paddingBottom: 40 },
   sectionHeader: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#999',
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     letterSpacing: 0.6,
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 8,
-    backgroundColor: '#fff',
   },
   item: {
     flexDirection: 'row',
@@ -204,9 +224,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
   },
-  unreadItem: { backgroundColor: '#f0f7ff' },
   avatarWrapper: { position: 'relative', marginRight: 14 },
   avatar: {
     width: 46,
@@ -226,19 +244,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#fff',
   },
   textBlock: { flex: 1 },
-  text: { fontSize: 14, color: '#333', lineHeight: 20 },
-  bold: { fontWeight: '700', color: '#1a1a1a' },
-  time: { fontSize: 12, color: '#aaa', marginTop: 3 },
   unreadDot: {
     width: 9,
     height: 9,
     borderRadius: 5,
-    backgroundColor: '#007AFF',
     marginLeft: 8,
   },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 },
-  emptyText: { fontSize: 16, color: '#999', marginTop: 12 },
+  emptyText: { fontSize: 16, marginTop: 12 },
 });

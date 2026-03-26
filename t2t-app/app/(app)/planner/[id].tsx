@@ -73,7 +73,7 @@ export default function TripPlanDetailScreen() {
   async function handleDelete() {
     Alert.alert(t('planner.delete_confirm_title'), t('planner.delete_confirm_msg'), [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: t('planner.delete_btn'), style: 'destructive', onPress: async () => { const ok = await deletePlan(); if (ok) router.replace('/(app)/(tabs)/planner'); } },
+      { text: t('planner.delete_btn'), style: 'destructive', onPress: async () => { const ok = await deletePlan(); if (ok) router.replace('/(app)/(tabs)/explore/planner'); } },
     ]);
   }
 

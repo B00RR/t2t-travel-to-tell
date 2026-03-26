@@ -22,23 +22,20 @@ interface MorphingTabBarProps {
 }
 
 const TAB_ICONS: Record<string, { default: string; active: string }> = {
-  index:   { default: 'home-outline',     active: 'home' },
+  home:    { default: 'home-outline',     active: 'home' },
   explore: { default: 'compass-outline',  active: 'compass' },
   create:  { default: 'add-circle-outline', active: 'add-circle' },
-  map:     { default: 'map-outline',      active: 'map' },
   profile: { default: 'person-outline',   active: 'person' },
 };
 
 const TAB_LABELS: Record<string, string> = {
-  index:   'Home',
-  explore: 'Explore',
-  create:  'Create',
-  map:     'Map',
-  profile: 'Profile',
+  home:    'Home',
+  explore: 'Esplora',
+  profile: 'Profilo',
 };
 
 /**
- * Terra Evolved — 5-tab premium bottom bar.
+ * Terra Evolved — 3-tab premium bottom bar.
  * Spring mount animation, active indicator with glow,
  * icon breathing effect, haptic feedback.
  */

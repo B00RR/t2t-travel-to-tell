@@ -1,44 +1,22 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Platform, StatusBar, ScrollView,
+  Platform, StatusBar, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useFlightSearch } from '@/hooks/useFlightSearch';
+import { useHotelSearch } from '@/hooks/useHotelSearch';
 import { SearchBar } from '@/components/SearchBar';
 import { Spacing, Typography, Radius } from '@/constants/theme';
+import type { FlightOffer, HotelOffer } from '@/services/amadeus';
 
 /* ── Types ────────────────────────────────────────────────── */
 
 type SearchCategory = 'flights' | 'hotels' | 'transport';
-
-interface FlightResult {
-  id: string;
-  airline: string;
-  from: string;
-  to: string;
-  departure: string;
-  arrival: string;
-  duration: string;
-  price: number;
-  currency: string;
-  stops: number;
-}
-
-interface HotelResult {
-  id: string;
-  name: string;
-  location: string;
-  rating: number;
-  reviews: number;
-  pricePerNight: number;
-  currency: string;
-  amenities: string[];
-  imageUrl?: string;
-}
 
 interface TransportResult {
   id: string;
@@ -53,23 +31,7 @@ interface TransportResult {
   currency: string;
 }
 
-/* ── Mock Data ────────────────────────────────────────────── */
-
-const MOCK_FLIGHTS: FlightResult[] = [
-  { id: 'f1', airline: 'Ryanair', from: 'Napoli (NAP)', to: 'Londra (STN)', departure: '07:15', arrival: '09:00', duration: '2h 45m', price: 45, currency: 'EUR', stops: 0 },
-  { id: 'f2', airline: 'EasyJet', from: 'Napoli (NAP)', to: 'Parigi (ORY)', departure: '10:30', arrival: '13:00', duration: '2h 30m', price: 62, currency: 'EUR', stops: 0 },
-  { id: 'f3', airline: 'Wizz Air', from: 'Roma (FCO)', to: 'Barcellona (BCN)', departure: '14:20', arrival: '16:45', duration: '2h 25m', price: 38, currency: 'EUR', stops: 0 },
-  { id: 'f4', airline: 'ITA Airways', from: 'Milano (MXP)', to: 'New York (JFK)', departure: '09:00', arrival: '13:30', duration: '9h 30m', price: 320, currency: 'EUR', stops: 0 },
-  { id: 'f5', airline: 'Vueling', from: 'Napoli (NAP)', to: 'Madrid (MAD)', departure: '16:00', arrival: '18:45', duration: '2h 45m', price: 55, currency: 'EUR', stops: 0 },
-];
-
-const MOCK_HOTELS: HotelResult[] = [
-  { id: 'h1', name: 'Hotel Vesuvio', location: 'Napoli, Italia', rating: 4.5, reviews: 1280, pricePerNight: 95, currency: 'EUR', amenities: ['WiFi', 'Colazione', 'Vista mare'] },
-  { id: 'h2', name: 'Le Petit Marais', location: 'Parigi, Francia', rating: 4.7, reviews: 890, pricePerNight: 142, currency: 'EUR', amenities: ['WiFi', 'Bar', 'Centro'] },
-  { id: 'h3', name: 'Hostal Barcelona', location: 'Barcellona, Spagna', rating: 4.2, reviews: 2100, pricePerNight: 68, currency: 'EUR', amenities: ['WiFi', 'Terrazza'] },
-  { id: 'h4', name: 'The Manhattan', location: 'New York, USA', rating: 4.8, reviews: 3400, pricePerNight: 285, currency: 'USD', amenities: ['WiFi', 'Gym', 'Rooftop'] },
-  { id: 'h5', name: 'Casa Madrid', location: 'Madrid, Spagna', rating: 4.3, reviews: 670, pricePerNight: 78, currency: 'EUR', amenities: ['WiFi', 'Colazione', 'Parcheggio'] },
-];
+/* ── Mock Transport (no API yet) ──────────────────────────── */
 
 const MOCK_TRANSPORT: TransportResult[] = [
   { id: 't1', type: 'train', operator: 'Trenitalia', from: 'Roma Termini', to: 'Firenze SMN', departure: '08:00', arrival: '10:05', duration: '2h 05m', price: 35, currency: 'EUR' },
@@ -81,7 +43,7 @@ const MOCK_TRANSPORT: TransportResult[] = [
 
 /* ── Result Cards ─────────────────────────────────────────── */
 
-function FlightCard({ item, theme }: { item: FlightResult; theme: any }) {
+function FlightCard({ item, theme }: { item: FlightOffer; theme: any }) {
   return (
     <TouchableOpacity style={[styles.resultCard, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
       <View style={styles.cardHeader}>
@@ -90,7 +52,7 @@ function FlightCard({ item, theme }: { item: FlightResult; theme: any }) {
           <Text style={[styles.operatorName, { color: theme.textPrimary }]}>{item.airline}</Text>
         </View>
         <Text style={[styles.price, { color: theme.teal }]}>
-          {item.price}€
+          {item.price.toFixed(0)}€
         </Text>
       </View>
       <View style={styles.routeRow}>
@@ -110,36 +72,45 @@ function FlightCard({ item, theme }: { item: FlightResult; theme: any }) {
           <Text style={[styles.location, { color: theme.textMuted }]}>{item.to}</Text>
         </View>
       </View>
+      {item.seatsRemaining && item.seatsRemaining <= 5 && (
+        <Text style={[styles.seatsWarning, { color: theme.red }]}>
+          Solo {item.seatsRemaining} posti rimasti
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }
 
-function HotelCard({ item, theme }: { item: HotelResult; theme: any }) {
+function HotelCard({ item, theme }: { item: HotelOffer; theme: any }) {
   return (
     <TouchableOpacity style={[styles.resultCard, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
       <View style={styles.cardHeader}>
         <View style={styles.airlineRow}>
           <Ionicons name="bed" size={16} color={theme.orange} />
-          <Text style={[styles.operatorName, { color: theme.textPrimary }]}>{item.name}</Text>
+          <Text style={[styles.operatorName, { color: theme.textPrimary }]} numberOfLines={1}>{item.name}</Text>
         </View>
         <Text style={[styles.price, { color: theme.orange }]}>
-          {item.pricePerNight}€<Text style={{ fontSize: 11 }}>/notte</Text>
+          {item.pricePerNight > 0 ? `${item.pricePerNight.toFixed(0)}€` : 'N/A'}
+          <Text style={{ fontSize: 11 }}>/notte</Text>
         </Text>
       </View>
       <View style={styles.hotelDetails}>
         <Text style={[styles.location, { color: theme.textMuted }]}>{item.location}</Text>
-        <View style={styles.ratingRow}>
-          <Ionicons name="star" size={13} color="#FFD700" />
-          <Text style={[styles.ratingText, { color: theme.textPrimary }]}>{item.rating}</Text>
-          <Text style={[styles.location, { color: theme.textMuted }]}>({item.reviews})</Text>
-        </View>
-        <View style={styles.amenityRow}>
-          {item.amenities.slice(0, 3).map((a, i) => (
-            <View key={i} style={[styles.amenityBadge, { backgroundColor: theme.bgSubtle }]}>
-              <Text style={[styles.amenityText, { color: theme.textMuted }]}>{a}</Text>
-            </View>
-          ))}
-        </View>
+        {item.rating !== undefined && (
+          <View style={styles.ratingRow}>
+            <Ionicons name="star" size={13} color="#FFD700" />
+            <Text style={[styles.ratingText, { color: theme.textPrimary }]}>{item.rating}</Text>
+          </View>
+        )}
+        {item.amenities.length > 0 && (
+          <View style={styles.amenityRow}>
+            {item.amenities.slice(0, 3).map((a, i) => (
+              <View key={i} style={[styles.amenityBadge, { backgroundColor: theme.bgSubtle }]}>
+                <Text style={[styles.amenityText, { color: theme.textMuted }]}>{a}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -183,7 +154,9 @@ export default function TravelSearchScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [category, setCategory] = useState<SearchCategory>('flights');
-  const [results, setResults] = useState<any[]>(MOCK_FLIGHTS);
+
+  const flightSearch = useFlightSearch();
+  const hotelSearch = useHotelSearch();
 
   const categories: { key: SearchCategory; label: string; icon: string }[] = [
     { key: 'flights', label: t('search.flights', 'Voli'), icon: 'airplane' },
@@ -194,34 +167,55 @@ export default function TravelSearchScreen() {
   const handleCategoryChange = useCallback((cat: SearchCategory) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCategory(cat);
-    switch (cat) {
-      case 'flights': setResults(MOCK_FLIGHTS); break;
-      case 'hotels': setResults(MOCK_HOTELS); break;
-      case 'transport': setResults(MOCK_TRANSPORT); break;
-    }
+    flightSearch.clear();
+    hotelSearch.clear();
   }, []);
 
   const handleSearch = useCallback((query: string) => {
-    // Mock search — filter by query
-    const q = query.toLowerCase();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const q = query.trim();
+
     switch (category) {
       case 'flights':
-        setResults(MOCK_FLIGHTS.filter(f =>
-          f.from.toLowerCase().includes(q) || f.to.toLowerCase().includes(q)
-        ));
+        // Expect format: "NAP LHR 2026-04-15"
+        const flightParts = q.split(/\s+/);
+        if (flightParts.length >= 2) {
+          flightSearch.search({
+            origin: flightParts[0].toUpperCase(),
+            destination: flightParts[1].toUpperCase(),
+            departDate: flightParts[2] || new Date().toISOString().split('T')[0],
+          });
+        }
         break;
       case 'hotels':
-        setResults(MOCK_HOTELS.filter(h =>
-          h.name.toLowerCase().includes(q) || h.location.toLowerCase().includes(q)
-        ));
-        break;
-      case 'transport':
-        setResults(MOCK_TRANSPORT.filter(t =>
-          t.from.toLowerCase().includes(q) || t.to.toLowerCase().includes(q)
-        ));
+        // Expect format: "PAR 2026-04-15 2026-04-18"
+        const hotelParts = q.split(/\s+/);
+        if (hotelParts.length >= 1) {
+          hotelSearch.search({
+            cityCode: hotelParts[0].toUpperCase(),
+            checkIn: hotelParts[1] || new Date().toISOString().split('T')[0],
+            checkOut: hotelParts[2] || new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+          });
+        }
         break;
     }
   }, [category]);
+
+  const isLoading = category === 'flights' ? flightSearch.loading
+    : category === 'hotels' ? hotelSearch.loading
+    : false;
+
+  const currentError = category === 'flights' ? flightSearch.error
+    : category === 'hotels' ? hotelSearch.error
+    : null;
+
+  const getResults = () => {
+    switch (category) {
+      case 'flights': return flightSearch.results;
+      case 'hotels': return hotelSearch.results;
+      case 'transport': return MOCK_TRANSPORT;
+    }
+  };
 
   const renderItem = useCallback(({ item }: { item: any }) => {
     switch (category) {
@@ -230,6 +224,12 @@ export default function TravelSearchScreen() {
       case 'transport': return <TransportCard item={item} theme={theme} />;
     }
   }, [category, theme]);
+
+  const searchPlaceholder = category === 'flights'
+    ? 'NAP LHR 2026-04-15'
+    : category === 'hotels'
+    ? 'PAR 2026-04-15 2026-04-18'
+    : 'Rotta...';
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
@@ -249,9 +249,17 @@ export default function TravelSearchScreen() {
       {/* Search bar */}
       <View style={styles.searchWrap}>
         <SearchBar
-          placeholder={category === 'flights' ? 'Da dove parti?' : category === 'hotels' ? 'Dove vai?' : 'Rotta...'}
+          placeholder={searchPlaceholder}
           onSearch={handleSearch}
         />
+        <Text style={[styles.hintText, { color: theme.textMuted }]}>
+          {category === 'flights'
+            ? 'Formato: ORIGINE DESTINAZIONE DATA (es. NAP LHR 2026-04-15)'
+            : category === 'hotels'
+            ? 'Formato: CITTA CHECK-IN CHECK-OUT (es. PAR 2026-04-15 2026-04-18)'
+            : 'Trasporti mock — API in arrivo'
+          }
+        </Text>
       </View>
 
       {/* Category tabs */}
@@ -290,22 +298,39 @@ export default function TravelSearchScreen() {
         })}
       </ScrollView>
 
+      {/* Error */}
+      {currentError && (
+        <View style={styles.errorBanner}>
+          <Ionicons name="warning-outline" size={16} color={theme.red} />
+          <Text style={[styles.errorText, { color: theme.red }]}>{currentError}</Text>
+        </View>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="large" color={theme.teal} />
+        </View>
+      )}
+
       {/* Results */}
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color={theme.textMuted} />
-            <Text style={[styles.emptyText, { color: theme.textMuted }]}>
-              {t('search.empty', 'Nessun risultato')}
-            </Text>
-          </View>
-        }
-      />
+      {!isLoading && (
+        <FlatList
+          data={getResults()}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="search-outline" size={48} color={theme.textMuted} />
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>
+                {t('search.empty', 'Cerca voli, hotel o trasporti')}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -324,6 +349,7 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   headerTitle: { fontSize: 18, fontWeight: '700' },
   searchWrap: { padding: 16 },
+  hintText: { fontSize: 11, marginTop: 6, marginLeft: 4 },
   tabsRow: { paddingHorizontal: 16, gap: 8, paddingBottom: 16 },
   categoryTab: {
     flexDirection: 'row',
@@ -348,7 +374,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  airlineRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  airlineRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
   operatorName: { fontSize: 15, fontWeight: '700' },
   price: { fontSize: 18, fontWeight: '800' },
   routeRow: {
@@ -363,12 +389,16 @@ const styles = StyleSheet.create({
   line: { height: 1, width: '100%' },
   duration: { fontSize: 12 },
   stops: { fontSize: 11 },
+  seatsWarning: { fontSize: 12, fontWeight: '600', marginTop: 8 },
   hotelDetails: { gap: 8 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   ratingText: { fontSize: 14, fontWeight: '600' },
   amenityRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
   amenityBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.sm },
   amenityText: { fontSize: 11 },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 12 },
+  errorText: { fontSize: 13 },
+  loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyState: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyText: { fontSize: 16 },
 });

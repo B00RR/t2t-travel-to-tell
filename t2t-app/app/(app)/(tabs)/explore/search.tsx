@@ -12,7 +12,7 @@ import { useFlightSearch } from '@/hooks/useFlightSearch';
 import { useHotelSearch } from '@/hooks/useHotelSearch';
 import { SearchBar } from '@/components/SearchBar';
 import { Spacing, Typography, Radius } from '@/constants/theme';
-import type { FlightOffer, HotelOffer } from '@/services/amadeus';
+import type { FlightOffer, HotelOffer } from '@/services/rapidapi';
 
 /* ── Types ────────────────────────────────────────────────── */
 

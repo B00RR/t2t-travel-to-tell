@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AmadeusService, type FlightOffer } from '@/services/amadeus';
+import { TravelAPI, type FlightOffer } from '@/services/rapidapi';
 
 interface UseFlightSearchReturn {
   results: FlightOffer[];
@@ -30,7 +30,13 @@ export function useFlightSearch(): UseFlightSearchReturn {
     setLoading(true);
     setError(null);
     try {
-      const data = await AmadeusService.searchFlights(params);
+      const data = await TravelAPI.searchFlights({
+        fromCode: `${params.origin}.AIRPORT`,
+        toCode: `${params.destination}.AIRPORT`,
+        departDate: params.departDate,
+        returnDate: params.returnDate,
+        adults: params.adults,
+      });
       setResults(data);
     } catch (e: any) {
       setError(e.message || 'Errore nella ricerca voli');

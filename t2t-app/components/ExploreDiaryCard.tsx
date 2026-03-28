@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius, Spacing, Typography, Shadows } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
+import { normalizeProfile } from '@/types/supabase';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -74,7 +75,7 @@ const ExploreDiaryCardComponent = ({ item, index = 0 }: ExploreDiaryCardProps) =
           {item.title}
         </Text>
         <Text style={[styles.author, { color: theme.teal }]} numberOfLines={1}>
-          {item.profiles?.display_name || item.profiles?.username || t('common.anonymous')}
+          {(normalizeProfile(item.profiles))?.display_name || (normalizeProfile(item.profiles))?.username || t('common.anonymous')}
         </Text>
       </View>
     </AnimatedPressable>

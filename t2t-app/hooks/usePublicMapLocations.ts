@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { MapLocation } from './useMapLocations';
 
@@ -26,6 +26,7 @@ export function usePublicMapLocations(enabled: boolean) {
   const [locations, setLocations] = useState<PublicMapLocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
   const fetchLocations = useCallback(async () => {
     if (!enabled) return;
@@ -40,6 +41,7 @@ export function usePublicMapLocations(enabled: boolean) {
         .order('created_at', { ascending: false })
         .limit(200);
 
+      if (!mountedRef.current) return;
       if (dErr) { setError(dErr.message); setLocations([]); return; }
       if (!diaries || diaries.length === 0) { setLocations([]); return; }
 
@@ -52,6 +54,7 @@ export function usePublicMapLocations(enabled: boolean) {
         .in('diary_id', diaryIds)
         .limit(1000);
 
+      if (!mountedRef.current) return;
       if (dayErr) { setError(dayErr.message); setLocations([]); return; }
       if (!days || days.length === 0) { setLocations([]); return; }
 
@@ -65,6 +68,7 @@ export function usePublicMapLocations(enabled: boolean) {
         .in('day_id', dayIds)
         .limit(2000);
 
+      if (!mountedRef.current) return;
       if (eErr) { setError(eErr.message); setLocations([]); return; }
       if (!entries) { setLocations([]); return; }
 
@@ -95,15 +99,18 @@ export function usePublicMapLocations(enabled: boolean) {
 
       setLocations(result);
     } catch (e: unknown) {
+      if (!mountedRef.current) return;
       setError(e instanceof Error ? e.message : 'Unknown error');
       setLocations([]);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     if (enabled) fetchLocations();
+    return () => { mountedRef.current = false; };
   }, [enabled, fetchLocations]);
 
   return { locations, loading, error, refresh: fetchLocations };

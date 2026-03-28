@@ -24,7 +24,7 @@ export function useComments() {
       .order('created_at', { ascending: true }); // older first
 
     if (error) {
-      setError(error as any); // using as any since we don't know the exact Supabase error type here
+      setError(error instanceof Error ? error : new Error(String(error)));
     } else if (data) {
       // Map Supabase join format to our TypeScript definition
       const mapped: Comment[] = data.map((item: any) => ({

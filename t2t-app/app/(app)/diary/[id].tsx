@@ -57,15 +57,24 @@ export default function DiaryDetailScreen() {
 
   const flatListRef = useRef<FlatList>(null);
 
-  // Increment view count once
+  // Increment view count once per mount (ref guards against React strict-mode double effect)
+  // NOTE: To eliminate cross-user race conditions entirely, create a Supabase RPC:
+  //   create or replace function increment_view_count(diary_id uuid)
+  //   returns void as $$ update diaries set view_count = coalesce(view_count,0) + 1 where id = diary_id; $$ language sql;
   const viewCountedRef = useRef(false);
   useEffect(() => {
     if (diary && !viewCountedRef.current && user?.id !== diary.author_id) {
       viewCountedRef.current = true;
-      supabase
-        .from('diaries')
-        .update({ view_count: (diary.view_count || 0) + 1 })
-        .eq('id', diary.id);
+      (async () => {
+        const { error } = await supabase.rpc('increment_view_count', { diary_id: diary.id });
+        if (error) {
+          // Fallback if RPC doesn't exist yet — best-effort increment
+          await supabase
+            .from('diaries')
+            .update({ view_count: (diary.view_count || 0) + 1 })
+            .eq('id', diary.id);
+        }
+      })();
     }
   }, [diary?.id, user?.id]);
 

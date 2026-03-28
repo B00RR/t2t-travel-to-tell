@@ -123,10 +123,20 @@ export interface Database {
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Diary = Database['public']['Tables']['diaries']['Row']
 
+type ProfileShape = {
+  username: string | null
+  display_name: string | null
+  avatar_url: string | null
+}
+
 export type FeedDiary = Diary & {
-  profiles: {
-    username: string | null
-    display_name: string | null
-    avatar_url: string | null
-  }
+  profiles: ProfileShape | ProfileShape[]
+}
+
+/** Normalise profiles which may be an array when FK is not configured */
+export function normalizeProfile(
+  profiles: FeedDiary['profiles'] | null | undefined
+): ProfileShape | null {
+  if (!profiles) return null;
+  return Array.isArray(profiles) ? profiles[0] ?? null : profiles;
 }

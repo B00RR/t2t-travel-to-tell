@@ -38,7 +38,7 @@ export function useTripPlans(userId: string | undefined) {
       console.error('fetchMyPlans error', error);
     }
 
-    setLoading(false);
+    if (!isRefreshing) setLoading(false);
     if (isRefreshing) setRefreshing(false);
   }, [userId, t]);
 
@@ -58,7 +58,7 @@ export function useTripPlans(userId: string | undefined) {
       console.error('fetchPublicPlans error', error);
     }
 
-    setLoading(false);
+    if (!isRefreshing) setLoading(false);
     if (isRefreshing) setRefreshing(false);
   }, [t]);
 

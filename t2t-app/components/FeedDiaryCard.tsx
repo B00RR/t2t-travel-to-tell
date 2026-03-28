@@ -18,7 +18,7 @@ import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
-
+import { normalizeProfile } from '@/types/supabase';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface FeedDiaryCardProps {
@@ -49,7 +49,7 @@ const FeedDiaryCardComponent = ({
 }: FeedDiaryCardProps) => {
   const theme = useAppTheme();
   const router = useRouter();
-  const profile = item.profiles;
+  const profile = normalizeProfile(item.profiles);
   const hasCover = !!item.cover_image_url;
   const destinations = item.destinations || [];
   const days = getTripDays(item.start_date, item.end_date);

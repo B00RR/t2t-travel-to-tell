@@ -1,29 +1,25 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, FlatList, ScrollView,
+  View, Text, StyleSheet, TextInput, FlatList,
   TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ExploreDiaryCard } from '@/components/ExploreDiaryCard';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
-import { PeopleToFollow } from '@/components/PeopleToFollow';
 import { WanderlustMap } from '@/components/WanderlustMap';
-import InteractiveGlobe from '@/components/InteractiveGlobe';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
+import { SortBar, type SortMode, type DurationFilter } from '@/components/explore/SortBar';
+import { ListHeader } from '@/components/explore/ListHeader';
 
 type ExploreMode = 'browse' | 'map';
 
 const PAGE_SIZE = 20;
-
-type SortMode = 'recent' | 'popular' | 'trending';
-type DurationFilter = 'all' | 'short' | 'medium' | 'long';
 
 function getDurationDays(diary: FeedDiary): number | null {
   if (!diary.start_date || !diary.end_date) return null;
@@ -45,7 +41,6 @@ function matchesDuration(diary: FeedDiary, filter: DurationFilter): boolean {
 
 export default function DiscoveryScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const { user } = useAuth();
   const theme = useAppTheme();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
@@ -244,126 +239,9 @@ export default function DiscoveryScreen() {
 
   const isSearchMode = searchQuery.trim().length > 0;
 
-  const SortBar = useCallback(() => {
-    if (isSearchMode) return null;
-    const sorts: { key: SortMode; label: string; icon: string }[] = [
-      { key: 'recent', label: t('explore.sort_recent'), icon: 'time-outline' },
-      { key: 'popular', label: t('explore.sort_popular'), icon: 'heart-outline' },
-      { key: 'trending', label: t('explore.sort_trending'), icon: 'flame-outline' },
-    ];
-    return (
-      <View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.sortBar}
-        >
-          {sorts.map(s => (
-            <TouchableOpacity
-              key={s.key}
-              style={[
-                styles.sortChip,
-                { backgroundColor: theme.bgElevated, borderColor: theme.border },
-                sortMode === s.key && { backgroundColor: theme.teal, borderColor: theme.teal },
-              ]}
-              onPress={() => handleSortChange(s.key)}
-            >
-              <Ionicons
-                name={s.icon as keyof typeof Ionicons.glyphMap}
-                size={15}
-                color={sortMode === s.key ? '#fff' : theme.textSecondary}
-              />
-              <Text style={[
-                styles.sortChipText,
-                { color: theme.textSecondary },
-                sortMode === s.key && { color: '#fff' },
-              ]}>
-                {s.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.durationBar}
-        >
-          {(['all', 'short', 'medium', 'long'] as DurationFilter[]).map(d => (
-            <TouchableOpacity
-              key={d}
-              style={[
-                styles.durationChip,
-                { backgroundColor: theme.bgElevated, borderColor: theme.border },
-                durationFilter === d && { backgroundColor: theme.tealAlpha15, borderColor: theme.teal },
-              ]}
-              onPress={() => setDurationFilter(d)}
-            >
-              <Text style={[
-                styles.durationChipText,
-                { color: theme.textSecondary },
-                durationFilter === d && { color: theme.teal },
-              ]}>
-                {t(`explore.duration_${d}`)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  }, [isSearchMode, sortMode, durationFilter, t, handleSortChange, theme]);
-
-  const ListHeader = useCallback(() => {
-    if (isSearchMode) return null;
-    
-    // Attempting to infer dark theme from background color heuristically, or assuming false.
-    // In a real scenario we could check `useColorScheme()`
-    const isDark = theme.bg === '#1A1A1A' || theme.bg === '#000000';
-
-    return (
-      <View>
-        {/* WOW ELEMENT: 3D Interactive Moleskine Globe */}
-        <View style={{ marginVertical: Spacing.md }}>
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary, paddingHorizontal: 20 }]}>
-            Il Tuo Mondo Diari
-          </Text>
-          <InteractiveGlobe isDarkTheme={isDark} />
-        </View>
-
-        {/* Travel search CTA */}
-        <TouchableOpacity
-          style={[styles.travelSearchCta, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
-          onPress={() => router.push('/(app)/(tabs)/explore/search')}
-        >
-          <View style={[styles.travelSearchIcon, { backgroundColor: theme.tealAlpha15 }]}>
-            <Ionicons name="airplane" size={20} color={theme.teal} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.travelSearchTitle, { color: theme.textPrimary }]}>
-              {t('explore.travel_search', 'Cerca viaggio')}
-            </Text>
-            <Text style={[styles.travelSearchSub, { color: theme.textMuted }]}>
-              {t('explore.travel_search_sub', 'Voli, hotel e trasporti')}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
-        </TouchableOpacity>
-
-        <SortBar />
-        {user?.id && sortMode === 'recent' && (
-          <PeopleToFollow currentUserId={user.id} />
-        )}
-        {sortMode === 'recent' && (
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary, paddingHorizontal: 20 }]}>{t('explore.all_diaries')}</Text>
-        )}
-        {sortMode === 'popular' && (
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.sort_popular')}</Text>
-        )}
-        {sortMode === 'trending' && (
-          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>{t('explore.sort_trending')}</Text>
-        )}
-      </View>
-    );
-  }, [isSearchMode, sortMode, t, SortBar, user?.id, theme]);
+  const handleDurationChange = useCallback((filter: DurationFilter) => {
+    setDurationFilter(filter);
+  }, []);
 
   const ListFooter = useCallback(() => {
     if (!loadingMore) return null;
@@ -445,7 +323,16 @@ export default function DiscoveryScreen() {
           contentContainerStyle={styles.listContent}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={ListHeader}
+          ListHeaderComponent={
+            <ListHeader
+              isSearchMode={isSearchMode}
+              sortMode={sortMode}
+              durationFilter={durationFilter}
+              userId={user?.id}
+              onSortChange={handleSortChange}
+              onDurationChange={handleDurationChange}
+            />
+          }
           ListFooterComponent={ListFooter}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
@@ -518,55 +405,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
-  sortBar: {
-    paddingHorizontal: 10,
-    paddingTop: 14,
-    paddingBottom: 8,
-    gap: 8,
-  },
-  sortChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-  },
-  sortChipText: {
-    ...Typography.label,
-  },
-  durationBar: {
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-    gap: 6,
-  },
-  durationChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-  },
-  durationChipText: {
-    ...Typography.label,
-  },
-  sectionTitle: {
-    ...Typography.h2,
-    paddingHorizontal: 10,
-    paddingTop: 4,
-    paddingBottom: 10,
-  },
   listContent: {
     padding: 10,
     paddingBottom: 100,
   },
   columnWrapper: {
     justifyContent: 'space-between',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,
@@ -583,30 +427,5 @@ const styles = StyleSheet.create({
   footerLoader: {
     paddingVertical: 20,
     alignItems: 'center',
-  },
-  travelSearchCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 14,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-  },
-  travelSearchIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  travelSearchTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  travelSearchSub: {
-    fontSize: 12,
-    marginTop: 2,
   },
 });

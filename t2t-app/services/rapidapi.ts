@@ -1,17 +1,23 @@
 /**
  * RapidAPI Travel Services for T2T
- * Replaces Amadeus with RapidAPI: Booking COM + Tripadvisor + AeroDataBox
+ * Proxied via Supabase Edge Function — API keys stay server-side.
  *
- * API Key: EXPO_PUBLIC_RAPIDAPI_KEY
  * Hosts:
  *   - booking-com.p.rapidapi.com  (Hotels, Flights, Car Rental, Attractions)
  *   - tripadvisor16.p.rapidapi.com (Restaurants, Attractions, Hotels)
  *   - aerodatabox.p.rapidapi.com (Airport flights, flight status)
  */
 
-const RAPIDAPI_KEY = process.env.EXPO_PUBLIC_RAPIDAPI_KEY || '';
+import { supabase } from '@/lib/supabase';
 
-/* ── Shared fetch helper ──────────────────────────────────── */
+/* ── Shared fetch helper (via Edge Function proxy) ───────── */
+
+// Map host → API name for the proxy
+const HOST_TO_API: Record<string, string> = {
+  'booking-com.p.rapidapi.com': 'booking',
+  'tripadvisor16.p.rapidapi.com': 'tripadvisor',
+  'aerodatabox.p.rapidapi.com': 'aerodatabox',
+};
 
 interface RapidAPIOptions {
   host: string;
@@ -20,24 +26,22 @@ interface RapidAPIOptions {
 }
 
 async function rapidFetch<T>(opts: RapidAPIOptions): Promise<T> {
-  const url = new URL(`https://${opts.host}${opts.path}`);
-  if (opts.params) {
-    Object.entries(opts.params).forEach(([k, v]) => url.searchParams.set(k, v));
-  }
+  const api = HOST_TO_API[opts.host];
+  if (!api) throw new Error(`Unknown API host: ${opts.host}`);
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      'x-rapidapi-key': RAPIDAPI_KEY,
-      'x-rapidapi-host': opts.host,
+  const { data, error } = await supabase.functions.invoke('api-proxy', {
+    body: {
+      api,
+      path: opts.path,
+      params: opts.params,
     },
   });
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`RapidAPI ${opts.host}${opts.path}: ${res.status} ${body}`);
+  if (error) {
+    throw new Error(`API proxy error (${api}): ${error.message}`);
   }
 
-  return res.json();
+  return data as T;
 }
 
 /* ── Types ────────────────────────────────────────────────── */

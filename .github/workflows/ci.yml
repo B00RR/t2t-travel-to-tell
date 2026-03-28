@@ -1,0 +1,36 @@
+name: CI (Lint & TypeScript)
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 't2t-app/**'
+
+jobs:
+  ci:
+    name: Lint & TypeScript Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: t2t-app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: t2t-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx expo lint

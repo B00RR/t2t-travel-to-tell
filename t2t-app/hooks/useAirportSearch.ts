@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { AmadeusService, type Airport } from '@/services/amadeus';
+import { TravelAPI, type Airport } from '@/services/rapidapi';
 
 const DEBOUNCE_MS = 400;
 
@@ -26,7 +26,7 @@ export function useAirportSearch(): UseAirportSearchReturn {
     timerRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const data = await AmadeusService.searchAirports(keyword);
+        const data = await TravelAPI.searchAirports(keyword);
         setResults(data);
       } catch {
         setResults([]);

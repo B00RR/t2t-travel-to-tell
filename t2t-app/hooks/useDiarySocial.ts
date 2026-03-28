@@ -63,21 +63,21 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
     // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Optimistic UI update
-    setHasLiked(!hasLiked);
-    setCounters(prev => ({ ...prev, like_count: prev.like_count + (hasLiked ? -1 : 1) }));
+    // Optimistic UI update — capture previous value before flipping
+    const prevLiked = hasLiked;
+    setHasLiked(!prevLiked);
+    setCounters(prev => ({ ...prev, like_count: prev.like_count + (prevLiked ? -1 : 1) }));
 
     try {
-      if (hasLiked) {
+      if (prevLiked) {
         await supabase.from('likes').delete().eq('diary_id', diaryId).eq('user_id', userId);
-        // Supabase triggers generally handle numeric sync for us, but for simplicity we rely on optimistic updates locally.
       } else {
         await supabase.from('likes').insert({ diary_id: diaryId, user_id: userId });
       }
     } catch (e) {
       // Rollback on failure
-      setHasLiked(hasLiked);
-      setCounters(prev => ({ ...prev, like_count: prev.like_count + (hasLiked ? 1 : -1) }));
+      setHasLiked(prevLiked);
+      setCounters(prev => ({ ...prev, like_count: prev.like_count + (prevLiked ? 1 : -1) }));
       console.warn('Failed to toggle like', e);
     }
   }, [diaryId, userId, hasLiked]);
@@ -91,20 +91,21 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
     // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Optimistic UI update
-    setHasSaved(!hasSaved);
-    setCounters(prev => ({ ...prev, save_count: prev.save_count + (hasSaved ? -1 : 1) }));
+    // Optimistic UI update — capture previous value before flipping
+    const prevSaved = hasSaved;
+    setHasSaved(!prevSaved);
+    setCounters(prev => ({ ...prev, save_count: prev.save_count + (prevSaved ? -1 : 1) }));
 
     try {
-      if (hasSaved) {
+      if (prevSaved) {
         await supabase.from('saves').delete().eq('diary_id', diaryId).eq('user_id', userId);
       } else {
         await supabase.from('saves').insert({ diary_id: diaryId, user_id: userId });
       }
     } catch (e) {
       // Rollback on failure
-      setHasSaved(hasSaved);
-      setCounters(prev => ({ ...prev, save_count: prev.save_count + (hasSaved ? 1 : -1) }));
+      setHasSaved(prevSaved);
+      setCounters(prev => ({ ...prev, save_count: prev.save_count + (prevSaved ? 1 : -1) }));
       console.warn('Failed to toggle save', e);
     }
   }, [diaryId, userId, hasSaved]);

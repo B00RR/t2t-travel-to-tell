@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { TravelAPI, type Airport } from '@/services/rapidapi';
 
 const DEBOUNCE_MS = 400;
@@ -14,6 +14,13 @@ export function useAirportSearch(): UseAirportSearchReturn {
   const [results, setResults] = useState<Airport[]>([]);
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const search = useCallback((keyword: string) => {
     if (timerRef.current) clearTimeout(timerRef.current);

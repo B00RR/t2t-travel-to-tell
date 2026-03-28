@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export interface MapLocation {
@@ -15,6 +15,7 @@ export interface MapLocation {
 export function useMapLocations(userId: string | undefined) {
   const [locations, setLocations] = useState<MapLocation[]>([]);
   const [loading, setLoading] = useState(false);
+  const mountedRef = useRef(true);
 
   const fetchLocations = useCallback(async () => {
     if (!userId) return;
@@ -23,18 +24,21 @@ export function useMapLocations(userId: string | undefined) {
       const { data, error } = await supabase.rpc('get_user_map_locations', {
         p_user_id: userId,
       });
+      if (!mountedRef.current) return;
       if (error) {
         console.error('useMapLocations fetch failed', error);
       } else if (data) {
         setLocations(data as MapLocation[]);
       }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [userId]);
 
   useEffect(() => {
+    mountedRef.current = true;
     fetchLocations();
+    return () => { mountedRef.current = false; };
   }, [fetchLocations]);
 
   return { locations, loading, refresh: fetchLocations };

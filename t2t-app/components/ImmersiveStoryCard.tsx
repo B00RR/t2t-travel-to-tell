@@ -23,6 +23,7 @@ import { AnimatedHeartOverlay } from '@/components/AnimatedHeartOverlay';
 import { useDiarySocial } from '@/hooks/useDiarySocial';
 import { Palette, Glass } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
+import { normalizeProfile } from '@/types/supabase';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_PANEL_HEIGHT = 200;
@@ -68,7 +69,7 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
     },
   });
 
-  const author = item.profiles;
+  const author = normalizeProfile(item.profiles);
   const authorName = author?.display_name || author?.username || t('common.anonymous');
   const days = getTripDays(item.start_date, item.end_date);
 

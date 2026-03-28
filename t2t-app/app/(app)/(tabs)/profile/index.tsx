@@ -17,6 +17,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography } from '@/constants/theme';
 import i18n from '@/i18n';
 import type { Diary, FeedDiary } from '@/types/supabase';
+import { normalizeProfile } from '@/types/supabase';
 
 const BIO_MAX = 160;
 
@@ -331,7 +332,7 @@ export default function ProfileScreen() {
           <View style={styles.diariesGrid}>
             {(activeDiaries as (Diary | FeedDiary)[]).map((diary) => {
               const isFeed = diaryTab === 'saved';
-              const authorProfile = isFeed ? (diary as FeedDiary).profiles : null;
+              const authorProfile = isFeed ? normalizeProfile((diary as FeedDiary).profiles) : null;
               const hasCover = !!diary.cover_image_url;
               return (
                 <TouchableOpacity

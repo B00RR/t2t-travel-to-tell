@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   Platform, StatusBar, ScrollView, ActivityIndicator,
@@ -199,7 +199,7 @@ export default function TravelSearchScreen() {
         }
         break;
     }
-  }, [category]);
+  }, [category, flightSearch, hotelSearch]);
 
   const isLoading = category === 'flights' ? flightSearch.loading
     : category === 'hotels' ? hotelSearch.loading
@@ -209,13 +209,13 @@ export default function TravelSearchScreen() {
     : category === 'hotels' ? hotelSearch.error
     : null;
 
-  const getResults = () => {
+  const results = useMemo(() => {
     switch (category) {
       case 'flights': return flightSearch.results;
       case 'hotels': return hotelSearch.results;
       case 'transport': return MOCK_TRANSPORT;
     }
-  };
+  }, [category, flightSearch.results, hotelSearch.results]);
 
   const renderItem = useCallback(({ item }: { item: any }) => {
     switch (category) {
@@ -316,7 +316,7 @@ export default function TravelSearchScreen() {
       {/* Results */}
       {!isLoading && (
         <FlatList
-          data={getResults()}
+          data={results}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}

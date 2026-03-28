@@ -204,8 +204,9 @@ export function useMediaUpload({
 
         await onUploadComplete();
       }
-    } catch (e: any) {
-      console.error('Upload error:', e);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error('Upload error:', message);
       Alert.alert(t('common.upload_error'), t('media.upload_failed'));
     }
 

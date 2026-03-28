@@ -1,9 +1,44 @@
-import React, { useRef, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef, useMemo, Component, ReactNode } from 'react';
+import { View, StyleSheet, Text } from 'react-native';
 import { Canvas, useFrame } from '@react-three/fiber/native';
 import * as THREE from 'three';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppTheme } from '@/hooks/useAppTheme';
+
+/* ── Error Boundary for WebGL failures ────────────────────── */
+
+interface GlobeErrorBoundaryState {
+  hasError: boolean;
+}
+
+class GlobeErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, GlobeErrorBoundaryState> {
+  state: GlobeErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): GlobeErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn('InteractiveGlobe: WebGL not available, showing fallback.', error.message);
+  }
+
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+/* ── Fallback when WebGL is unavailable ───────────────────── */
+
+function GlobeFallback({ theme, height }: { theme: AppTheme; height: number }) {
+  return (
+    <View style={[styles.container, { height, justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.fallbackCircle, { borderColor: theme.teal }]}>
+        <Text style={[styles.fallbackEmoji]}>🌍</Text>
+      </View>
+    </View>
+  );
+}
 
 /* ── Pin component ────────────────────────────────────────── */
 
@@ -121,14 +156,16 @@ export const InteractiveGlobe = ({ height = 350 }: InteractiveGlobeProps) => {
   const theme = useAppTheme();
 
   return (
-    <View style={[styles.container, { height }]} testID="globe-container">
-      <Canvas testID="three-canvas">
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[10, 10, 5]} intensity={1.0} color={theme.teal} />
-        <directionalLight position={[-8, -6, -4]} intensity={0.3} color={theme.orange} />
-        <Globe theme={theme} />
-      </Canvas>
-    </View>
+    <GlobeErrorBoundary fallback={<GlobeFallback theme={theme} height={height} />}>
+      <View style={[styles.container, { height }]} testID="globe-container">
+        <Canvas testID="three-canvas">
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[10, 10, 5]} intensity={1.0} color={theme.teal} />
+          <directionalLight position={[-8, -6, -4]} intensity={0.3} color={theme.orange} />
+          <Globe theme={theme} />
+        </Canvas>
+      </View>
+    </GlobeErrorBoundary>
   );
 };
 
@@ -139,6 +176,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  fallbackCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fallbackEmoji: {
+    fontSize: 48,
   },
 });
 

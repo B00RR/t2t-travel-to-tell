@@ -12,7 +12,7 @@ module.exports = {
     icon: './assets/images/icon.png',
     scheme: 't2tapp',
     userInterfaceStyle: 'automatic',
-    newArchEnabled: false,
+    newArchEnabled: true,
     owner: 'b00r',
     ios: {
       supportsTablet: true,
@@ -75,6 +75,7 @@ module.exports = {
     ],
     experiments: {
       typedRoutes: true,
+      reactCompiler: false,
     },
     extra: {
       eas: {
@@ -83,3 +84,4 @@ module.exports = {
     },
   },
 };
+

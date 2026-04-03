@@ -27,6 +27,10 @@ export default function TabLayout() {
       />
       {/* Hidden screens — accessible via navigation, not in tab bar */}
       <Tabs.Screen
+        name="index"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
         name="create"
         options={{ href: null }}
       />

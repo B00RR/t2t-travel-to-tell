@@ -98,16 +98,42 @@ export function useMediaUpload({
         finalHeight = manipResult.height;
       }
 
-      // 2. Prepare Storage Paths
+      // 2. Validate MIME type + file extension (security: prevent uploading disguised files)
+      const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif', 'image/webp'];
+      const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm', 'video/x-m4v'];
+      const REAL_EXT_MAP: Record<string, string> = {
+        'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/x-msvideo': 'avi',
+        'video/x-matroska': 'mkv', 'video/webm': 'webm', 'video/x-m4v': 'm4v',
+      };
+
+      // React Native asset type from expo-image-picker
+      const assetMime = asset.mimeType || asset.type;
+      if (isVideo) {
+        if (assetMime && !ALLOWED_VIDEO_MIMES.includes(assetMime)) {
+          setUploading(false);
+          Alert.alert('Errore', 'Formato video non supportato.');
+          return;
+        }
+      } else {
+        // Images are re-encoded as JPEG by ImageManipulator, so always safe
+      }
+
       const ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v'];
       let fileExt = 'jpg';
       if (isVideo) {
-        const extractedExt = asset.uri.split('.').pop()?.toLowerCase() || 'mp4';
-        fileExt = ALLOWED_VIDEO_EXTENSIONS.includes(extractedExt) ? extractedExt : 'mp4';
+        // Determine extension from MIME (more reliable than URI)
+        if (assetMime && REAL_EXT_MAP[assetMime]) {
+          fileExt = REAL_EXT_MAP[assetMime];
+        } else {
+          // Fallback to URI extension with validation
+          const extractedExt = asset.uri.split('.').pop()?.toLowerCase() || 'mp4';
+          fileExt = ALLOWED_VIDEO_EXTENSIONS.includes(extractedExt) ? extractedExt : 'mp4';
+        }
       }
 
       const mainStoragePath = `${userId}/${dId}/${daId}/${timestamp}.${fileExt}`;
-      const contentType = isVideo ? `video/${fileExt}` : 'image/jpeg';
+      const videoExt = fileExt === 'm4v' ? 'mp4' : fileExt;
+      const contentType = isVideo ? `video/${videoExt}` : 'image/jpeg';
 
       let thumbnailUri = '';
       let thumbnailStoragePath = '';

@@ -201,7 +201,7 @@ export async function searchFlights(params: {
     const mins = durationMin % 60;
     const duration = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
-    const priceTotal = f.price_total?.units + (f.price_total?.nanos || 0) / 1e9 || 0;
+    const priceTotal = (f.price_total?.units ?? 0) + ((f.price_total?.nanos ?? 0) / 1e9);
 
     return {
       id: String(f.flight_id || `${first.carrier_code}${first.flight_number}`),

@@ -99,31 +99,29 @@ export function useMediaUpload({
       }
 
       // 2. Validate MIME type + file extension (security: prevent uploading disguised files)
-      const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif', 'image/webp'];
-      const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm', 'video/x-m4v'];
       const REAL_EXT_MAP: Record<string, string> = {
         'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/x-msvideo': 'avi',
         'video/x-matroska': 'mkv', 'video/webm': 'webm', 'video/x-m4v': 'm4v',
       };
 
-      // React Native asset type from expo-image-picker
-      const assetMime = asset.mimeType || asset.type;
-      if (isVideo) {
-        if (assetMime && !ALLOWED_VIDEO_MIMES.includes(assetMime)) {
+      // expo-image-picker: mimeType may be a real MIME (contains '/') or just 'image'/'video'
+      const assetMime = asset.mimeType;
+      const hasRealMime = assetMime && assetMime.includes('/');
+      if (isVideo && hasRealMime) {
+        const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm', 'video/x-m4v'];
+        if (!ALLOWED_VIDEO_MIMES.includes(assetMime)) {
           setUploading(false);
           Alert.alert('Errore', 'Formato video non supportato.');
           return;
         }
-      } else {
-        // Images are re-encoded as JPEG by ImageManipulator, so always safe
       }
 
       const ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v'];
       let fileExt = 'jpg';
       if (isVideo) {
-        // Determine extension from MIME (more reliable than URI)
-        if (assetMime && REAL_EXT_MAP[assetMime]) {
-          fileExt = REAL_EXT_MAP[assetMime];
+        // Determine extension from MIME if available, else from URI
+        if (hasRealMime && REAL_EXT_MAP[assetMime!]) {
+          fileExt = REAL_EXT_MAP[assetMime!];
         } else {
           // Fallback to URI extension with validation
           const extractedExt = asset.uri.split('.').pop()?.toLowerCase() || 'mp4';

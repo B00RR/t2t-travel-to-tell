@@ -6,6 +6,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { DayEntry } from '@/types/dayEntry';
 import { RichTextInput } from './RichTextInput';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius } from '@/constants/theme';
 
 interface EditEntryModalProps {
   entry: DayEntry | null;
@@ -20,6 +22,7 @@ export function EditEntryModal({
   entry, value, onChangeText, onSave, onClose, saving,
 }: EditEntryModalProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const typeLabel =
     entry?.type === 'tip' ? t('day.type_tip')
     : entry?.type === 'location' ? t('day.type_location')
@@ -28,8 +31,8 @@ export function EditEntryModal({
   return (
     <Modal visible={!!entry} transparent animationType="slide">
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Text style={styles.title}>{t('day.edit_title', { type: typeLabel })}</Text>
+        <View style={[styles.container, { backgroundColor: theme.bgSurface }]}>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>{t('day.edit_title', { type: typeLabel })}</Text>
           {entry?.type === 'text' ? (
             <RichTextInput
               value={value}
@@ -38,7 +41,7 @@ export function EditEntryModal({
             />
           ) : (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.bgElevated, color: theme.textPrimary }]}
               multiline={entry?.type !== 'location'}
               value={value}
               onChangeText={onChangeText}
@@ -48,10 +51,10 @@ export function EditEntryModal({
           )}
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+              <Text style={[styles.cancelText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.saveBtn, !value.trim() && styles.saveBtnDisabled]}
+              style={[styles.saveBtn, { backgroundColor: theme.teal }, (!value.trim() || saving) && styles.saveBtnDisabled]}
               disabled={!value.trim() || saving}
               onPress={onSave}
             >
@@ -73,7 +76,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   container: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -82,15 +84,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
     marginBottom: 16,
   },
   input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     padding: 14,
     fontSize: 15,
-    color: '#1a1a1a',
     minHeight: 120,
     lineHeight: 22,
   },
@@ -103,18 +102,16 @@ const styles = StyleSheet.create({
   cancelBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
   },
   cancelText: {
     fontSize: 15,
-    color: '#666',
     fontWeight: '600',
   },
   saveBtn: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 24,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
   },
   saveBtnDisabled: { opacity: 0.5 },
   saveText: {

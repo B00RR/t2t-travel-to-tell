@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface Props {
   text: string;
@@ -19,7 +20,6 @@ interface TextSegment {
 
 function parseInline(line: string): TextSegment[] {
   const segments: TextSegment[] = [];
-  // Handle **bold** and *italic* inline markers
   const regex = /(\*\*(.+?)\*\*)|(\*(.+?)\*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -29,10 +29,8 @@ function parseInline(line: string): TextSegment[] {
       segments.push({ text: line.slice(lastIndex, match.index) });
     }
     if (match[1]) {
-      // **bold**
       segments.push({ text: match[2], bold: true });
     } else if (match[3]) {
-      // *italic*
       segments.push({ text: match[4], italic: true });
     }
     lastIndex = match.index + match[0].length;
@@ -46,6 +44,7 @@ function parseInline(line: string): TextSegment[] {
 }
 
 export function RichTextRenderer({ text, style, textStyle }: Props) {
+  const theme = useAppTheme();
   if (!text) return null;
 
   const lines = text.split('\n');
@@ -59,14 +58,14 @@ export function RichTextRenderer({ text, style, textStyle }: Props) {
 
         return (
           <View key={idx} style={isBullet ? styles.bulletRow : undefined}>
-            {isBullet && <Text style={[styles.bullet, textStyle]}>•</Text>}
-            <Text style={[styles.line, textStyle]}>
+            {isBullet && <Text style={[styles.bullet, textStyle, { color: theme.textPrimary, opacity: 0.6 }]}>&bull;</Text>}
+            <Text style={[styles.line, textStyle, { color: theme.textPrimary }]}>
               {segments.map((seg, si) => (
                 <Text
                   key={si}
                   style={[
-                    seg.bold && styles.bold,
-                    seg.italic && styles.italic,
+                    seg.bold && { fontWeight: '700' as const },
+                    seg.italic && { fontStyle: 'italic' as const },
                   ]}
                 >
                   {seg.text}
@@ -84,15 +83,7 @@ const styles = StyleSheet.create({
   line: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#333',
     flex: 1,
-  },
-  bold: {
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  italic: {
-    fontStyle: 'italic',
   },
   bulletRow: {
     flexDirection: 'row',
@@ -102,7 +93,6 @@ const styles = StyleSheet.create({
   bullet: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#333',
     marginTop: 0,
   },
 });

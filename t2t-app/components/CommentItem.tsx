@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import type { Comment } from '@/types/social';
 
 interface CommentItemProps {
@@ -10,6 +11,7 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, currentUserId, onDelete }: CommentItemProps) {
+  const theme = useAppTheme();
   const isOwner = currentUserId === comment.user_id;
 
   const formatDate = (dateString: string) => {
@@ -18,11 +20,11 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderBottomColor: theme.border }]}>
       {comment.author?.avatar_url ? (
         <Image source={{ uri: comment.author.avatar_url }} style={styles.avatar} />
       ) : (
-        <View style={[styles.avatar, styles.placeholderAvatar]}>
+        <View style={[styles.avatar, { backgroundColor: theme.teal }]}>
           <Text style={styles.placeholderText}>
             {comment.author?.display_name?.charAt(0) || comment.author?.username?.charAt(0) || '?'}
           </Text>
@@ -31,18 +33,18 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
 
       <View style={styles.contentContainer}>
         <View style={styles.header}>
-          <Text style={styles.authorName}>
+          <Text style={[styles.authorName, { color: theme.textPrimary }]}>
             {comment.author?.display_name || comment.author?.username || 'Utente sconosciuto'}
           </Text>
-          <Text style={styles.dateText}>{formatDate(comment.created_at)}</Text>
+          <Text style={[styles.dateText, { color: theme.textMuted }]}>{formatDate(comment.created_at)}</Text>
         </View>
 
-        <Text style={styles.contentText}>{comment.content}</Text>
+        <Text style={[styles.contentText, { color: theme.textSecondary }]}>{comment.content}</Text>
       </View>
 
       {isOwner && onDelete && (
         <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(comment.id)}>
-          <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+          <Ionicons name="trash-outline" size={16} color={theme.red} />
         </TouchableOpacity>
       )}
     </View>
@@ -53,20 +55,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
+    borderBottomWidth: 0.5,
   },
   avatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
     marginRight: 10,
-    backgroundColor: '#ccc',
-  },
-  placeholderAvatar: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
   },
   placeholderText: {
     color: '#fff',
@@ -85,15 +82,12 @@ const styles = StyleSheet.create({
   authorName: {
     fontWeight: '600',
     fontSize: 14,
-    color: '#333',
   },
   dateText: {
     fontSize: 12,
-    color: '#888',
   },
   contentText: {
     fontSize: 14,
-    color: '#444',
   },
   deleteBtn: {
     padding: 8,

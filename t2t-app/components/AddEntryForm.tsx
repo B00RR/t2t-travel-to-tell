@@ -6,6 +6,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { RichTextInput } from './RichTextInput';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius } from '@/constants/theme';
 
 type AddableType = 'text' | 'tip' | 'location';
 
@@ -18,39 +20,25 @@ interface AddEntryFormProps {
   saving: boolean;
 }
 
-const CONFIG: Record<AddableType, { icon: keyof typeof Ionicons.glyphMap; color: string; title: string; placeholder: string }> = {
-  text: {
-    icon: 'document-text',
-    color: '#007AFF',
-    title: 'Nuovo Testo',
-    placeholder: 'Racconta cosa hai vissuto...',
-  },
-  tip: {
-    icon: 'bulb',
-    color: '#FF9500',
-    title: 'Nuovo Consiglio',
-    placeholder: 'Es. Prendete il biglietto cumulativo!',
-  },
-  location: {
-    icon: 'location',
-    color: '#FF3B30',
-    title: 'Nuovo Luogo',
-    placeholder: 'Es. Colosseo, Roma',
-  },
+const ICON_MAP: Record<AddableType, keyof typeof Ionicons.glyphMap> = {
+  text: 'document-text',
+  tip: 'bulb',
+  location: 'location',
 };
 
 export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, saving }: AddEntryFormProps) {
   const { t } = useTranslation();
-  const cfg = CONFIG[type];
+  const theme = useAppTheme();
 
+  const accentColor = type === 'text' ? theme.teal : type === 'tip' ? theme.orange : theme.red;
   const title = t(`day.new_${type}`);
   const placeholder = t(`day.placeholder_${type}`);
 
   return (
-    <View style={[styles.form, type === 'tip' && styles.formTip, type === 'location' && styles.formLocation]}>
+    <View style={[styles.form, { backgroundColor: `${accentColor}10`, borderColor: accentColor }]}>
       <View style={styles.header}>
-        <Ionicons name={cfg.icon} size={20} color={cfg.color} />
-        <Text style={styles.title}>{title}</Text>
+        <Ionicons name={ICON_MAP[type]} size={20} color={accentColor} />
+        <Text style={[styles.title, { color: theme.textPrimary }]}>{title}</Text>
       </View>
       {type === 'text' ? (
         <RichTextInput
@@ -61,9 +49,9 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
         />
       ) : (
         <TextInput
-          style={[styles.input, type === 'location' && { minHeight: 48 }]}
+          style={[styles.input, { backgroundColor: theme.bgSurface, borderColor: accentColor, color: theme.textPrimary }, type === 'location' && { minHeight: 48 }]}
           placeholder={placeholder}
-          placeholderTextColor="#999"
+          placeholderTextColor={theme.textMuted}
           value={value}
           onChangeText={onChangeText}
           multiline={type !== 'location'}
@@ -74,10 +62,10 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
       )}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+          <Text style={[styles.cancelText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.saveBtn, !value.trim() && styles.saveBtnDisabled]}
+          style={[styles.saveBtn, { backgroundColor: accentColor }, (!value.trim() || saving) && styles.saveBtnDisabled]}
           disabled={!value.trim() || saving}
           onPress={onSave}
         >
@@ -92,21 +80,11 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
 
 const styles = StyleSheet.create({
   form: {
-    backgroundColor: '#f0f4ff',
-    borderRadius: 16,
+    borderRadius: Radius.md,
     padding: 16,
     marginTop: 8,
     borderWidth: 2,
-    borderColor: '#007AFF',
     borderStyle: 'dashed',
-  },
-  formTip: {
-    backgroundColor: '#fff8ed',
-    borderColor: '#FF9500',
-  },
-  formLocation: {
-    backgroundColor: '#fff0f0',
-    borderColor: '#FF3B30',
   },
   header: {
     flexDirection: 'row',
@@ -117,16 +95,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#333',
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     padding: 14,
     fontSize: 15,
-    color: '#1a1a1a',
     minHeight: 100,
     lineHeight: 22,
+    borderWidth: 1,
   },
   actions: {
     flexDirection: 'row',
@@ -137,18 +113,16 @@ const styles = StyleSheet.create({
   cancelBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
   },
   cancelText: {
     fontSize: 15,
-    color: '#666',
     fontWeight: '600',
   },
   saveBtn: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 24,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
   },
   saveBtnDisabled: { opacity: 0.5 },
   saveText: {

@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useComments } from '@/hooks/useComments';
 import { CommentItem } from './CommentItem';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius } from '@/constants/theme';
 
 interface CommentsModalProps {
   visible: boolean;
@@ -18,6 +20,7 @@ interface CommentsModalProps {
 
 export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsModalProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const { comments, loading, submitting, fetchComments, addComment, deleteComment } = useComments();
   const [inputText, setInputText] = useState('');
 
@@ -39,18 +42,17 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('social.comments')} ({comments.length})</Text>
+        <View style={[styles.container, { backgroundColor: theme.bgSurface }]}>
+          <View style={[styles.header, { borderBottomColor: theme.border }]}>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>{t('social.comments')} ({comments.length})</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close-circle" size={28} color="#ccc" />
+              <Ionicons name="close-circle" size={28} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
 
           {loading ? (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <ActivityIndicator size="large" color={theme.teal} />
             </View>
           ) : (
             <FlatList
@@ -66,18 +68,19 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
               )}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Ionicons name="chatbubbles-outline" size={48} color="#ddd" />
-                  <Text style={styles.emptyText}>{t('social.no_comments')}</Text>
+                  <Ionicons name="chatbubbles-outline" size={48} color={theme.border} />
+                  <Text style={[styles.emptyText, { color: theme.textMuted }]}>{t('social.no_comments')}</Text>
                 </View>
               }
             />
           )}
 
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, { borderTopColor: theme.border, backgroundColor: theme.bgSurface }]}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.bgElevated, color: theme.textPrimary }]}
                 placeholder={userId ? t('social.add_comment') : t('social.login_to_comment')}
+                placeholderTextColor={theme.textMuted}
                 editable={!!userId && !submitting}
                 value={inputText}
                 onChangeText={setInputText}
@@ -85,7 +88,7 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
                 maxLength={500}
               />
               <TouchableOpacity
-                style={[styles.sendBtn, (!inputText.trim() || !userId) && styles.sendBtnDisabled]}
+                style={[styles.sendBtn, { backgroundColor: theme.teal }, (!inputText.trim() || !userId) && styles.sendBtnDisabled]}
                 onPress={handleSend}
                 disabled={!inputText.trim() || !userId || submitting}
               >
@@ -111,7 +114,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: '#fff',
     height: '80%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -123,13 +125,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     position: 'relative',
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
   },
   closeBtn: {
     position: 'absolute',
@@ -150,23 +150,19 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    color: '#999',
     marginTop: 10,
     fontSize: 14,
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 12, // notch safe
+    paddingBottom: Platform.OS === 'ios' ? 32 : 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
     alignItems: 'flex-end',
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 20,
+    borderRadius: Radius.full,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
@@ -175,7 +171,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   sendBtn: {
-    backgroundColor: '#007AFF',
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -184,6 +179,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   sendBtnDisabled: {
-    backgroundColor: '#A2CFFE',
+    opacity: 0.5,
   },
 });

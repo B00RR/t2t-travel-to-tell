@@ -8,6 +8,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius } from '@/constants/theme';
 import type { TripPlan } from '@/types/tripPlan';
 
 interface BuddyPlan extends TripPlan {
@@ -21,6 +23,7 @@ interface BuddyPlan extends TripPlan {
 export default function TravelBuddiesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useAppTheme();
   const { user } = useAuth();
 
   const [myDestinations, setMyDestinations] = useState<string[]>([]);
@@ -35,7 +38,6 @@ export default function TravelBuddiesScreen() {
     if (refresh) setRefreshing(true);
     else setLoading(true);
 
-    // 1. Fetch my public plans to extract my destinations
     const { data: myPlans } = await supabase
       .from('trip_plans')
       .select('destinations')
@@ -52,7 +54,6 @@ export default function TravelBuddiesScreen() {
     const myDests = Array.from(myDestsSet);
     setMyDestinations(myDests);
 
-    // 2. Fetch all public plans from other users
     const { data: publicPlans } = await supabase
       .from('trip_plans')
       .select(`
@@ -69,7 +70,6 @@ export default function TravelBuddiesScreen() {
     const plans = (publicPlans || []) as BuddyPlan[];
     setAllPublic(plans);
 
-    // 3. Filter matches by shared destinations
     if (myDests.length > 0) {
       const matched = plans.filter(plan =>
         (plan.destinations || []).some((d: string | null) =>
@@ -111,7 +111,7 @@ export default function TravelBuddiesScreen() {
     );
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}>
         <View style={styles.cardTop}>
           <TouchableOpacity
             style={styles.userRow}
@@ -120,54 +120,57 @@ export default function TravelBuddiesScreen() {
             {item.profiles?.avatar_url ? (
               <Image source={{ uri: item.profiles.avatar_url }} style={styles.avatar} />
             ) : (
-              <View style={styles.avatarPlaceholder}>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: theme.teal }]}>
                 <Ionicons name="person" size={18} color="#fff" />
               </View>
             )}
             <View>
-              <Text style={styles.displayName}>
+              <Text style={[styles.displayName, { color: theme.textPrimary }]}>
                 {item.profiles?.display_name || item.profiles?.username}
               </Text>
-              <Text style={styles.username}>@{item.profiles?.username}</Text>
+              <Text style={[styles.username, { color: theme.textMuted }]}>@{item.profiles?.username}</Text>
             </View>
           </TouchableOpacity>
           {hasMatch && (
-            <View style={styles.matchBadge}>
-              <Text style={styles.matchBadgeText}>{t('buddy.match_badge')}</Text>
+            <View style={[styles.matchBadge, { backgroundColor: theme.orangeAlpha10, borderColor: theme.orange }]}>
+              <Text style={[styles.matchBadgeText, { color: theme.orange }]}>{t('buddy.match_badge')}</Text>
             </View>
           )}
         </View>
 
-        <Text style={styles.planTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={[styles.planTitle, { color: theme.textPrimary }]} numberOfLines={1}>{item.title}</Text>
 
         <View style={styles.destRow}>
-          {(item.destinations || []).map((dest: string, i: number) => (
-            <View
-              key={i}
-              style={[styles.destPill, myDestinationsSet.has(dest.trim().toLowerCase()) && styles.destPillMatch]}
-            >
-              <Text style={[styles.destText, myDestinationsSet.has(dest.trim().toLowerCase()) && styles.destTextMatch]}>
-                📍 {dest}
-              </Text>
-            </View>
-          ))}
+          {(item.destinations || []).map((dest: string, i: number) => {
+            const isMatch = myDestinationsSet.has(dest.trim().toLowerCase());
+            return (
+              <View
+                key={i}
+                style={[styles.destPill, { backgroundColor: theme.bgSurface }, isMatch && { backgroundColor: theme.orangeAlpha10, borderColor: theme.orange }]}
+              >
+                <Text style={[styles.destText, { color: theme.textMuted }, isMatch && { color: theme.orange, fontWeight: '600' }]}>
+                  📍 {dest}
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
         {(item.start_date || item.end_date) && (
           <View style={styles.dateRow}>
-            <Ionicons name="calendar-outline" size={14} color="#888" />
-            <Text style={styles.dateText}>
+            <Ionicons name="calendar-outline" size={14} color={theme.textMuted} />
+            <Text style={[styles.dateText, { color: theme.textMuted }]}>
               {item.start_date || '?'}  {item.end_date ? `→ ${item.end_date}` : ''}
             </Text>
           </View>
         )}
 
         <TouchableOpacity
-          style={styles.viewPlanBtn}
+          style={[styles.viewPlanBtn, { backgroundColor: theme.tealAlpha10, borderColor: theme.teal }]}
           onPress={() => router.push(`/planner/${item.id}`)}
         >
-          <Text style={styles.viewPlanText}>{t('planner.clone')}</Text>
-          <Ionicons name="arrow-forward" size={15} color="#007AFF" />
+          <Text style={[styles.viewPlanText, { color: theme.teal }]}>{t('planner.clone')}</Text>
+          <Ionicons name="arrow-forward" size={15} color={theme.teal} />
         </TouchableOpacity>
       </View>
     );
@@ -175,22 +178,21 @@ export default function TravelBuddiesScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.center, { backgroundColor: theme.bg }]}>
+        <ActivityIndicator size="large" color={theme.teal} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
         </TouchableOpacity>
         <View>
-          <Text style={styles.headerTitle}>{t('buddy.title')}</Text>
-          <Text style={styles.headerSub}>{t('buddy.subtitle')}</Text>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('buddy.title')}</Text>
+          <Text style={[styles.headerSub, { color: theme.textMuted }]}>{t('buddy.subtitle')}</Text>
         </View>
         <View style={{ width: 36 }} />
       </View>
@@ -199,30 +201,29 @@ export default function TravelBuddiesScreen() {
         data={displayedPlans}
         keyExtractor={item => item.id}
         renderItem={renderItem}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} tintColor="#007AFF" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} tintColor={theme.teal} />}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View>
-            {/* Destination filter chips */}
             {allDestinations.length > 0 && (
               <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>{t('buddy.your_destinations')}</Text>
+                <Text style={[styles.filterLabel, { color: theme.textMuted }]}>{t('buddy.your_destinations')}</Text>
                 <View style={styles.filterChips}>
                   <TouchableOpacity
-                    style={[styles.filterChip, !activeFilter && styles.filterChipActive]}
+                    style={[styles.filterChip, { backgroundColor: activeFilter ? theme.bgElevated : theme.teal, borderColor: activeFilter ? theme.border : theme.teal }]}
                     onPress={() => setActiveFilter(null)}
                   >
-                    <Text style={[styles.filterChipText, !activeFilter && styles.filterChipTextActive]}>
+                    <Text style={[styles.filterChipText, { color: activeFilter ? theme.textPrimary : '#fff' }]}>
                       {matches.length > 0 ? t('buddy.filter_match', { count: matches.length }) : t('buddy.filter_all')}
                     </Text>
                   </TouchableOpacity>
                   {allDestinations.map(dest => (
                     <TouchableOpacity
                       key={dest}
-                      style={[styles.filterChip, activeFilter === dest.trim().toLowerCase() && styles.filterChipActive]}
+                      style={[styles.filterChip, { backgroundColor: activeFilter === dest.trim().toLowerCase() ? theme.teal : theme.bgElevated, borderColor: activeFilter === dest.trim().toLowerCase() ? theme.teal : theme.border }]}
                       onPress={() => setActiveFilter(prev => prev === dest.trim().toLowerCase() ? null : dest.trim().toLowerCase())}
                     >
-                      <Text style={[styles.filterChipText, activeFilter === dest.trim().toLowerCase() && styles.filterChipTextActive]}>
+                      <Text style={[styles.filterChipText, { color: activeFilter === dest.trim().toLowerCase() ? '#fff' : theme.textPrimary }]}>
                         {dest}
                       </Text>
                     </TouchableOpacity>
@@ -230,17 +231,17 @@ export default function TravelBuddiesScreen() {
                 </View>
               </View>
             )}
-            <Text style={styles.listSectionTitle}>
+            <Text style={[styles.listSectionTitle, { color: theme.textPrimary }]}>
               {matches.length > 0 && !activeFilter
                 ? t('buddy.matches')
-                : t('buddy.your_destinations')}
+                : t('buddy.all_plans')}
             </Text>
           </View>
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={{ fontSize: 48 }}>🌍</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: theme.textMuted }]}>
               {myDestinations.length === 0
                 ? t('buddy.no_plans')
                 : t('buddy.no_matches')}
@@ -253,7 +254,7 @@ export default function TravelBuddiesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
@@ -263,64 +264,56 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   backBtn: { padding: 4 },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a' },
-  headerSub: { fontSize: 13, color: '#888', marginTop: 2 },
+  headerTitle: { fontSize: 20, fontWeight: '800' },
+  headerSub: { fontSize: 13, marginTop: 2 },
   listContent: { padding: 16, paddingBottom: 40 },
   filterSection: { marginBottom: 16 },
-  filterLabel: { fontSize: 13, fontWeight: '600', color: '#888', marginBottom: 8 },
+  filterLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
   filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterChip: {
     paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 16, backgroundColor: '#f2f2f7',
-    borderWidth: 1, borderColor: 'transparent',
+    borderRadius: Radius.full,
+    borderWidth: 1,
   },
-  filterChipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  filterChipText: { fontSize: 13, fontWeight: '600', color: '#555' },
-  filterChipTextActive: { color: '#fff' },
-  listSectionTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 12 },
+  filterChipText: { fontSize: 13, fontWeight: '600' },
+  listSectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
   card: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 18,
+    borderRadius: Radius.md,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#eee',
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   userRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   avatarPlaceholder: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center',
+    width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center',
   },
-  displayName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-  username: { fontSize: 12, color: '#999' },
+  displayName: { fontSize: 14, fontWeight: '700' },
+  username: { fontSize: 12 },
   matchBadge: {
-    backgroundColor: '#fff3e0', borderRadius: 12,
+    borderRadius: Radius.sm,
     paddingHorizontal: 10, paddingVertical: 4,
-    borderWidth: 1, borderColor: '#ffcc80',
+    borderWidth: 1,
   },
-  matchBadgeText: { fontSize: 12, fontWeight: '700', color: '#e65100' },
-  planTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
+  matchBadgeText: { fontSize: 12, fontWeight: '700' },
+  planTitle: { fontSize: 15, fontWeight: '700', marginBottom: 8 },
   destRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   destPill: {
-    backgroundColor: '#f0f0f0', paddingHorizontal: 10,
-    paddingVertical: 4, borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4, borderRadius: Radius.sm,
   },
-  destPillMatch: { backgroundColor: '#fff3e0', borderWidth: 1, borderColor: '#ffcc80' },
-  destText: { fontSize: 12, color: '#555' },
-  destTextMatch: { color: '#e65100', fontWeight: '600' },
+  destText: { fontSize: 12 },
   dateRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 10 },
-  dateText: { fontSize: 13, color: '#888' },
+  dateText: { fontSize: 13 },
   viewPlanBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 10, borderRadius: 12,
-    backgroundColor: '#f0f7ff', borderWidth: 1, borderColor: '#cce0ff',
+    gap: 6, paddingVertical: 10, borderRadius: Radius.sm,
+    borderWidth: 1,
   },
-  viewPlanText: { fontSize: 14, fontWeight: '700', color: '#007AFF' },
+  viewPlanText: { fontSize: 14, fontWeight: '700' },
   emptyContainer: { alignItems: 'center', paddingTop: 60, gap: 12 },
-  emptyText: { fontSize: 15, color: '#999', textAlign: 'center', paddingHorizontal: 40 },
+  emptyText: { fontSize: 15, textAlign: 'center', paddingHorizontal: 40 },
 });

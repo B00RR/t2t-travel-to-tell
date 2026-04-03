@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius, Spacing } from '@/constants/theme';
 
 // Hooks & Types
 import { useDayEntries } from '@/hooks/useDayEntries';
@@ -27,6 +29,7 @@ export default function DayDetailScreen() {
   const { t } = useTranslation();
   const { day_id, diary_id } = useLocalSearchParams();
   const router = useRouter();
+  const theme = useAppTheme();
   const { user } = useAuth();
 
   // Custom Hooks
@@ -82,7 +85,7 @@ export default function DayDetailScreen() {
   };
 
   const handleStartEdit = (entry: DayEntry) => {
-    if (entry.type === 'photo') return; // Cannot edit photo text currently
+    if (entry.type === 'photo') return;
     setEditingEntry(entry);
     setEditContent(entry.content || '');
   };
@@ -100,13 +103,13 @@ export default function DayDetailScreen() {
 
   if (loading && (!dayInfo || entries.length === 0)) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
+        <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
           <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-             <View style={{ backgroundColor: '#eee', width: 100, height: 20, borderRadius: 4 }} />
+             <View style={{ backgroundColor: theme.bgElevated, width: 100, height: 20, borderRadius: 4 }} />
           </View>
           <View style={styles.headerIcon} />
         </View>
@@ -121,10 +124,10 @@ export default function DayDetailScreen() {
 
   if (!loading && !dayInfo) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
+        <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
           <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerCenter} />
           <View style={styles.headerIcon} />
@@ -135,27 +138,27 @@ export default function DayDetailScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: theme.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
         <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
             {t('day.title', { number: dayInfo?.day_number })}{dayInfo?.title ? `: ${dayInfo.title}` : ''}
           </Text>
-          {dayInfo?.date && <Text style={styles.headerDate}>{dayInfo.date}</Text>}
+          {dayInfo?.date && <Text style={[styles.headerDate, { color: theme.textMuted }]}>{dayInfo.date}</Text>}
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
           {entries.length > 1 && (
             <TouchableOpacity style={styles.headerIcon} onPress={() => { setReorderMode(r => !r); setShowAddMenu(false); }}>
-              <Ionicons name={reorderMode ? 'checkmark-circle' : 'reorder-three-outline'} size={26} color={reorderMode ? '#34C759' : '#007AFF'} />
+              <Ionicons name={reorderMode ? 'checkmark-circle' : 'reorder-three-outline'} size={26} color={reorderMode ? theme.sage : theme.teal} />
             </TouchableOpacity>
           )}
           {!reorderMode && (
             <TouchableOpacity style={styles.headerIcon} onPress={() => setShowAddMenu(!showAddMenu)}>
-              <Ionicons name="add-circle" size={28} color="#007AFF" />
+              <Ionicons name="add-circle" size={28} color={theme.teal} />
             </TouchableOpacity>
           )}
         </View>
@@ -163,35 +166,35 @@ export default function DayDetailScreen() {
 
       {/* Add Menu */}
       {showAddMenu && (
-        <View style={styles.addMenu}>
-          <TouchableOpacity style={styles.addMenuItem} onPress={() => handleStartAdding('text')}>
-            <Ionicons name="document-text" size={22} color="#007AFF" />
-            <Text style={styles.addMenuText}>{t('day.type_text')}</Text>
+        <View style={[styles.addMenu, { backgroundColor: theme.bgElevated, borderBottomColor: theme.border }]}>
+          <TouchableOpacity style={[styles.addMenuItem, { backgroundColor: theme.bgSurface }]} onPress={() => handleStartAdding('text')}>
+            <Ionicons name="document-text" size={22} color={theme.teal} />
+            <Text style={[styles.addMenuText, { color: theme.textPrimary }]}>{t('day.type_text')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addMenuItem} onPress={() => { setShowAddMenu(false); pickAndUploadMedia(); }}>
-            <Ionicons name="camera" size={22} color="#34C759" />
-            <Text style={styles.addMenuText}>{t('day.type_photo')}</Text>
+          <TouchableOpacity style={[styles.addMenuItem, { backgroundColor: theme.bgSurface }]} onPress={() => { setShowAddMenu(false); pickAndUploadMedia(); }}>
+            <Ionicons name="camera" size={22} color={theme.sage} />
+            <Text style={[styles.addMenuText, { color: theme.textPrimary }]}>{t('day.type_photo')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addMenuItem} onPress={() => handleStartAdding('tip')}>
-            <Ionicons name="bulb" size={22} color="#FF9500" />
-            <Text style={styles.addMenuText}>{t('day.type_tip')}</Text>
+          <TouchableOpacity style={[styles.addMenuItem, { backgroundColor: theme.bgSurface }]} onPress={() => handleStartAdding('tip')}>
+            <Ionicons name="bulb" size={22} color={theme.orange} />
+            <Text style={[styles.addMenuText, { color: theme.textPrimary }]}>{t('day.type_tip')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addMenuItem} onPress={() => { setShowMoodPicker(true); setShowAddMenu(false); }}>
+          <TouchableOpacity style={[styles.addMenuItem, { backgroundColor: theme.bgSurface }]} onPress={() => { setShowMoodPicker(true); setShowAddMenu(false); }}>
             <Text style={{ fontSize: 22 }}>😊</Text>
-            <Text style={styles.addMenuText}>{t('day.type_mood')}</Text>
+            <Text style={[styles.addMenuText, { color: theme.textPrimary }]}>{t('day.type_mood')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addMenuItem} onPress={() => handleStartAdding('location')}>
-            <Ionicons name="location" size={22} color="#FF3B30" />
-            <Text style={styles.addMenuText}>{t('day.type_location')}</Text>
+          <TouchableOpacity style={[styles.addMenuItem, { backgroundColor: theme.bgSurface }]} onPress={() => handleStartAdding('location')}>
+            <Ionicons name="location" size={22} color={theme.red} />
+            <Text style={[styles.addMenuText, { color: theme.textPrimary }]}>{t('day.type_location')}</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Upload Overlay */}
       {uploadingMedia && (
-        <View style={styles.uploadOverlay}>
-          <ActivityIndicator size="small" color="#007AFF" />
-          <Text style={styles.uploadText}>{t('day.uploading_media')}</Text>
+        <View style={[styles.uploadOverlay, { backgroundColor: theme.tealAlpha15 }]}>
+          <ActivityIndicator size="small" color={theme.teal} />
+          <Text style={[styles.uploadText, { color: theme.teal }]}>{t('day.uploading_media')}</Text>
         </View>
       )}
 
@@ -199,9 +202,9 @@ export default function DayDetailScreen() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
         {entries.length === 0 && !addingType && (
           <View style={styles.emptyState}>
-            <Ionicons name="create-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>{t('day.no_content')}</Text>
-            <Text style={styles.emptySub}>{t('day.add_hint')}</Text>
+            <Ionicons name="create-outline" size={64} color={theme.border} />
+            <Text style={[styles.emptyTitle, { color: theme.textMuted }]}>{t('day.no_content')}</Text>
+            <Text style={[styles.emptySub, { color: theme.textMuted }]}>{t('day.add_hint')}</Text>
           </View>
         )}
 
@@ -214,18 +217,18 @@ export default function DayDetailScreen() {
               </View>
               <View style={styles.reorderBtns}>
                 <TouchableOpacity
-                  style={[styles.reorderBtn, idx === 0 && styles.reorderBtnDisabled]}
+                  style={[styles.reorderBtn, { backgroundColor: theme.tealAlpha10 }, idx === 0 && { backgroundColor: theme.bgElevated }]}
                   onPress={() => idx > 0 && moveEntry(entry.id, 'up')}
                   disabled={idx === 0}
                 >
-                  <Ionicons name="chevron-up" size={20} color={idx === 0 ? '#ccc' : '#007AFF'} />
+                  <Ionicons name="chevron-up" size={20} color={idx === 0 ? theme.border : theme.teal} />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.reorderBtn, idx === entries.length - 1 && styles.reorderBtnDisabled]}
+                  style={[styles.reorderBtn, { backgroundColor: theme.tealAlpha10 }, idx === entries.length - 1 && { backgroundColor: theme.bgElevated }]}
                   onPress={() => idx < entries.length - 1 && moveEntry(entry.id, 'down')}
                   disabled={idx === entries.length - 1}
                 >
-                  <Ionicons name="chevron-down" size={20} color={idx === entries.length - 1 ? '#ccc' : '#007AFF'} />
+                  <Ionicons name="chevron-down" size={20} color={idx === entries.length - 1 ? theme.border : theme.teal} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -275,43 +278,43 @@ export default function DayDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
+  container: { flex: 1 },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingTop: 60, paddingBottom: 16,
-    borderBottomWidth: 1, borderBottomColor: '#eee', backgroundColor: '#fff',
+    borderBottomWidth: 1,
   },
   headerIcon: { padding: 4 },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#1a1a1a' },
-  headerDate: { fontSize: 13, color: '#666', marginTop: 2 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerDate: { fontSize: 13, marginTop: 2 },
   addMenu: {
     flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 10,
-    paddingVertical: 12, paddingHorizontal: 12, backgroundColor: '#f9f9f9',
-    borderBottomWidth: 1, borderBottomColor: '#eee',
+    paddingVertical: 12, paddingHorizontal: 12,
+    borderBottomWidth: 1,
   },
   addMenuItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 5,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, gap: 5,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
   },
-  addMenuText: { fontSize: 13, fontWeight: '600', color: '#333' },
+  addMenuText: { fontSize: 13, fontWeight: '600' },
   uploadOverlay: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 10, backgroundColor: '#e8f4fd',
+    paddingVertical: 10,
   },
-  uploadText: { fontSize: 14, fontWeight: '600', color: '#007AFF' },
+  uploadText: { fontSize: 14, fontWeight: '600' },
   content: { flex: 1 },
   contentInner: { padding: 20, paddingBottom: 40 },
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#999', marginTop: 16 },
-  emptySub: { fontSize: 14, color: '#bbb', textAlign: 'center', marginTop: 8, paddingHorizontal: 40 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 16 },
+  emptySub: { fontSize: 14, textAlign: 'center', marginTop: 8, paddingHorizontal: 40 },
   reorderRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   reorderBtns: { gap: 4 },
   reorderBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#f0f4ff', justifyContent: 'center', alignItems: 'center',
+    width: 36, height: 36, borderRadius: Radius.sm,
+    justifyContent: 'center', alignItems: 'center',
   },
-  reorderBtnDisabled: { backgroundColor: '#f9f9f9' },
+  reorderBtnDisabled: { opacity: 0.5 },
 });

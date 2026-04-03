@@ -8,6 +8,8 @@ import {
   TextInputSelectionChangeEventData,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius } from '@/constants/theme';
 
 interface Props {
   value: string;
@@ -19,6 +21,7 @@ interface Props {
 type Format = 'bold' | 'italic' | 'bullet';
 
 export function RichTextInput({ value, onChangeText, placeholder, autoFocus }: Props) {
+  const theme = useAppTheme();
   const inputRef = useRef<TextInput>(null);
   const selectionRef = useRef({ start: 0, end: 0 });
 
@@ -36,28 +39,22 @@ export function RichTextInput({ value, onChangeText, placeholder, autoFocus }: P
     let cursorOffset = 0;
 
     if (fmt === 'bullet') {
-      // Insert a bullet at the beginning of the current line
       const lineStart = before.lastIndexOf('\n') + 1;
       const linePrefix = value.slice(lineStart, start);
       if (linePrefix.startsWith('- ')) {
-        // Remove bullet
         newText = value.slice(0, lineStart) + value.slice(lineStart + 2);
         cursorOffset = -2;
       } else {
-        // Add bullet
         newText = value.slice(0, lineStart) + '- ' + value.slice(lineStart);
         cursorOffset = 2;
       }
     } else if (start === end) {
-      // No selection: insert placeholder
       const marker = fmt === 'bold' ? '**testo**' : '*testo*';
-      const innerLen = fmt === 'bold' ? 5 : 5; // "testo"
+      const innerLen = 5;
       newText = before + marker + after;
-      // Position cursor inside the markers
       const newPos = start + (fmt === 'bold' ? 2 : 1);
       cursorOffset = newPos - start;
       onChangeText(newText);
-      // Set selection to select the placeholder word
       setTimeout(() => {
         inputRef.current?.setNativeProps({
           selection: { start: newPos, end: newPos + innerLen },
@@ -65,7 +62,6 @@ export function RichTextInput({ value, onChangeText, placeholder, autoFocus }: P
       }, 50);
       return;
     } else {
-      // Wrap selected text
       if (fmt === 'bold') {
         if (selected.startsWith('**') && selected.endsWith('**')) {
           newText = before + selected.slice(2, -2) + after;
@@ -96,9 +92,9 @@ export function RichTextInput({ value, onChangeText, placeholder, autoFocus }: P
     <View>
       <TextInput
         ref={inputRef}
-        style={styles.input}
+        style={[styles.input, { backgroundColor: theme.bgSurface, color: theme.textPrimary }]}
         placeholder={placeholder}
-        placeholderTextColor="#999"
+        placeholderTextColor={theme.textMuted}
         value={value}
         onChangeText={onChangeText}
         onSelectionChange={handleSelectionChange}
@@ -108,17 +104,17 @@ export function RichTextInput({ value, onChangeText, placeholder, autoFocus }: P
         autoFocus={autoFocus}
       />
       <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.toolBtn} onPress={() => applyFormat('bold')}>
-          <Text style={styles.boldIcon}>B</Text>
+        <TouchableOpacity style={[styles.toolBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]} onPress={() => applyFormat('bold')}>
+          <Text style={[styles.boldIcon, { color: theme.textPrimary }]}>B</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toolBtn} onPress={() => applyFormat('italic')}>
-          <Text style={styles.italicIcon}>I</Text>
+        <TouchableOpacity style={[styles.toolBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]} onPress={() => applyFormat('italic')}>
+          <Text style={[styles.italicIcon, { color: theme.textPrimary }]}>I</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toolBtn} onPress={() => applyFormat('bullet')}>
-          <Ionicons name="list-outline" size={18} color="#555" />
+        <TouchableOpacity style={[styles.toolBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]} onPress={() => applyFormat('bullet')}>
+          <Ionicons name="list-outline" size={18} color={theme.textMuted} />
         </TouchableOpacity>
         <View style={styles.hint}>
-          <Text style={styles.hintText}>**grassetto**  *corsivo*  - lista</Text>
+          <Text style={[styles.hintText, { color: theme.textMuted }]}>**grassetto**  *corsivo*  - lista</Text>
         </View>
       </View>
     </View>
@@ -127,11 +123,9 @@ export function RichTextInput({ value, onChangeText, placeholder, autoFocus }: P
 
 const styles = StyleSheet.create({
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     padding: 14,
     fontSize: 15,
-    color: '#1a1a1a',
     minHeight: 120,
     lineHeight: 22,
   },
@@ -145,23 +139,19 @@ const styles = StyleSheet.create({
   toolBtn: {
     width: 36,
     height: 32,
-    borderRadius: 8,
-    backgroundColor: '#f2f2f7',
+    borderRadius: Radius.xs,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   boldIcon: {
     fontWeight: '800',
     fontSize: 15,
-    color: '#333',
   },
   italicIcon: {
     fontStyle: 'italic',
     fontWeight: '700',
     fontSize: 15,
-    color: '#333',
   },
   hint: {
     flex: 1,
@@ -169,7 +159,6 @@ const styles = StyleSheet.create({
   },
   hintText: {
     fontSize: 11,
-    color: '#bbb',
     fontFamily: 'monospace',
   },
 });

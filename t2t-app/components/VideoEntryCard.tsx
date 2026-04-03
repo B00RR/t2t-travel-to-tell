@@ -4,6 +4,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import type { VideoDayEntry } from '@/types/dayEntry';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -15,6 +16,7 @@ interface VideoEntryCardProps {
 }
 
 export function VideoEntryCard({ entry, onLongPress }: VideoEntryCardProps) {
+  const theme = useAppTheme();
   const player = useVideoPlayer(entry.content || '', (p) => {
     p.loop = false;
   });
@@ -42,7 +44,7 @@ export function VideoEntryCard({ entry, onLongPress }: VideoEntryCardProps) {
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: theme.bgElevated }]}>
       <View style={{ width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden' }}>
         <GestureDetector gesture={longPressGesture}>
           <VideoView
@@ -74,7 +76,7 @@ export function VideoEntryCard({ entry, onLongPress }: VideoEntryCardProps) {
       </View>
 
       {entry.metadata?.caption ? (
-        <Text style={styles.caption}>{entry.metadata.caption}</Text>
+        <Text style={[styles.caption, { color: theme.textMuted }]}>{entry.metadata.caption}</Text>
       ) : null}
     </View>
   );
@@ -85,7 +87,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
   },
   playOverlay: {
     justifyContent: 'center',
@@ -95,7 +96,6 @@ const styles = StyleSheet.create({
   caption: {
     padding: 12,
     fontSize: 14,
-    color: '#666',
     fontStyle: 'italic',
   },
 });

@@ -139,9 +139,11 @@ export default function HomeScreen() {
         },
         {
           text: t('social.save') || 'Save',
-          onPress: () => {
+          onPress: async () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            // Save action via social hook would need diary context
+            if (!user?.id) return;
+            const { error } = await supabase.from('saves').insert({ user_id: user.id, diary_id: diaryId });
+            if (error) Alert.alert(t('common.error'), t('social.save_failed'));
           },
         },
         { text: t('common.cancel') || 'Cancel', style: 'cancel' },
@@ -265,7 +267,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
-            <HomeHero stats={{ diaries: discoverDiaries.length, countries: 42, travelers: 1280 }} />
+            <HomeHero />
           }
           refreshControl={
             <RefreshControl

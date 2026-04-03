@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Spacing, Radius, Typography } from '@/constants/theme';
 import i18n from '@/i18n';
 
 const LANGUAGES = [
@@ -15,6 +17,7 @@ const LANGUAGES = [
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useAppTheme();
   const { user } = useAuth();
   const { updateProfile } = useUserProfile(user?.id);
 
@@ -35,35 +38,35 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('settings.title')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
       {/* Lingua */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
-        <Text style={styles.sectionSubtitle}>{t('settings.language_subtitle')}</Text>
+      <View style={[styles.section, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t('settings.language')}</Text>
+        <Text style={[styles.sectionSubtitle, { color: theme.textMuted }]}>{t('settings.language_subtitle')}</Text>
         <View style={styles.langRow}>
           {LANGUAGES.map(lang => {
             const isActive = i18n.language === lang.code;
             return (
               <TouchableOpacity
                 key={lang.code}
-                style={[styles.langBtn, isActive && styles.langBtnActive]}
+                style={[styles.langBtn, { backgroundColor: theme.bgElevated, borderColor: isActive ? theme.teal : 'transparent' }]}
                 onPress={() => handleLanguageChange(lang.code)}
               >
                 <Text style={styles.langFlag}>{lang.flag}</Text>
-                <Text style={[styles.langLabel, isActive && styles.langLabelActive]}>
+                <Text style={[styles.langLabel, { color: isActive ? theme.teal : theme.textPrimary }]}>
                   {lang.label}
                 </Text>
                 {isActive && (
-                  <Ionicons name="checkmark-circle" size={18} color="#007AFF" style={{ marginLeft: 4 }} />
+                  <Ionicons name="checkmark-circle" size={18} color={theme.teal} style={{ marginLeft: 4 }} />
                 )}
               </TouchableOpacity>
             );
@@ -72,18 +75,18 @@ export default function SettingsScreen() {
       </View>
 
       {/* Account */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t('settings.account')}</Text>
-        <TouchableOpacity style={styles.row} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
-          <Text style={styles.rowTextDanger}>{t('settings.logout')}</Text>
-          <Ionicons name="chevron-forward" size={18} color="#ccc" style={{ marginLeft: 'auto' }} />
+      <View style={[styles.section, { backgroundColor: theme.bgSurface, borderTopColor: theme.border, borderBottomColor: theme.border }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t('settings.account')}</Text>
+        <TouchableOpacity style={[styles.row, { borderTopColor: theme.border }]} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={22} color={theme.red} />
+          <Text style={[styles.rowTextDanger, { color: theme.red }]}>{t('settings.logout')}</Text>
+          <Ionicons name="chevron-forward" size={18} color={theme.textMuted} style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
       </View>
 
       {/* Versione */}
       <View style={styles.versionRow}>
-        <Text style={styles.versionText}>T2T — Travel to Tell  •  v1.0.0</Text>
+        <Text style={[styles.versionText, { color: theme.textMuted }]}>T2T — Travel to Tell  •  v1.0.0</Text>
       </View>
     </View>
   );
@@ -92,7 +95,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f7',
   },
   header: {
     flexDirection: 'row',
@@ -101,36 +103,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
   },
   backBtn: { padding: 4 },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
   },
   section: {
-    backgroundColor: '#fff',
     marginTop: 20,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#e5e5e5',
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#888',
+    ...Typography.label,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 13,
-    color: '#aaa',
+    ...Typography.caption,
     marginBottom: 14,
   },
   langRow: {
@@ -143,15 +137,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: '#f2f2f7',
+    borderRadius: Radius.md,
     borderWidth: 1.5,
     borderColor: 'transparent',
     gap: 6,
-  },
-  langBtnActive: {
-    backgroundColor: '#e8f0fe',
-    borderColor: '#007AFF',
   },
   langFlag: {
     fontSize: 20,
@@ -159,20 +148,17 @@ const styles = StyleSheet.create({
   langLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#555',
-  },
-  langLabelActive: {
-    color: '#007AFF',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
     gap: 12,
+    borderTopWidth: 1,
+    marginTop: 8,
   },
   rowTextDanger: {
     fontSize: 16,
-    color: '#FF3B30',
     fontWeight: '500',
   },
   versionRow: {
@@ -181,6 +167,5 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 13,
-    color: '#bbb',
   },
 });

@@ -8,6 +8,7 @@ import { ProfileHeader } from '@/components/ProfileHeader';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useFollow } from '@/hooks/useFollow';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { ProfileDiaryCard } from '@/components/ProfileDiaryCard';
 import { TripPlanCard } from '@/components/TripPlanCard';
 import type { Diary } from '@/types/supabase';
@@ -19,6 +20,7 @@ export default function PublicProfileScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const theme = useAppTheme();
   const { user: currentUser } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile(id);
   const { isFollowing, toggleFollow } = useFollow(currentUser?.id, id);
@@ -82,19 +84,19 @@ export default function PublicProfileScreen() {
 
   if (profileLoading && !profile) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.center, { backgroundColor: theme.bg }]}>
+        <ActivityIndicator size="large" color={theme.teal} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{profile?.display_name || profile?.username || t('profile.title')}</Text>
+        <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{profile?.display_name || profile?.username || t('profile.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -116,30 +118,30 @@ export default function PublicProfileScreen() {
             />
 
             {/* Tab bar */}
-            <View style={styles.tabBar}>
+            <View style={[styles.tabBar, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
               <TouchableOpacity
-                style={[styles.tabBtn, activeTab === 'diaries' && styles.tabBtnActive]}
+                style={[styles.tabBtn, { backgroundColor: theme.bgElevated }, activeTab === 'diaries' && { backgroundColor: theme.tealAlpha15 }]}
                 onPress={() => setActiveTab('diaries')}
               >
                 <Ionicons
                   name="journal-outline"
                   size={16}
-                  color={activeTab === 'diaries' ? '#007AFF' : '#999'}
+                  color={activeTab === 'diaries' ? theme.teal : theme.textMuted}
                 />
-                <Text style={[styles.tabBtnText, activeTab === 'diaries' && styles.tabBtnTextActive]}>
+                <Text style={[styles.tabBtnText, { color: activeTab === 'diaries' ? theme.teal : theme.textMuted }]}>
                   {t('profile.my_diaries')} {diaries.length > 0 ? `(${diaries.length})` : ''}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.tabBtn, activeTab === 'plans' && styles.tabBtnActive]}
+                style={[styles.tabBtn, { backgroundColor: theme.bgElevated }, activeTab === 'plans' && { backgroundColor: theme.tealAlpha15 }]}
                 onPress={() => setActiveTab('plans')}
               >
                 <Ionicons
                   name="calendar-outline"
                   size={16}
-                  color={activeTab === 'plans' ? '#007AFF' : '#999'}
+                  color={activeTab === 'plans' ? theme.teal : theme.textMuted}
                 />
-                <Text style={[styles.tabBtnText, activeTab === 'plans' && styles.tabBtnTextActive]}>
+                <Text style={[styles.tabBtnText, { color: activeTab === 'plans' ? theme.teal : theme.textMuted }]}>
                   {t('planner.tab')} {plans.length > 0 ? `(${plans.length})` : ''}
                 </Text>
               </TouchableOpacity>
@@ -152,17 +154,17 @@ export default function PublicProfileScreen() {
               <Ionicons
                 name={activeTab === 'diaries' ? 'journal-outline' : 'map-outline'}
                 size={48}
-                color="#ccc"
+                color={theme.border}
               />
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>
                 {activeTab === 'diaries'
                   ? t('profile.no_public_diaries')
                   : t('planner.empty_discover')}
               </Text>
             </View>
           ) : (
-            <View style={styles.center}>
-              <ActivityIndicator size="large" color="#007AFF" />
+            <View style={[styles.center, { backgroundColor: theme.bg }]}>
+              <ActivityIndicator size="large" color={theme.teal} />
             </View>
           )
         }
@@ -174,7 +176,7 @@ export default function PublicProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -183,9 +185,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   backBtn: { padding: 4 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   tabBar: {
@@ -193,7 +194,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
     gap: 8,
   },
   tabBtn: {
@@ -204,12 +204,9 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 9,
     borderRadius: 20,
-    backgroundColor: '#f2f2f7',
   },
-  tabBtnActive: { backgroundColor: '#e8f0fe' },
-  tabBtnText: { fontSize: 13, fontWeight: '600', color: '#999' },
-  tabBtnTextActive: { color: '#007AFF' },
+  tabBtnText: { fontSize: 13, fontWeight: '600' },
   listContent: { paddingBottom: 40, paddingHorizontal: 16 },
   empty: { alignItems: 'center', padding: 40 },
-  emptyText: { marginTop: 12, color: '#999', fontSize: 15, textAlign: 'center' },
+  emptyText: { marginTop: 12, fontSize: 15, textAlign: 'center' },
 });

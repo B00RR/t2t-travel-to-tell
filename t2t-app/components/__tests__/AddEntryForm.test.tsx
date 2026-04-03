@@ -15,6 +15,21 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
+// Mock useAppTheme for theme-based components
+jest.mock('@/hooks/useAppTheme', () => ({
+  useAppTheme: () => ({
+    teal: '#C85A42',
+    orange: '#D99632',
+    red: '#C84242',
+    bgElevated: '#FAF6F0',
+    bgSurface: '#F0EBE3',
+    textPrimary: '#141210',
+    textSecondary: '#6B6560',
+    textMuted: '#9E9890',
+    border: '#E5E0D8',
+  }),
+}));
+
 describe('AddEntryForm', () => {
   const mockOnChangeText = jest.fn();
   const mockOnSave = jest.fn();
@@ -45,7 +60,7 @@ describe('AddEntryForm', () => {
     const icons = UNSAFE_getAllByType('Ionicons' as any);
     expect(icons.length).toBeGreaterThanOrEqual(1);
     expect(icons[0].props.name).toBe('document-text');
-    expect(icons[0].props.color).toBe('#007AFF');
+    expect(icons[0].props.color).toBe('#C85A42');
 
     // The input is rendered by RichTextInput (numberOfLines=6, multiline=true)
     const input = getByPlaceholderText('day.placeholder_text');
@@ -64,7 +79,7 @@ describe('AddEntryForm', () => {
 
     const icon = UNSAFE_getByType('Ionicons' as any);
     expect(icon.props.name).toBe('bulb');
-    expect(icon.props.color).toBe('#FF9500');
+    expect(icon.props.color).toBe('#D99632');
   });
 
   it('renders correctly for location type', () => {
@@ -76,7 +91,7 @@ describe('AddEntryForm', () => {
 
     const icon = UNSAFE_getByType('Ionicons' as any);
     expect(icon.props.name).toBe('location');
-    expect(icon.props.color).toBe('#FF3B30');
+    expect(icon.props.color).toBe('#C84242');
 
     const input = getByPlaceholderText('day.placeholder_location');
     expect(input).toBeTruthy();

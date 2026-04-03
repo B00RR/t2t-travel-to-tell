@@ -53,7 +53,7 @@ export default function CreateDiaryScreen() {
       setTitle('');
       setDescription('');
       setDestinations('');
-      router.replace('/(app)/(tabs)');
+      router.replace('/(app)/(tabs)/home');
     }
   }
 

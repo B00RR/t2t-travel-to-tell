@@ -98,9 +98,9 @@ const FeedDiaryCardComponent = ({
   }));
 
   // Gradient overlay colors based on theme
-  const overlayLight = theme.isDark
+  const overlayColors = (theme.isDark
     ? ['rgba(20,18,16,0.0)', 'rgba(20,18,16,0.55)', 'rgba(20,18,16,0.92)']
-    : ['rgba(250,246,240,0.0)', 'rgba(250,246,240,0.45)', 'rgba(250,246,240,0.95)'];
+    : ['rgba(250,246,240,0.0)', 'rgba(250,246,240,0.45)', 'rgba(250,246,240,0.95)']) as [string, string, string];
 
   return (
     <View style={styles.container}>
@@ -132,7 +132,7 @@ const FeedDiaryCardComponent = ({
                 />
                 {/* Gradient overlay */}
                 <LinearGradient
-                  colors={overlayLight}
+                  colors={overlayColors}
                   style={StyleSheet.absoluteFill}
                 />
                 {/* Duration badge */}

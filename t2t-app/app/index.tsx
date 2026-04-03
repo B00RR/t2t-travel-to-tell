@@ -7,9 +7,8 @@ export default function Index() {
   const { session, loading } = useAuth();
 
   if (loading) {
-    // Mentre carica, mostra lo splash (gestito dal layout con SplashScreen.preventAutoHideAsync)
     return null;
   }
 
-  return <Redirect href={session ? '/(app)/(tabs)' : '/(auth)/login'} />;
+  return <Redirect href={session ? '/(app)/(tabs)/home' : '/(auth)/login'} />;
 }

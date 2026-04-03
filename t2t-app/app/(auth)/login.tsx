@@ -45,7 +45,7 @@ export default function LoginScreen() {
         Alert.alert(t('common.error'), t('auth.err_login_failed'));
       }
     } else {
-      router.replace('/');
+      router.replace('/(app)' as any);
     }
     setLoading(false);
   }

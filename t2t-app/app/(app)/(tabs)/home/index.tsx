@@ -189,7 +189,7 @@ export default function HomeScreen() {
             >
               <Text style={[
                 styles.toggleText,
-                { color: tab === 'discover' ? '#fff' : theme.textMuted },
+                { color: tab === 'discover' ? theme.buttonText : theme.textMuted },
               ]}>
                 {t('home.discover') || 'Discover'}
               </Text>
@@ -203,7 +203,7 @@ export default function HomeScreen() {
             >
               <Text style={[
                 styles.toggleText,
-                { color: tab === 'following' ? '#fff' : theme.textMuted },
+                { color: tab === 'following' ? theme.buttonText : theme.textMuted },
               ]}>
                 {t('home.following') || 'Following'}
               </Text>
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: {
-    color: '#fff',
+    color: '#fff', // badge on colored bg, not themeable
     fontSize: 8,
     fontWeight: '800',
   },

@@ -41,6 +41,10 @@ export interface AppTheme {
   // Overlays
   overlay: string;
 
+  // Text on colored buttons / overlays
+  buttonText: string;
+  overlayText: string;
+
   // Secondary accent
   ocean: string;
   sage: string;
@@ -79,6 +83,9 @@ const light: AppTheme = {
 
   overlay: Palette.overlayLight,
 
+  buttonText: '#fff',
+  overlayText: '#fff',
+
   ocean: Palette.info,
   sage:  Palette.success,
 
@@ -114,6 +121,9 @@ const dark: AppTheme = {
   orangeAlpha10: 'rgba(232,168,76,0.10)',
 
   overlay: Palette.overlayDark,
+
+  buttonText: '#fff',
+  overlayText: '#fff',
 
   ocean: Palette.info,
   sage:  Palette.success,

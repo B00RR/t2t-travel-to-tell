@@ -127,10 +127,10 @@ export default function CreateDiaryScreen() {
         disabled={!title.trim() || loading}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.buttonText} />
         ) : (
           <>
-            <Ionicons name="add-circle-outline" size={20} color="#fff" />
+            <Ionicons name="add-circle-outline" size={20} color={theme.buttonText} />
             <Text style={styles.buttonText}>{t('create.create_btn')}</Text>
           </>
         )}
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   buttonText: {
-    color: '#fff',
+    color: '#fff', // always white — rendered on theme.teal bg
     fontSize: 16,
     fontWeight: '700',
   },

@@ -10,6 +10,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { KenBurnsImage } from '@/components/KenBurnsImage';
 import { EntryCard } from '@/components/EntryCard';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,6 +38,7 @@ export function DayChapter({
   dayId, dayNumber, dayTitle, dayDate, diaryId, isActive,
 }: DayChapterProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const { entries, loading } = useDayEntries(dayId);
 
   // Find first photo for hero
@@ -89,7 +91,7 @@ export function DayChapter({
             />
           ) : (
             <View style={styles.heroPlaceholder}>
-              <Ionicons name="image-outline" size={48} color={Palette.textMuted} />
+              <Ionicons name="image-outline" size={48} color={theme.textMuted} />
             </View>
           )}
 
@@ -103,14 +105,14 @@ export function DayChapter({
 
           {/* Day chapter title overlay */}
           <Animated.View style={[styles.heroTitleWrap, titleAnimStyle]}>
-            <View style={styles.dayBadge}>
-              <Text style={styles.dayBadgeText}>{t('diary.day_label', { number: dayNumber })}</Text>
+            <View style={[styles.dayBadge, { backgroundColor: theme.teal }]}>
+              <Text style={[styles.dayBadgeText, { color: theme.buttonText }]}>{t('diary.day_label', { number: dayNumber })}</Text>
             </View>
             {dayTitle && (
-              <Text style={styles.heroTitle} numberOfLines={2}>{dayTitle}</Text>
+              <Text style={[styles.heroTitle, { color: theme.buttonText }]} numberOfLines={2}>{dayTitle}</Text>
             )}
             {dayDate && (
-              <Text style={styles.heroDate}>{dayDate}</Text>
+              <Text style={[styles.heroDate, { color: theme.buttonText + '99' }]}>{dayDate}</Text>
             )}
             {moodEmoji && (
               <View style={styles.moodPill}>
@@ -124,11 +126,11 @@ export function DayChapter({
         <View style={styles.entriesSection}>
           {loading ? (
             <View style={styles.loadingWrap}>
-              <Text style={styles.loadingText}>{t('common.loading')}</Text>
+              <Text style={[styles.loadingText, { color: theme.textMuted }]}>{t('common.loading')}</Text>
             </View>
           ) : entries.length === 0 ? (
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyText}>{t('diary.no_entries')}</Text>
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>{t('diary.no_entries')}</Text>
             </View>
           ) : (
             entries
@@ -183,7 +185,6 @@ const styles = StyleSheet.create({
   },
   heroPlaceholder: {
     flex: 1,
-    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -203,22 +204,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dayBadge: {
-    backgroundColor: Palette.teal,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
     alignSelf: 'flex-start',
   },
   dayBadgeText: {
-    color: '#fff',
     fontSize: 13,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   heroTitle: {
     fontSize: 26,
     fontWeight: '900',
-    color: '#fff',
     letterSpacing: -0.8,
     lineHeight: 32,
     textShadowColor: 'rgba(0,0,0,0.6)',
@@ -227,7 +225,6 @@ const styles = StyleSheet.create({
   },
   heroDate: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
     fontWeight: '500',
   },
   moodPill: {
@@ -251,7 +248,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: Palette.textMuted,
     fontSize: 14,
   },
   emptyWrap: {
@@ -259,7 +255,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: Palette.textMuted,
     fontSize: 14,
     textAlign: 'center',
   },

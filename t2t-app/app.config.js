@@ -12,7 +12,7 @@ module.exports = {
     icon: './assets/images/icon.png',
     scheme: 't2tapp',
     userInterfaceStyle: 'automatic',
-    newArchEnabled: true,
+    newArchEnabled: false,
     owner: 'b00r',
     ios: {
       supportsTablet: true,
@@ -21,7 +21,7 @@ module.exports = {
       },
     },
     android: {
-      package: 'com.b00rr.t2ttraveltotell',
+      package: 'com.t2t.travel',
       config: {
         googleMaps: {
           apiKey: googleMapsApiKey,
@@ -75,7 +75,6 @@ module.exports = {
     ],
     experiments: {
       typedRoutes: true,
-      reactCompiler: true,
     },
     extra: {
       eas: {

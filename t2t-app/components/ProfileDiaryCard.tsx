@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Radius } from '@/constants/theme';
 import type { Diary } from '@/types/supabase';
 
 interface ProfileDiaryCardProps {
@@ -10,21 +12,22 @@ interface ProfileDiaryCardProps {
 
 const ProfileDiaryCardComponent = ({ item }: ProfileDiaryCardProps) => {
   const router = useRouter();
+  const theme = useAppTheme();
 
   return (
     <TouchableOpacity
-      style={styles.diaryCard}
+      style={[styles.diaryCard, { backgroundColor: theme.bgElevated }]}
       onPress={() => router.push(`/diary/${item.id}`)}
     >
       <View style={styles.diaryInfo}>
-        <Text style={styles.diaryTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={[styles.diaryTitle, { color: theme.textPrimary }]} numberOfLines={1}>{item.title}</Text>
         {item.destinations && item.destinations.length > 0 && (
-          <Text style={styles.diaryDest} numberOfLines={1}>
+          <Text style={[styles.diaryDest, { color: theme.textMuted }]} numberOfLines={1}>
             📍 {item.destinations.join(', ')}
           </Text>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#ccc" />
+      <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
     </TouchableOpacity>
   );
 };
@@ -38,8 +41,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
+    borderRadius: Radius.sm,
   },
   diaryInfo: {
     flex: 1,
@@ -48,11 +50,9 @@ const styles = StyleSheet.create({
   diaryTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 4,
   },
   diaryDest: {
     fontSize: 13,
-    color: '#666',
   },
 });

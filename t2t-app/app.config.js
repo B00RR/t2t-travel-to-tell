@@ -72,6 +72,7 @@ module.exports = {
         },
       ],
       'expo-secure-store',
+      './plugins/withDisableWerrorDeprecated',
     ],
     experiments: {
       typedRoutes: true,

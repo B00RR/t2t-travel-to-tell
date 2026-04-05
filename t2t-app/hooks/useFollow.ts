@@ -1,9 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
 export function useFollow(currentUserId: string | undefined, targetProfileId: string | undefined) {
+  const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +39,7 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
 
   const toggleFollow = useCallback(async () => {
     if (!currentUserId) {
-      Alert.alert('Accesso richiesto', 'Devi effettuare l\'accesso per seguire gli utenti.');
+      Alert.alert(t('social.login_required'), t('social.login_to_follow'));
       return;
     }
 
@@ -68,7 +70,7 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
       // Revert optimism
       setIsFollowing(isFollowing);
       console.warn('Failed to toggle follow', e);
-      Alert.alert('Errore', 'Impossibile aggiornare lo stato del follow.');
+      Alert.alert(t('common.error'), t('social.err_follow_toggle'));
     }
   }, [currentUserId, targetProfileId, isFollowing]);
 

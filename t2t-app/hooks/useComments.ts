@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { Comment } from '@/types/social';
 import { validateComment } from '@/utils/inputValidator';
 import { supabase } from '@/lib/supabase';
 
 export function useComments() {
+  const { t } = useTranslation();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +42,7 @@ export function useComments() {
     // Input validation (length, XSS sanitisation)
     const validation = validateComment(content);
     if (!validation.valid) {
-      Alert.alert('Errore', validation.reason);
+      Alert.alert(t('social.err_comment_validation'), validation.reason);
       return false;
     }
 
@@ -58,31 +60,31 @@ export function useComments() {
     setSubmitting(false);
 
     if (dbError) {
-      Alert.alert('Errore', 'Impossibile pubblicare il commento.');
+      Alert.alert(t('common.error'), t('social.err_comment_post'));
       return false;
     }
 
     await fetchComments(diaryId);
     return true;
-  }, [fetchComments]);
+  }, [fetchComments, t]);
 
   const deleteComment = useCallback(async (commentId: string, diaryId: string) => {
-    Alert.alert('Elimina', 'Vuoi eliminare questo commento?', [
-      { text: 'Annulla', style: 'cancel' },
+    Alert.alert(t('social.delete_comment'), t('social.delete_comment_confirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Elimina',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId);
           if (dbError) {
-            Alert.alert('Errore', 'Impossibile eliminare il commento.');
+            Alert.alert(t('common.error'), t('social.err_comment_delete'));
           } else {
             await fetchComments(diaryId);
           }
         }
       }
     ]);
-  }, [fetchComments]);
+  }, [fetchComments, t]);
 
   return {
     comments,

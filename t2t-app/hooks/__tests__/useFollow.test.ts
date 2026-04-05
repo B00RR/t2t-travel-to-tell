@@ -109,7 +109,7 @@ describe('useFollow', () => {
       await result.current.toggleFollow();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Accesso richiesto', 'Devi effettuare l\'accesso per seguire gli utenti.');
+    expect(Alert.alert).toHaveBeenCalledWith('social.login_required', 'social.login_to_follow');
   });
 
   it('should not allow following oneself', async () => {
@@ -202,7 +202,7 @@ describe('useFollow', () => {
 
     // Reverted back to false
     expect(result.current.isFollowing).toBe(false);
-    expect(Alert.alert).toHaveBeenCalledWith('Errore', 'Impossibile aggiornare lo stato del follow.');
+    expect(Alert.alert).toHaveBeenCalledWith('common.error', 'social.err_follow_toggle');
   });
   it('should revert optimistic update and show alert on API error when unfollowing', async () => {
     (supabase.from as jest.Mock).mockReturnValue({
@@ -231,7 +231,7 @@ describe('useFollow', () => {
 
     // Reverted back to true
     expect(result.current.isFollowing).toBe(true);
-    expect(Alert.alert).toHaveBeenCalledWith('Errore', 'Impossibile aggiornare lo stato del follow.');
+    expect(Alert.alert).toHaveBeenCalledWith('common.error', 'social.err_follow_toggle');
     expect(console.warn).toHaveBeenCalledWith('Failed to toggle follow', expect.any(Error));
   });
 });

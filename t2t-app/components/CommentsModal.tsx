@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity,
   FlatList, TextInput, KeyboardAvoidingView, Platform,
@@ -23,6 +23,18 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
   const theme = useAppTheme();
   const { comments, loading, submitting, fetchComments, addComment, deleteComment } = useComments();
   const [inputText, setInputText] = useState('');
+
+  const handleDelete = useCallback((commentId: string) => {
+    deleteComment(commentId, diaryId);
+  }, [deleteComment, diaryId]);
+
+  const renderComment = useCallback(({ item }: { item: typeof comments[number] }) => (
+    <CommentItem
+      comment={item}
+      currentUserId={userId}
+      onDelete={handleDelete}
+    />
+  ), [userId, handleDelete]);
 
   useEffect(() => {
     if (visible && diaryId) {
@@ -59,13 +71,7 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
               data={comments}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.listContent}
-              renderItem={({ item }) => (
-                <CommentItem
-                  comment={item}
-                  currentUserId={userId}
-                  onDelete={(id) => deleteComment(id, diaryId)}
-                />
-              )}
+              renderItem={renderComment}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <Ionicons name="chatbubbles-outline" size={48} color={theme.border} />

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TravelAPI, type FlightOffer } from '@/services/rapidapi';
 
 interface UseFlightSearchReturn {
@@ -16,6 +17,7 @@ interface UseFlightSearchReturn {
 }
 
 export function useFlightSearch(): UseFlightSearchReturn {
+  const { t } = useTranslation();
   const [results, setResults] = useState<FlightOffer[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function useFlightSearch(): UseFlightSearchReturn {
       });
       setResults(data);
     } catch (e: any) {
-      setError(e.message || 'Errore nella ricerca voli');
+      setError(e.message || t('search.err_flights'));
       setResults([]);
     } finally {
       setLoading(false);

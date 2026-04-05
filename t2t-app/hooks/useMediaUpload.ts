@@ -111,7 +111,7 @@ export function useMediaUpload({
         const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm', 'video/x-m4v'];
         if (!ALLOWED_VIDEO_MIMES.includes(assetMime)) {
           setUploading(false);
-          Alert.alert('Errore', 'Formato video non supportato.');
+          Alert.alert(t('common.error'), t('media.unsupported_video'));
           return;
         }
       }

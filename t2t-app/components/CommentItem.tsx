@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { Comment } from '@/types/social';
@@ -10,7 +11,8 @@ interface CommentItemProps {
   onDelete?: (id: string) => void;
 }
 
-export function CommentItem({ comment, currentUserId, onDelete }: CommentItemProps) {
+export const CommentItem = React.memo(function CommentItem({ comment, currentUserId, onDelete }: CommentItemProps) {
+  const { t } = useTranslation();
   const theme = useAppTheme();
   const isOwner = currentUserId === comment.user_id;
 
@@ -34,7 +36,7 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
       <View style={styles.contentContainer}>
         <View style={styles.header}>
           <Text style={[styles.authorName, { color: theme.textPrimary }]}>
-            {comment.author?.display_name || comment.author?.username || 'Utente sconosciuto'}
+            {comment.author?.display_name || comment.author?.username || t('common.anonymous')}
           </Text>
           <Text style={[styles.dateText, { color: theme.textMuted }]}>{formatDate(comment.created_at)}</Text>
         </View>
@@ -49,7 +51,7 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -188,7 +188,7 @@ const FeedDiaryCardComponent = ({
               style={[styles.title, { color: theme.textPrimary }]}
               numberOfLines={2}
             >
-              {item.title || 'Senza titolo'}
+              {item.title || t('common.untitled')}
             </Text>
 
             {/* Destinations */}

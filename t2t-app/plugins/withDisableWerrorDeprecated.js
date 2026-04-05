@@ -9,18 +9,15 @@ module.exports = function withDisableWerrorDeprecated(config) {
     if (config.modResults.language === 'groovy') {
       const contents = config.modResults.contents;
 
-      // Add C++ flags to disable deprecated warning as error
+      // Inject externalNativeBuild inside the existing defaultConfig block
       const newContents = contents.replace(
-        /android\s*\{/,
-        `android {
-    defaultConfig {
+        /defaultConfig\s*\{/,
+        `defaultConfig {
         externalNativeBuild {
             cmake {
                 cppFlags "-Wno-deprecated-declarations"
             }
-        }
-    }
-`
+        }`
       );
 
       config.modResults.contents = newContents;

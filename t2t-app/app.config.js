@@ -1,5 +1,3 @@
-const { withInfoPlist } = require('@expo/config-plugins');
-
 const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || '';
 
 /** @type {import('expo/config').ExpoConfig} */
@@ -72,7 +70,6 @@ module.exports = {
         },
       ],
       'expo-secure-store',
-      './plugins/withDisableWerrorDeprecated',
     ],
     experiments: {
       typedRoutes: true,

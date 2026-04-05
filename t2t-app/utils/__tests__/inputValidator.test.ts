@@ -1,6 +1,7 @@
 import {
   validateComment,
   validateDisplayName,
+  validateBio,
   validateUsername,
 } from '../inputValidator';
 
@@ -29,7 +30,7 @@ describe('validateComment', () => {
     expect(result.valid).toBe(true);
   });
 
-  it('rifiuta tag script come contenuto pericoloso', () => {
+  it('rejects script tag as dangerous content', () => {
     const result = validateComment('<b>bold</b><script>alert("xss")</script>');
     expect(result.valid).toBe(false);
     expect(result.reason).toContain('unsafe');
@@ -47,7 +48,7 @@ describe('validateComment', () => {
     expect(result.reason).toContain('unsafe');
   });
 
-  it('rifiuta schema vbscript:', () => {
+  it('rejects vbscript: URI scheme', () => {
     const result = validateComment('vbscript:doStuff');
     expect(result.valid).toBe(false);
     expect(result.reason).toContain('unsafe');
@@ -92,9 +93,58 @@ describe('validateDisplayName', () => {
     expect(result.sanitized).toBe('Admin');
   });
 
-  it('strips javascript: from display name', () => {
+  it('rejects javascript: URI in display name', () => {
     const result = validateDisplayName('javascript:alert(1)');
-    expect(result.sanitized).toBe('alert(1)');
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('unsafe');
+  });
+});
+
+describe('validateBio', () => {
+  it('accepts valid bio', () => {
+    const result = validateBio('Travel lover from Naples. I explore the world one diary at a time.');
+    expect(result.valid).toBe(true);
+    expect(result.sanitized).toContain('Travel lover');
+  });
+
+  it('rejects empty bio', () => {
+    expect(validateBio('').valid).toBe(false);
+    expect(validateBio('   ').valid).toBe(false);
+  });
+
+  it('rejects bio exceeding max length (500 chars)', () => {
+    const longBio = 'a'.repeat(501);
+    const result = validateBio(longBio);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('maximum length');
+  });
+
+  it('accepts bio at exactly max length', () => {
+    const result = validateBio('a'.repeat(500));
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects script tags in bio', () => {
+    const result = validateBio('Hello <script>alert("xss")</script>');
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('unsafe');
+  });
+
+  it('rejects javascript: URI in bio', () => {
+    const result = validateBio('javascript:alert(1)');
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('unsafe');
+  });
+
+  it('strips HTML tags from bio', () => {
+    const result = validateBio('<b>Bold traveler</b> exploring the world');
+    expect(result.valid).toBe(true);
+    expect(result.sanitized).toBe('Bold traveler exploring the world');
+  });
+
+  it('handles unicode content in bio', () => {
+    const result = validateBio('Viaggio per il mondo 🌍 Napoli -> Tokyo');
+    expect(result.valid).toBe(true);
   });
 });
 

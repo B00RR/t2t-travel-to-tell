@@ -15,7 +15,7 @@ export function sanitizePostgRESTQuery(input: string): string {
   // This covers normal search terms while blocking PostgREST operators
   // like .or(), parentheses, braces, quotes, semicolons, etc.
   const sanitized = input
-    .replace(/[^a-zA-Z0-9 _\-.]/g, ' ')
+    .replace(/[^\p{L}\p{N} _\-.]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 

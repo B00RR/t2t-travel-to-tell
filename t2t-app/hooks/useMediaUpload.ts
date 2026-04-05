@@ -235,7 +235,7 @@ export function useMediaUpload({
     }
 
     setUploading(false);
-  }, [userId, dId, daId, getNextSortOrder, onUploadComplete]);
+  }, [userId, diaryId, dayId, getNextSortOrder, onUploadComplete]);
 
   return { uploading, pickAndUploadMedia };
 }

@@ -19,6 +19,7 @@
     "error_generic": "Ops! Qualcosa è andato storto. Riprova più tardi.",
     "retry": "Riprova",
     "upload_error": "Errore Caricamento",
+    "days_short": "g",
     "success": "Successo",
     "delete": "Elimina",
     "days": "giorni",

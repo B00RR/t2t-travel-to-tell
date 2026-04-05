@@ -27,7 +27,9 @@ type AddableType = 'text' | 'tip' | 'location';
 
 export default function DayDetailScreen() {
   const { t } = useTranslation();
-  const { day_id, diary_id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const day_id = Array.isArray(params.day_id) ? params.day_id[0] : params.day_id;
+  const diary_id = Array.isArray(params.diary_id) ? params.diary_id[0] : params.diary_id;
   const router = useRouter();
   const theme = useAppTheme();
   const { user } = useAuth();

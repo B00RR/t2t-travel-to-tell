@@ -60,7 +60,7 @@ export default function PublicProfileScreen() {
 
   useEffect(() => {
     if (id) {
-      Promise.all([fetchPublicDiaries(), fetchPublicPlans()]);
+      void Promise.all([fetchPublicDiaries(), fetchPublicPlans()]);
     }
   }, [id, fetchPublicDiaries, fetchPublicPlans]);
 

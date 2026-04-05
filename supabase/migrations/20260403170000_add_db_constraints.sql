@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
   table_name text NOT NULL,            -- which table
   record_id uuid,                      -- target record
   old_data jsonb,                      -- previous state (for UPDATE/DELETE)
-  new_data jsonb,                      — new state (for INSERT/UPDATE)
+  new_data jsonb,                      -- new state (for INSERT/UPDATE)
   ip_address text,                     -- not available via triggers, placeholder
   user_agent text,                     -- not available via triggers, placeholder
   created_at timestamptz NOT NULL DEFAULT now()

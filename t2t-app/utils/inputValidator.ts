@@ -59,8 +59,40 @@ export function validateDisplayName(name: string): ValidationResult {
   if (trimmed.length === 0) return { valid: false, sanitized: '', reason: 'Name cannot be empty' };
   if (trimmed.length > MAX_DISPLAY_NAME_LENGTH) return { valid: false, sanitized: '', reason: 'Name too long (max ' + MAX_DISPLAY_NAME_LENGTH + ' chars)' };
 
-  // Remove any HTML / scripts
-  const sanitized = trimmed.replace(HTML_TAG_REGEX, '').replace(SCRIPT_REGEX, '').trim();
+  // Reject dangerous content (consistent with validateComment/validateBio)
+  if (SCRIPT_TAG_REGEX.test(trimmed) || EVENT_HANDLER_REGEX.test(trimmed)) {
+    return { valid: false, sanitized: '', reason: 'Name contains potentially unsafe content' };
+  }
+  if (SCRIPT_URI_REGEX.test(trimmed)) {
+    return { valid: false, sanitized: '', reason: 'Name contains potentially unsafe content' };
+  }
+
+  // Strip HTML tags
+  const sanitized = trimmed.replace(HTML_TAG_REGEX, '').trim();
+
+  return { valid: true, sanitized };
+}
+
+/**
+ * Validate a username (alphanumeric + underscore, no spaces).
+ */
+/**
+ * Sanitise and validate a user bio.
+ */
+export function validateBio(bio: string): ValidationResult {
+  const trimmed = bio.trim();
+  if (trimmed.length === 0) return { valid: false, sanitized: '', reason: 'Bio cannot be empty' };
+  if (trimmed.length > MAX_BIO_LENGTH) return { valid: false, sanitized: '', reason: 'Bio exceeds maximum length (' + MAX_BIO_LENGTH + ' chars)' };
+
+  if (SCRIPT_TAG_REGEX.test(trimmed) || EVENT_HANDLER_REGEX.test(trimmed)) {
+    return { valid: false, sanitized: '', reason: 'Bio contains potentially unsafe content' };
+  }
+  if (SCRIPT_URI_REGEX.test(trimmed)) {
+    return { valid: false, sanitized: '', reason: 'Bio contains potentially unsafe content' };
+  }
+
+  const sanitized = trimmed.replace(HTML_TAG_REGEX, '').trim();
+  if (sanitized.length === 0) return { valid: false, sanitized: '', reason: 'Bio contains only HTML tags' };
 
   return { valid: true, sanitized };
 }

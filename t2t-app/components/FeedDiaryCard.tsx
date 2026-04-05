@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
@@ -50,6 +51,7 @@ const SWIPE_THRESHOLD = 80;
 const FeedDiaryCardComponent = ({
   item, userId, onCommentPress, onLike, onSave, onLongPress, index = 0,
 }: FeedDiaryCardProps) => {
+  const { t } = useTranslation();
   const theme = useAppTheme();
   const router = useRouter();
   const profile = normalizeProfile(item.profiles);
@@ -143,7 +145,7 @@ const FeedDiaryCardComponent = ({
                   ]}>
                     <Ionicons name="calendar-outline" size={11} color={theme.teal} />
                     <Text style={[styles.durationText, { color: theme.textPrimary }]}>
-                      {days}g
+                      {days}{t('common.days_short')}
                     </Text>
                   </View>
                 )}

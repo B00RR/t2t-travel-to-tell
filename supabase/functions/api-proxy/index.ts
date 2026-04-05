@@ -109,7 +109,10 @@ function getOrigin(req: Request): string {
 }
 
 function corsHeaders(origin: string): Record<string, string> {
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  const isAllowed = origin && ALLOWED_ORIGINS.some(
+    (o) => origin === o || (o.endsWith("://") && origin.startsWith(o)),
+  );
+  if (isAllowed) {
     return {
       "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Methods": "POST, OPTIONS",

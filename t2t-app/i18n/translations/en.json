@@ -19,6 +19,7 @@
     "error_generic": "Oops! Something went wrong. Please try again later.",
     "retry": "Retry",
     "upload_error": "Upload Error",
+    "days_short": "d",
     "success": "Success",
     "delete": "Delete",
     "days": "days",

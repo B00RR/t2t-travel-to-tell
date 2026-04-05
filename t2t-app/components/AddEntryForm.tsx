@@ -35,7 +35,7 @@ export function AddEntryForm({ type, value, onChangeText, onSave, onCancel, savi
   const placeholder = t(`day.placeholder_${type}`);
 
   return (
-    <View style={[styles.form, { backgroundColor: `${accentColor}10`, borderColor: accentColor }]}>
+    <View style={[styles.form, { backgroundColor: accentColor + '1A', borderColor: accentColor }]}>
       <View style={styles.header}>
         <Ionicons name={ICON_MAP[type]} size={20} color={accentColor} />
         <Text style={[styles.title, { color: theme.textPrimary }]}>{title}</Text>

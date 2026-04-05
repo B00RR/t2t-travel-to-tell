@@ -73,7 +73,7 @@ export default function CreateDiaryScreen() {
       <View style={[styles.illustrationArea, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}>
         <Ionicons name="journal-outline" size={48} color={theme.teal} />
         <Text style={[styles.illustrationText, { color: theme.textMuted }]}>
-          Start documenting your next adventure
+          {t('create.illustration_hint')}
         </Text>
       </View>
 

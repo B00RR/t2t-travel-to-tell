@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 import { supabase } from '@/lib/supabase';
 import type { SocialCounters } from '@/types/social';
-import { Alert } from 'react-native';
-import * as Haptics from 'expo-haptics';
 
 interface UseDiarySocialOptions {
   diaryId: string;
@@ -11,6 +12,7 @@ interface UseDiarySocialOptions {
 }
 
 export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySocialOptions) {
+  const { t } = useTranslation();
   const [hasLiked, setHasLiked] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
   const [counters, setCounters] = useState<SocialCounters>(initialCounters);
@@ -56,7 +58,7 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
 
   const toggleLike = useCallback(async () => {
     if (!userId) {
-      Alert.alert('Accesso richiesto', 'Devi effettuare l\'accesso per mettere mi piace.');
+      Alert.alert(t('social.login_required'), t('social.login_to_like'));
       return;
     }
 
@@ -84,7 +86,7 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
 
   const toggleSave = useCallback(async () => {
     if (!userId) {
-      Alert.alert('Accesso richiesto', 'Devi effettuare l\'accesso per salvare i diari.');
+      Alert.alert(t('social.login_required'), t('social.login_to_save'));
       return;
     }
 

@@ -25,7 +25,8 @@
     "days": "giorni",
     "views": "visualizzazioni",
     "diary": "diario",
-    "diaries": "diari"
+    "diaries": "diari",
+    "untitled": "Senza titolo"
   },
   "passport": {
     "name": "NOME",
@@ -112,7 +113,18 @@
     "share": "Condividi diario",
     "share_profile": "Condividi profilo",
     "save": "Salva",
-    "unsave": "Rimuovi dai salvati"
+    "unsave": "Rimuovi dai salvati",
+    "login_required": "Accesso richiesto",
+    "login_to_like": "Devi effettuare l'accesso per mettere mi piace.",
+    "login_to_save": "Devi effettuare l'accesso per salvare i diari.",
+    "login_to_follow": "Devi effettuare l'accesso per seguire gli utenti.",
+    "err_comment_validation": "Commento non valido",
+    "err_comment_post": "Impossibile pubblicare il commento.",
+    "err_comment_delete": "Impossibile eliminare il commento.",
+    "err_follow_toggle": "Impossibile aggiornare lo stato del follow.",
+    "delete_comment": "Elimina",
+    "delete_comment_confirm": "Vuoi eliminare questo commento?",
+    "share_message": "Scopri questo diario di viaggio: {{title}}"
   },
   "diary": {
     "options": "Opzioni Diario",
@@ -192,7 +204,8 @@
     "err_title_required": "Inserisci un titolo per il tuo diario.",
     "err_create_failed": "Impossibile creare il diario. Riprova più tardi.",
     "success_title": "Diario Creato!",
-    "success_msg": "Ora puoi iniziare a scriverlo."
+    "success_msg": "Ora puoi iniziare a scriverlo.",
+    "illustration_hint": "Inizia a documentare la tua prossima avventura"
   },
   "map": {
     "title": "Mappa",
@@ -224,7 +237,13 @@
   },
   "media": {
     "permission_denied": "Devi consentire l'accesso alla galleria.",
-    "upload_failed": "Si è verificato un errore durante il caricamento del file. Riprova più tardi."
+    "upload_failed": "Si è verificato un errore durante il caricamento del file. Riprova più tardi.",
+    "unsupported_video": "Formato video non supportato."
+  },
+  "search": {
+    "err_flights": "Errore nella ricerca voli. Riprova più tardi.",
+    "err_hotels": "Errore nella ricerca hotel. Riprova più tardi.",
+    "city_not_found": "Città \"{{city}}\" non trovata. Usa codici come: ROM, PAR, NAP, MIL, BCN, NYC..."
   },
   "auth": {
     "login_welcome": "Bentornato! Continua le tue avventure.",

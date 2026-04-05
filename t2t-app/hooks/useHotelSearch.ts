@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TravelAPI, type HotelOffer } from '@/services/rapidapi';
 
 interface UseHotelSearchReturn {
@@ -41,6 +42,7 @@ const CITY_TO_DEST_ID: Record<string, { id: string; type: string }> = {
 };
 
 export function useHotelSearch(): UseHotelSearchReturn {
+  const { t } = useTranslation();
   const [results, setResults] = useState<HotelOffer[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export function useHotelSearch(): UseHotelSearchReturn {
 
     const mapping = CITY_TO_DEST_ID[params.cityCode.toUpperCase()];
     if (!mapping) {
-      setError(`Città "${params.cityCode}" non trovata. Usa codici come: ROM, PAR, NAP, MIL, BCN, NYC...`);
+      setError(t('search.city_not_found', { code: params.cityCode }));
       setLoading(false);
       return;
     }
@@ -71,7 +73,7 @@ export function useHotelSearch(): UseHotelSearchReturn {
       });
       setResults(data);
     } catch (e: any) {
-      setError(e.message || 'Errore nella ricerca hotel');
+      setError(e.message || t('search.err_hotels'));
       setResults([]);
     } finally {
       setLoading(false);

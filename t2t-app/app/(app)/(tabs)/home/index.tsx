@@ -132,7 +132,7 @@ export default function HomeScreen() {
           text: t('social.share') || 'Share',
           onPress: () => {
             Share.share({
-              message: `Check out this travel diary: ${diary?.title}`,
+              message: t('social.share_message', { title: diary?.title }),
               url: `t2tapp://diary/${diaryId}`,
             });
           },

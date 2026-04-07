@@ -53,7 +53,7 @@ const ExploreDiaryCardComponent = ({ item, index = 0 }: ExploreDiaryCardProps) =
 
       {/* Destination badge (top-left) */}
       {firstDest && (
-        <View style={[styles.destBadge, { backgroundColor: 'rgba(250,246,240,0.90)' }]}>
+        <View style={[styles.destBadge, { backgroundColor: theme.isDark ? 'rgba(32,29,26,0.90)' : 'rgba(250,246,240,0.90)' }]}>
           <Ionicons name="location" size={10} color={theme.teal} />
           <Text style={[styles.destBadgeText, { color: theme.textPrimary }]} numberOfLines={1}>
             {firstDest}
@@ -63,7 +63,7 @@ const ExploreDiaryCardComponent = ({ item, index = 0 }: ExploreDiaryCardProps) =
 
       {/* Like count (top-right) */}
       {likeCount > 0 && (
-        <View style={[styles.likeBadge, { backgroundColor: 'rgba(250,246,240,0.90)' }]}>
+        <View style={[styles.likeBadge, { backgroundColor: theme.isDark ? 'rgba(32,29,26,0.90)' : 'rgba(250,246,240,0.90)' }]}>
           <Ionicons name="heart" size={10} color={theme.red} />
           <Text style={[styles.likeBadgeText, { color: theme.textPrimary }]}>{likeCount}</Text>
         </View>

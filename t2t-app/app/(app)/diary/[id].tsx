@@ -167,6 +167,20 @@ export default function DiaryDetailScreen() {
     opacity: headerOpacity.value,
   }));
 
+  // Cinematic entrance
+  const contentScale = useSharedValue(0.96);
+  const contentOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    contentScale.value = withSpring(1, { damping: 20, stiffness: 90 });
+    contentOpacity.value = withTiming(1, { duration: 500 });
+  }, []);
+
+  const contentEntranceStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ scale: contentScale.value }],
+  }));
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -242,7 +256,7 @@ export default function DiaryDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, contentEntranceStyle]}>
       {/* Floating header */}
       <Animated.View style={[styles.floatingHeader, headerStyle]}>
         <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
@@ -347,7 +361,7 @@ export default function DiaryDetailScreen() {
         onCoverSet={(url) => setDiary(prev => prev ? { ...prev, cover_image_url: url } : prev)}
         onClose={() => setShowCoverPicker(false)}
       />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -379,7 +393,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Floating header (over content)
+  // Floating header (over content) — glassmorphism
   floatingHeader: {
     position: 'absolute',
     top: 0,
@@ -390,18 +404,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingTop: Platform.OS === 'ios' ? 54 : 38,
-    paddingBottom: 8,
+    paddingBottom: 10,
+    backgroundColor: Glass.storyBg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Glass.storyBorder,
     zIndex: 20,
   },
   headerBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.10)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.20)',
   },
   floatingTitle: {
     flex: 1,
@@ -446,18 +463,18 @@ const styles = StyleSheet.create({
     zIndex: 15,
   },
 
-  // Floating social bar
+  // Floating social bar — glassmorphism
   floatingSocial: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 40 : 20,
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: Glass.storyBg,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: Glass.storyBorder,
     zIndex: 10,
   },
 

@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
+import { Spacing, Radius, Typography, Shadows, Glass } from '@/constants/theme';
 
 interface MorphingTabBarProps {
   state: { routes: Array<{ key: string; name: string }>; index: number };
@@ -152,7 +152,7 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingBottom: Platform.OS === 'ios' ? 28 : 10,
     paddingTop: 10,
   },

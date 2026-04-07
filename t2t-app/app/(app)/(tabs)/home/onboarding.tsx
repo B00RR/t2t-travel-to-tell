@@ -4,23 +4,32 @@ import {
   Dimensions, NativeSyntheticEvent, NativeScrollEvent,
   Platform, StatusBar,
 } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, interpolate,
+  useAnimatedScrollHandler, FadeInUp,
+  Extrapolation,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { InteractiveGlobe } from '@/components/InteractiveGlobe';
-import { Spacing, Typography, Radius } from '@/constants/theme';
+import { Spacing, Typography, Radius, Fonts, Shadows } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 interface SlideData {
   id: string;
   icon: string;
   titleKey: string;
   descKey: string;
+  accentKey: string;
   fallbackTitle: string;
   fallbackDesc: string;
+  fallbackAccent: string;
 }
 
 const SLIDES: SlideData[] = [
@@ -29,32 +38,40 @@ const SLIDES: SlideData[] = [
     icon: 'globe',
     titleKey: 'onboarding.slide1_title',
     descKey: 'onboarding.slide1_desc',
-    fallbackTitle: 'Scopri il mondo',
-    fallbackDesc: 'Esplora diari di viaggio da ogni angolo del pianeta. Lasciati ispirare da storie autentiche.',
+    accentKey: 'onboarding.slide1_accent',
+    fallbackTitle: 'Discover the World',
+    fallbackDesc: 'Explore travel diaries from every corner of the planet. Get inspired by authentic stories.',
+    fallbackAccent: 'Every journey starts with curiosity',
   },
   {
     id: '2',
     icon: 'journal',
     titleKey: 'onboarding.slide2_title',
     descKey: 'onboarding.slide2_desc',
-    fallbackTitle: 'Racconta la tua storia',
-    fallbackDesc: 'Crea il tuo diario con foto, note e tappe. Ogni viaggio merita di essere ricordato.',
+    accentKey: 'onboarding.slide2_accent',
+    fallbackTitle: 'Tell Your Story',
+    fallbackDesc: 'Create your diary with photos, notes, and stops. Every trip deserves to be remembered.',
+    fallbackAccent: 'Your personal travel moleskine',
   },
   {
     id: '3',
     icon: 'people',
     titleKey: 'onboarding.slide3_title',
     descKey: 'onboarding.slide3_desc',
-    fallbackTitle: 'Connettiti',
-    fallbackDesc: 'Segui altri viaggiatori, commenta le loro storie e pianifica insieme avventure.',
+    accentKey: 'onboarding.slide3_accent',
+    fallbackTitle: 'Connect',
+    fallbackDesc: 'Follow other travelers, comment on their stories, and plan adventures together.',
+    fallbackAccent: 'Travel is better shared',
   },
   {
     id: '4',
     icon: 'map',
     titleKey: 'onboarding.slide4_title',
     descKey: 'onboarding.slide4_desc',
-    fallbackTitle: 'La tua mappa',
-    fallbackDesc: 'Ogni diario aggiunge un pin alla tua mappa personale. Costruisci il tuo passaporto digitale.',
+    accentKey: 'onboarding.slide4_accent',
+    fallbackTitle: 'Your Map',
+    fallbackDesc: 'Each diary adds a pin to your personal map. Build your digital passport.',
+    fallbackAccent: 'Pin your memories to the world',
   },
 ];
 
@@ -64,25 +81,38 @@ export default function OnboardingScreen() {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  const scrollX = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
 
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
     setCurrentIndex(index);
   }, []);
 
+  const finishOnboarding = useCallback(async () => {
+    await SecureStore.setItemAsync('onboarding_seen', 'true');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    router.replace('/(app)/(tabs)/home');
+  }, [router]);
+
   const handleNext = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (currentIndex < SLIDES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
     } else {
-      router.replace('/(app)/(tabs)/home');
+      finishOnboarding();
     }
-  }, [currentIndex, router]);
+  }, [currentIndex, finishOnboarding]);
 
   const handleSkip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.replace('/(app)/(tabs)/home');
-  }, [router]);
+    finishOnboarding();
+  }, [finishOnboarding]);
 
   const renderSlide = useCallback(({ item, index }: { item: SlideData; index: number }) => {
     const isGlobeSlide = index === 0;
@@ -90,12 +120,19 @@ export default function OnboardingScreen() {
     return (
       <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
         {isGlobeSlide ? (
-          <InteractiveGlobe height={320} />
+          <InteractiveGlobe height={280} />
         ) : (
-          <View style={[styles.iconCircle, { backgroundColor: theme.tealAlpha15 }]}>
-            <Ionicons name={item.icon as any} size={64} color={theme.teal} />
+          <View style={[styles.iconCircle, { backgroundColor: theme.tealAlpha15 }, Shadows.elevated]}>
+            <Ionicons name={item.icon as any} size={56} color={theme.teal} />
           </View>
         )}
+
+        <Animated.Text
+          entering={FadeInUp.delay(200).duration(500)}
+          style={[styles.slideAccent, { color: theme.teal, fontFamily: Fonts.handwritten }]}
+        >
+          {t(item.accentKey, item.fallbackAccent)}
+        </Animated.Text>
 
         <Text style={[styles.slideTitle, { color: theme.textPrimary }]}>
           {t(item.titleKey, item.fallbackTitle)}
@@ -114,42 +151,34 @@ export default function OnboardingScreen() {
       {/* Skip button */}
       <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
         <Text style={[styles.skipText, { color: theme.textMuted }]}>
-          {t('onboarding.skip', 'Salta')}
+          {t('onboarding.skip', 'Skip')}
         </Text>
       </TouchableOpacity>
 
-      {/* Slides */}
-      <FlatList
+      {/* Slides with parallax scroll tracking */}
+      <AnimatedFlatList
         ref={flatListRef}
         data={SLIDES}
         renderItem={renderSlide}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: SlideData) => item.id}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
+        onScroll={scrollHandler}
+        onMomentumScrollEnd={handleScroll}
         scrollEventThrottle={16}
       />
 
-      {/* Dots + Next */}
+      {/* Footer — animated dots + next button */}
       <View style={styles.footer}>
         <View style={styles.dots}>
-          {SLIDES.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: i === currentIndex ? theme.teal : theme.border,
-                  width: i === currentIndex ? 24 : 8,
-                },
-              ]}
-            />
-          ))}
+          {SLIDES.map((_, i) => {
+            return <AnimatedDot key={i} index={i} scrollX={scrollX} theme={theme} />;
+          })}
         </View>
 
         <TouchableOpacity
-          style={[styles.nextBtn, { backgroundColor: theme.teal }]}
+          style={[styles.nextBtn, { backgroundColor: theme.teal }, Shadows.glow(theme.teal)]}
           onPress={handleNext}
           activeOpacity={0.85}
         >
@@ -164,6 +193,26 @@ export default function OnboardingScreen() {
   );
 }
 
+/** Animated dot that smoothly scales and changes width based on scroll position */
+function AnimatedDot({ index, scrollX, theme }: { index: number; scrollX: Animated.SharedValue<number>; theme: any }) {
+  const animStyle = useAnimatedStyle(() => {
+    const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
+    const width = interpolate(scrollX.value, inputRange, [8, 28, 8], Extrapolation.CLAMP);
+    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP);
+    return { width, opacity };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.dot,
+        { backgroundColor: theme.teal },
+        animStyle,
+      ]}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -171,7 +220,7 @@ const styles = StyleSheet.create({
   },
   skipBtn: {
     alignSelf: 'flex-end',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.sm,
   },
   skipText: {
@@ -181,19 +230,25 @@ const styles = StyleSheet.create({
   slide: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.xxl,
   },
   iconCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.xl * 1.5,
+    marginBottom: Spacing.xl,
+  },
+  slideAccent: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.lg,
   },
   slideTitle: {
     ...Typography.h1,
-    fontSize: 26,
+    fontSize: 28,
     textAlign: 'center',
     marginBottom: Spacing.md,
   },
@@ -201,7 +256,7 @@ const styles = StyleSheet.create({
     ...Typography.body,
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 320,
+    maxWidth: 300,
   },
   footer: {
     flexDirection: 'row',
@@ -220,9 +275,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   nextBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

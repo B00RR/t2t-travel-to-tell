@@ -15,6 +15,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography } from '@/constants/theme';
+import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import i18n from '@/i18n';
 import type { Diary, FeedDiary } from '@/types/supabase';
 import { normalizeProfile } from '@/types/supabase';
@@ -303,14 +304,11 @@ export default function ProfileScreen() {
           </View>
         ) : activeDiaries.length === 0 ? (
           <View style={[styles.emptyState, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}>
-            <Ionicons
-              name={diaryTab === 'mine' ? 'journal-outline' : 'bookmark-outline'}
-              size={48}
-              color={theme.border}
+            <EmptyStateIllustration
+              type={diaryTab === 'mine' ? 'no-diaries' : 'no-saved'}
+              title={diaryTab === 'mine' ? t('profile.no_diaries') : t('profile.no_saved')}
+              accent={diaryTab === 'mine' ? t('profile.no_diaries_accent', 'Start your first chapter') : t('profile.no_saved_accent', 'Save diaries you love')}
             />
-            <Text style={[styles.emptyText, { color: theme.textMuted }]}>
-              {diaryTab === 'mine' ? t('profile.no_diaries') : t('profile.no_saved')}
-            </Text>
             {diaryTab === 'mine' && (
               <TouchableOpacity
                 style={[styles.createBtn, { backgroundColor: theme.teal }]}

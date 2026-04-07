@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, StatusBar, Platform, Alert, Share,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
 import { supabase } from '@/lib/supabase';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/Button';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
 import { HomeHero } from '@/components/HomeHero';
+import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { Spacing, Typography, Radius } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 
@@ -34,6 +36,16 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+
+  // Check if onboarding has been seen
+  useEffect(() => {
+    (async () => {
+      const seen = await SecureStore.getItemAsync('onboarding_seen');
+      if (!seen) {
+        router.replace('/(app)/(tabs)/home/onboarding');
+      }
+    })();
+  }, []);
 
   const fetchDiscover = useCallback(async (isRefreshing = false) => {
     if (!isRefreshing) setLoading(true);
@@ -245,15 +257,16 @@ export default function HomeScreen() {
         </View>
       ) : diaries.length === 0 ? (
         <View style={styles.emptyState}>
-          <View style={[styles.emptyIconWrap, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}>
-            <Ionicons name={emptyIcon} size={36} color={theme.teal} />
-          </View>
-          <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>{emptyTitle}</Text>
-          <Text style={[styles.emptySub, { color: theme.textMuted }]}>{emptySub}</Text>
+          <EmptyStateIllustration
+            type={tab === 'following' ? 'no-following' : 'no-diaries'}
+            title={emptyTitle}
+            subtitle={emptySub}
+            accent={tab === 'following' ? t('home.no_following_accent', 'Find your travel tribe') : t('home.no_diaries_accent', 'Adventures await you')}
+          />
           {tab === 'following' && (
-            <Button 
-              title={t('home.explore_people')} 
-              onPress={() => router.push('/(app)/(tabs)/explore')} 
+            <Button
+              title={t('home.explore_people')}
+              onPress={() => router.push('/(app)/(tabs)/explore')}
               variant="primary"
               style={{ marginTop: Spacing.lg }}
             />

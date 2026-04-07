@@ -205,7 +205,18 @@
     "err_create_failed": "Unable to create diary. Please try again later.",
     "success_title": "Diary Created!",
     "success_msg": "Now you can start writing it.",
-    "illustration_hint": "Start documenting your next adventure"
+    "illustration_hint": "Start documenting your next adventure",
+    "step_details": "Details",
+    "step_cover": "Cover",
+    "step_preview": "Preview",
+    "cover_hint": "Tap to add a cover photo",
+    "cover_change": "Change cover",
+    "skip_cover": "Skip for now",
+    "preview_ready": "Ready to create your diary!",
+    "preview_no_desc": "No description added",
+    "back": "Back",
+    "next": "Next",
+    "handwritten_note": "Your story begins here..."
   },
   "map": {
     "title": "Map",
@@ -423,5 +434,20 @@
     "visibility_private": "Private 🔒",
     "visibility_public": "Public 🌍",
     "visibility_friends": "Friends 👥"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "slide1_title": "Discover the World",
+    "slide1_desc": "Explore travel diaries from every corner of the planet. Get inspired by authentic stories.",
+    "slide1_accent": "Every journey starts with curiosity",
+    "slide2_title": "Tell Your Story",
+    "slide2_desc": "Create your diary with photos, notes, and stops. Every trip deserves to be remembered.",
+    "slide2_accent": "Your personal travel moleskine",
+    "slide3_title": "Connect",
+    "slide3_desc": "Follow other travelers, comment on their stories, and plan adventures together.",
+    "slide3_accent": "Travel is better shared",
+    "slide4_title": "Your Map",
+    "slide4_desc": "Each diary adds a pin to your personal map. Build your digital passport.",
+    "slide4_accent": "Pin your memories to the world"
   }
 }

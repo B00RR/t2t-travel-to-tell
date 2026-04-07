@@ -19,7 +19,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
+import { Spacing, Radius, Typography, Shadows, Fonts } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 import { normalizeProfile } from '@/types/supabase';
 
@@ -317,8 +317,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   authorTime: {
-    fontSize: 10,
-    fontWeight: '500',
+    fontFamily: Fonts.handwritten,
+    fontSize: 13,
   },
   title: {
     fontFamily: Typography.h3.fontFamily, // Playfair Display

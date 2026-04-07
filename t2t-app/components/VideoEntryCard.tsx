@@ -45,7 +45,7 @@ export function VideoEntryCard({ entry, onLongPress }: VideoEntryCardProps) {
 
   return (
     <View style={[styles.card, { backgroundColor: theme.bgElevated }]}>
-      <View style={{ width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden' }}>
+      <View style={{ width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar, backgroundColor: theme.isDark ? '#000' : '#0A0A0A', borderRadius: 16, overflow: 'hidden' }}>
         <GestureDetector gesture={longPressGesture}>
           <VideoView
             player={player}

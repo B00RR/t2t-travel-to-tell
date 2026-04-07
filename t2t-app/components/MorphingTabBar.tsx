@@ -84,8 +84,9 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
         const isFocused = state.index === index;
         const isCreate = route.name === 'create';
 
-        const iconConfig = TAB_ICONS[route.name] || TAB_ICONS.index;
-        const iconName = isFocused ? iconConfig.active : iconConfig.default;
+        const iconConfig = TAB_ICONS[route.name];
+        if (!iconConfig && !isCreate) return null;
+        const iconName = isFocused ? iconConfig?.active : iconConfig?.default;
         const label = TAB_LABELS[route.name] || route.name;
 
         if (isCreate) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface JourneyProgressBarProps {
   totalDays: number;
@@ -14,6 +14,7 @@ interface JourneyProgressBarProps {
  * Tap a segment to jump to that day.
  */
 export function JourneyProgressBar({ totalDays, currentDay, onDayPress }: JourneyProgressBarProps) {
+  const theme = useAppTheme();
   if (totalDays <= 1) return null;
 
   return (
@@ -33,7 +34,7 @@ export function JourneyProgressBar({ totalDays, currentDay, onDayPress }: Journe
               style={[
                 styles.segmentBar,
                 isPast && styles.segmentPast,
-                isActive && styles.segmentActive,
+                isActive && [styles.segmentActive, { backgroundColor: theme.teal }],
               ]}
             />
           </TouchableOpacity>
@@ -63,7 +64,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,201,167,0.5)',
   },
   segmentActive: {
-    backgroundColor: Palette.teal,
     height: 4,
   },
 });

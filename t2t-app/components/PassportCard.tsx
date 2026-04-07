@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface PassportCardProps {
   displayName: string | null;
@@ -44,6 +44,7 @@ export function PassportCard({
   isFollowing, onEditPress, onFollowPress, onSharePress,
 }: PassportCardProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const cardScale = useSharedValue(0.9);
   const cardOpacity = useSharedValue(0);
 
@@ -66,14 +67,14 @@ export function PassportCard({
   }).toUpperCase();
 
   return (
-    <Animated.View style={[styles.card, cardAnimStyle]}>
+    <Animated.View style={[styles.card, { backgroundColor: theme.navy, shadowColor: theme.passGold }, cardAnimStyle]}>
       {/* Gold border accent line at top */}
-      <View style={styles.goldLine} />
+      <View style={[styles.goldLine, { backgroundColor: theme.passGold }]} />
 
       {/* Passport header */}
       <View style={styles.passportHeader}>
-        <Text style={styles.passportLabel}>TRAVEL PASSPORT</Text>
-        <Ionicons name="earth" size={18} color={Palette.passGold} />
+        <Text style={[styles.passportLabel, { color: theme.passGold }]}>TRAVEL PASSPORT</Text>
+        <Ionicons name="earth" size={18} color={theme.passGold} />
       </View>
 
       {/* Main content row: photo + info */}
@@ -83,8 +84,8 @@ export function PassportCard({
           {avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.photo} />
           ) : (
-            <View style={styles.photoFallback}>
-              <Text style={styles.photoInitials}>{initials}</Text>
+            <View style={[styles.photoFallback, { backgroundColor: theme.passStamp }]}>
+              <Text style={[styles.photoInitials, { color: theme.passGold }]}>{initials}</Text>
             </View>
           )}
         </View>
@@ -122,7 +123,7 @@ export function PassportCard({
             ))}
             {countries.length > 12 && (
               <View style={styles.moreStamp}>
-                <Text style={styles.moreStampText}>+{countries.length - 12}</Text>
+                <Text style={[styles.moreStampText, { color: theme.passGold }]}>+{countries.length - 12}</Text>
               </View>
             )}
           </View>
@@ -132,27 +133,28 @@ export function PassportCard({
       {/* Action buttons */}
       <View style={styles.actions}>
         {isOwnProfile ? (
-          <TouchableOpacity style={styles.editBtn} onPress={onEditPress}>
-            <Ionicons name="create-outline" size={16} color={Palette.passGold} />
-            <Text style={styles.editBtnText}>{t('profile.edit')}</Text>
+          <TouchableOpacity style={styles.editBtn} onPress={onEditPress} testID="passport-edit-btn">
+            <Ionicons name="create-outline" size={16} color={theme.passGold} />
+            <Text style={[styles.editBtnText, { color: theme.passGold }]}>{t('profile.edit')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.followBtn, isFollowing && styles.followBtnActive]}
+            style={[styles.followBtn, { backgroundColor: theme.teal }, isFollowing && styles.followBtnActive]}
             onPress={onFollowPress}
+            testID="passport-follow-btn"
           >
             <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
               {isFollowing ? t('profile.following_button') : t('profile.follow')}
             </Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.shareBtn} onPress={onSharePress}>
-          <Ionicons name="share-outline" size={18} color={Palette.passGold} />
+        <TouchableOpacity style={styles.shareBtn} onPress={onSharePress} testID="passport-share-btn">
+          <Ionicons name="share-outline" size={18} color={theme.passGold} />
         </TouchableOpacity>
       </View>
 
       {/* Bottom decorative line */}
-      <View style={styles.goldLineBottom} />
+      <View style={[styles.goldLineBottom, { backgroundColor: theme.passGold }]} />
     </Animated.View>
   );
 }
@@ -177,6 +179,7 @@ function StatBadge({ label, value }: { label: string; value: number }) {
 
 function CountryStamp({ country, index }: { country: string; index: number }) {
   const scale = useSharedValue(0);
+  const theme = useAppTheme();
 
   useEffect(() => {
     scale.value = withDelay(
@@ -190,22 +193,20 @@ function CountryStamp({ country, index }: { country: string; index: number }) {
   }));
 
   return (
-    <Animated.View style={[styles.stamp, animStyle]}>
-      <Text style={styles.stampText}>{country}</Text>
+    <Animated.View style={[styles.stamp, { backgroundColor: theme.passStamp }, animStyle]}>
+      <Text style={[styles.stampText, { color: theme.passStampText }]}>{country}</Text>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Palette.navy,
     borderRadius: 20,
     marginHorizontal: 16,
     marginTop: 16,
     paddingVertical: 4,
     overflow: 'hidden',
     // Subtle gold glow
-    shadowColor: Palette.passGold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -216,14 +217,12 @@ const styles = StyleSheet.create({
 
   goldLine: {
     height: 3,
-    backgroundColor: Palette.passGold,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     opacity: 0.8,
   },
   goldLineBottom: {
     height: 2,
-    backgroundColor: Palette.passGold,
     opacity: 0.4,
     marginTop: 4,
   },
@@ -239,7 +238,6 @@ const styles = StyleSheet.create({
   passportLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: Palette.passGold,
     letterSpacing: 3,
     opacity: 0.7,
   },
@@ -264,14 +262,12 @@ const styles = StyleSheet.create({
   },
   photoFallback: {
     flex: 1,
-    backgroundColor: Palette.passStamp,
     justifyContent: 'center',
     alignItems: 'center',
   },
   photoInitials: {
     fontSize: 24,
     fontWeight: '900',
-    color: Palette.passGold,
     letterSpacing: -1,
   },
 
@@ -357,7 +353,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   stamp: {
-    backgroundColor: Palette.passStamp,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -367,7 +362,6 @@ const styles = StyleSheet.create({
   stampText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#E8E0D0',
     letterSpacing: 0.3,
   },
   moreStamp: {
@@ -381,7 +375,6 @@ const styles = StyleSheet.create({
   moreStampText: {
     fontSize: 11,
     fontWeight: '700',
-    color: Palette.passGold,
   },
 
   // Actions
@@ -406,11 +399,9 @@ const styles = StyleSheet.create({
   editBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: Palette.passGold,
   },
   followBtn: {
     flex: 1,
-    backgroundColor: Palette.teal,
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',

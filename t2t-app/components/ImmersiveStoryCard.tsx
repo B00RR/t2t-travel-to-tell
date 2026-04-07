@@ -21,7 +21,8 @@ import * as Haptics from 'expo-haptics';
 import { KenBurnsImage } from '@/components/KenBurnsImage';
 import { AnimatedHeartOverlay } from '@/components/AnimatedHeartOverlay';
 import { useDiarySocial } from '@/hooks/useDiarySocial';
-import { Palette, Glass } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Glass } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 import { normalizeProfile } from '@/types/supabase';
 
@@ -53,6 +54,7 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
 }: ImmersiveStoryCardProps) {
   const router = useRouter();
   const { t, i18n } = useTranslation();
+  const theme = useAppTheme();
   const [showHeart, setShowHeart] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -185,14 +187,14 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
                 paused={!isActive}
               />
             ) : (
-              <View style={styles.placeholderBg}>
-                <Ionicons name="earth" size={80} color={Palette.tealDim} />
+              <View style={[styles.placeholderBg, { backgroundColor: theme.bgElevated }]}>
+                <Ionicons name="earth" size={80} color={theme.tealDim} />
               </View>
             )}
           </Animated.View>
 
           {/* Top scrim gradient */}
-          <View style={styles.scrimTop} pointerEvents="none" />
+          <View style={[styles.scrimTop, { backgroundColor: theme.storyScrimTop }]} pointerEvents="none" />
 
           {/* Bottom scrim gradient */}
           <View style={styles.scrimBottom} pointerEvents="none" />
@@ -207,7 +209,7 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
               {author?.avatar_url ? (
                 <Image source={{ uri: author.avatar_url }} style={styles.pillAvatar} />
               ) : (
-                <View style={styles.pillAvatarFallback}>
+                <View style={[styles.pillAvatarFallback, { backgroundColor: theme.teal }]}>
                   <Text style={styles.pillInitials}>{getInitials(authorName)}</Text>
                 </View>
               )}
@@ -216,8 +218,8 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
 
             {days !== null && (
               <View style={styles.daysBadge}>
-                <Text style={styles.daysNum}>{days}</Text>
-                <Text style={styles.daysLabel}>{t('common.days')}</Text>
+                <Text style={[styles.daysNum, { color: theme.teal }]}>{days}</Text>
+                <Text style={[styles.daysLabel, { color: theme.teal }]}>{t('common.days')}</Text>
               </View>
             )}
           </View>
@@ -229,7 +231,7 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
               <View style={styles.destRow}>
                 {item.destinations.slice(0, 3).map((dest, idx) => (
                   <View key={idx} style={styles.destPill}>
-                    <Ionicons name="location" size={10} color={Palette.teal} />
+                    <Ionicons name="location" size={10} color={theme.teal} />
                     <Text style={styles.destText}>{dest}</Text>
                   </View>
                 ))}
@@ -254,7 +256,7 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
               <Ionicons
                 name={hasLiked ? 'heart' : 'heart-outline'}
                 size={28}
-                color={hasLiked ? Palette.red : '#fff'}
+                color={hasLiked ? theme.red : '#fff'}
               />
               {counters.like_count > 0 && (
                 <Text style={styles.socialCount}>{counters.like_count}</Text>
@@ -272,7 +274,7 @@ export const ImmersiveStoryCard = React.memo(function ImmersiveStoryCard({
               <Ionicons
                 name={hasSaved ? 'bookmark' : 'bookmark-outline'}
                 size={24}
-                color={hasSaved ? Palette.teal : '#fff'}
+                color={hasSaved ? theme.teal : '#fff'}
               />
             </TouchableOpacity>
 
@@ -338,7 +340,6 @@ const styles = StyleSheet.create({
   },
   placeholderBg: {
     flex: 1,
-    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -350,7 +351,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 140,
-    backgroundColor: Palette.storyScrimTop,
   },
   scrimBottom: {
     position: 'absolute',
@@ -395,7 +395,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -421,14 +420,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   daysNum: {
-    color: Palette.teal,
     fontSize: 18,
     fontWeight: '900',
     lineHeight: 20,
     letterSpacing: -0.5,
   },
   daysLabel: {
-    color: Palette.teal,
     fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.5,

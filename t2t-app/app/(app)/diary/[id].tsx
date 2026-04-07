@@ -142,7 +142,7 @@ export default function DiaryDetailScreen() {
   async function deleteDiary() {
     const { error } = await supabase.from('diaries').delete().eq('id', id);
     if (error) Alert.alert(t('common.error'), t('diary.err_delete_failed'));
-    else router.replace('/(app)/(tabs)/home');
+    else router.replace('/(app)/(tabs)/home' as never);
   }
 
   const handleDayJump = useCallback((index: number) => {

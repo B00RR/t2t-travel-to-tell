@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, interpolate,
   useAnimatedScrollHandler, FadeInUp,
   Extrapolation,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -97,7 +98,7 @@ export default function OnboardingScreen() {
   const finishOnboarding = useCallback(async () => {
     await SecureStore.setItemAsync('onboarding_seen', 'true');
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.replace('/(app)/(tabs)/home');
+    router.replace('/(app)/(tabs)/home' as never);
   }, [router]);
 
   const handleNext = useCallback(() => {
@@ -114,7 +115,8 @@ export default function OnboardingScreen() {
     finishOnboarding();
   }, [finishOnboarding]);
 
-  const renderSlide = useCallback(({ item, index }: { item: SlideData; index: number }) => {
+  const renderSlide = useCallback(({ item, index }: { item: any; index: number }) => {
+    const slide = item as SlideData;
     const isGlobeSlide = index === 0;
 
     return (
@@ -123,7 +125,7 @@ export default function OnboardingScreen() {
           <InteractiveGlobe height={280} />
         ) : (
           <View style={[styles.iconCircle, { backgroundColor: theme.tealAlpha15 }, Shadows.elevated]}>
-            <Ionicons name={item.icon as any} size={56} color={theme.teal} />
+            <Ionicons name={slide.icon as any} size={56} color={theme.teal} />
           </View>
         )}
 
@@ -131,14 +133,14 @@ export default function OnboardingScreen() {
           entering={FadeInUp.delay(200).duration(500)}
           style={[styles.slideAccent, { color: theme.teal, fontFamily: Fonts.handwritten }]}
         >
-          {t(item.accentKey, item.fallbackAccent)}
+          {t(slide.accentKey, slide.fallbackAccent)}
         </Animated.Text>
 
         <Text style={[styles.slideTitle, { color: theme.textPrimary }]}>
-          {t(item.titleKey, item.fallbackTitle)}
+          {t(slide.titleKey, slide.fallbackTitle)}
         </Text>
         <Text style={[styles.slideDesc, { color: theme.textSecondary }]}>
-          {t(item.descKey, item.fallbackDesc)}
+          {t(slide.descKey, slide.fallbackDesc)}
         </Text>
       </View>
     );
@@ -159,8 +161,8 @@ export default function OnboardingScreen() {
       <AnimatedFlatList
         ref={flatListRef}
         data={SLIDES}
-        renderItem={renderSlide}
-        keyExtractor={(item: SlideData) => item.id}
+        renderItem={renderSlide as any}
+        keyExtractor={(item: any) => item.id}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -194,7 +196,7 @@ export default function OnboardingScreen() {
 }
 
 /** Animated dot that smoothly scales and changes width based on scroll position */
-function AnimatedDot({ index, scrollX, theme }: { index: number; scrollX: Animated.SharedValue<number>; theme: any }) {
+function AnimatedDot({ index, scrollX, theme }: { index: number; scrollX: SharedValue<number>; theme: any }) {
   const animStyle = useAnimatedStyle(() => {
     const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
     const width = interpolate(scrollX.value, inputRange, [8, 28, 8], Extrapolation.CLAMP);

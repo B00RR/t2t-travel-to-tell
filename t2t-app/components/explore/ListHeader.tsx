@@ -47,7 +47,7 @@ export const ListHeader = React.memo(function ListHeader({
       {/* Travel search CTA */}
       <TouchableOpacity
         style={[styles.travelSearchCta, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
-        onPress={() => router.push('/(app)/(tabs)/explore/search')}
+        onPress={() => router.push('/(app)/(tabs)/explore/search' as never)}
       >
         <View style={[styles.travelSearchIcon, { backgroundColor: theme.tealAlpha15 }]}>
           <Ionicons name="airplane" size={20} color={theme.teal} />

@@ -141,7 +141,7 @@ export default function CreateDiaryScreen() {
     setCoverUri(null);
     setStep(0);
     progress.value = withTiming(0);
-    router.replace('/(app)/(tabs)/home');
+    router.replace('/(app)/(tabs)/home' as never);
   }
 
   const stepLabels = [

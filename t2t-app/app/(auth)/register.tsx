@@ -43,7 +43,7 @@ export default function RegisterScreen() {
         Alert.alert(t('common.error'), t('auth.err_register_failed'));
       } else {
         Alert.alert(t('common.success'), t('auth.register_success'));
-        router.replace('/(app)/(tabs)/home');
+        router.replace('/(app)/(tabs)/home' as never);
       }
     } catch (e: any) {
       console.error('Registration exception:', e);

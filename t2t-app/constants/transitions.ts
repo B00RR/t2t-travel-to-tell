@@ -8,8 +8,6 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 
 /** Diary detail — immersive fade-scale entry (feels like zooming into the card) */
 export const diaryDetailTransition: NativeStackNavigationOptions = {
-  animation: 'fade_from_bottom',
-  animationDuration: 350,
   gestureEnabled: true,
   // On iOS use a custom animation that feels like zooming in
   ...Platform.select({

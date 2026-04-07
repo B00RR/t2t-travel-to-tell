@@ -42,7 +42,7 @@ export default function HomeScreen() {
     (async () => {
       const seen = await SecureStore.getItemAsync('onboarding_seen');
       if (!seen) {
-        router.replace('/(app)/(tabs)/home/onboarding');
+        router.replace('/(app)/(tabs)/home/onboarding' as never);
       }
     })();
   }, []);

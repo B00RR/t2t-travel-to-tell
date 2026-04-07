@@ -11,7 +11,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface AnimatedHeartOverlayProps {
   visible: boolean;
@@ -23,6 +23,7 @@ interface AnimatedHeartOverlayProps {
  * The heart scales up with a bouncy spring, then fades out.
  */
 export function AnimatedHeartOverlay({ visible, onFinish }: AnimatedHeartOverlayProps) {
+  const theme = useAppTheme();
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const rotation = useSharedValue(0);
@@ -63,7 +64,7 @@ export function AnimatedHeartOverlay({ visible, onFinish }: AnimatedHeartOverlay
 
   return (
     <Animated.View style={[styles.container, animatedStyle]} pointerEvents="none">
-      <Ionicons name="heart" size={90} color={Palette.red} />
+      <Ionicons name="heart" size={90} color={theme.red} />
     </Animated.View>
   );
 }

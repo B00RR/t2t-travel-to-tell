@@ -5,7 +5,7 @@ import Animated, {
   interpolate,
   type SharedValue,
 } from 'react-native-reanimated';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface StoryProgressBarProps {
   count: number;
@@ -40,6 +40,7 @@ const SegmentBar = React.memo(function SegmentBar({
   screenWidth: number;
   count: number;
 }) {
+  const theme = useAppTheme();
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
       (index - 1) * screenWidth,
@@ -67,7 +68,7 @@ const SegmentBar = React.memo(function SegmentBar({
   return (
     <View style={[styles.segment, { flex: 1 / count }]}>
       <View style={styles.segmentBg} />
-      <Animated.View style={[styles.segmentFill, animatedStyle]} />
+      <Animated.View style={[styles.segmentFill, { backgroundColor: theme.teal }, animatedStyle]} />
     </View>
   );
 });
@@ -95,7 +96,6 @@ const styles = StyleSheet.create({
   },
   segmentFill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Palette.teal,
     borderRadius: 2,
     transformOrigin: 'left',
   },

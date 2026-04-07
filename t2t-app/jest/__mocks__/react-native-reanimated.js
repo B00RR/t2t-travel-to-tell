@@ -29,6 +29,7 @@ module.exports = {
   withDecay: (v) => v,
   withSequence: (...args) => args[args.length - 1],
   withDelay: (d, a) => a,
+  withRepeat: (v) => v,
   cancelAnimation: jest.fn(),
   Easing: {
     linear: () => 1,

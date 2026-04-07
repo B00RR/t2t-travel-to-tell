@@ -6,7 +6,8 @@ import type { DayEntry } from '@/types/dayEntry';
 import type { VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
 import { RichTextRenderer } from './RichTextRenderer';
-import { Palette, Fonts } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Fonts } from '@/constants/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
@@ -19,17 +20,18 @@ interface EntryCardProps {
 
 export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
 
   // --- MOOD ---
   if (entry.type === 'mood') {
     return (
       <TouchableOpacity
-        style={styles.moodCard}
+        style={[styles.moodCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.ocean }]}
         onLongPress={() => onLongPress?.(entry.id)}
         delayLongPress={600}
       >
         <Text style={styles.moodEmoji}>{entry.content}</Text>
-        <Text style={styles.moodLabel}>{entry.metadata?.label || t('day.type_mood')}</Text>
+        <Text style={[styles.moodLabel, { color: theme.ocean }]}>{entry.metadata?.label || t('day.type_mood')}</Text>
       </TouchableOpacity>
     );
   }
@@ -43,7 +45,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 
     return (
       <TouchableOpacity
-        style={styles.photoCard}
+        style={[styles.photoCard, { backgroundColor: theme.bgElevated }]}
         onLongPress={() => onLongPress?.(entry.id)}
         delayLongPress={600}
       >
@@ -53,7 +55,7 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
           resizeMode="cover"
         />
         {entry.metadata?.caption ? (
-          <Text style={styles.photoCaption}>{entry.metadata.caption}</Text>
+          <Text style={[styles.photoCaption, { color: theme.textSecondary }]}>{entry.metadata.caption}</Text>
         ) : null}
       </TouchableOpacity>
     );
@@ -68,13 +70,13 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   if (entry.type === 'location') {
     return (
       <TouchableOpacity
-        style={styles.locationCard}
+        style={[styles.locationCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.red }]}
         onPress={() => onPress?.(entry)}
         onLongPress={() => onLongPress?.(entry.id)}
         delayLongPress={600}
       >
-        <Ionicons name="location" size={20} color={Palette.red} />
-        <Text style={styles.locationText}>{entry.content}</Text>
+        <Ionicons name="location" size={20} color={theme.red} />
+        <Text style={[styles.locationText, { color: theme.textPrimary }]}>{entry.content}</Text>
       </TouchableOpacity>
     );
   }
@@ -82,7 +84,11 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
   // --- TEXT / TIP ---
   return (
     <TouchableOpacity
-      style={[styles.entryCard, entry.type === 'tip' && styles.entryCardTip]}
+      style={[
+        styles.entryCard,
+        { backgroundColor: theme.bgSurface, borderLeftColor: theme.teal },
+        entry.type === 'tip' && { borderLeftColor: theme.orange },
+      ]}
       onPress={() => onPress?.(entry)}
       onLongPress={() => onLongPress?.(entry.id)}
       delayLongPress={600}
@@ -91,17 +97,17 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
         <Ionicons
           name={entry.type === 'tip' ? 'bulb' : 'document-text'}
           size={18}
-          color={entry.type === 'tip' ? Palette.orange : Palette.teal}
+          color={entry.type === 'tip' ? theme.orange : theme.teal}
         />
-        <Text style={[styles.entryType, entry.type === 'tip' && styles.entryTypeTip]}>
+        <Text style={[styles.entryType, { color: entry.type === 'tip' ? theme.orange : theme.teal }]}>
           {entry.type === 'tip' ? t('day.type_tip') : t('day.type_text')}
         </Text>
-        <Ionicons name="pencil" size={14} color={Palette.textMuted} style={{ marginLeft: 'auto' }} />
+        <Ionicons name="pencil" size={14} color={theme.textMuted} style={{ marginLeft: 'auto' }} />
       </View>
       {entry.type === 'text' && entry.content ? (
         <RichTextRenderer text={entry.content} />
       ) : (
-        <Text style={styles.entryContent}>{entry.content}</Text>
+        <Text style={[styles.entryContent, { color: theme.textSecondary }]}>{entry.content}</Text>
       )}
     </TouchableOpacity>
   );
@@ -110,16 +116,10 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
 const styles = StyleSheet.create({
   // Text / Tip
   entryCard: {
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 3,
-    borderLeftColor: Palette.teal,
-  },
-  entryCardTip: {
-    backgroundColor: Palette.bgSurface,
-    borderLeftColor: Palette.orange,
   },
   entryHeader: {
     flexDirection: 'row',
@@ -130,15 +130,12 @@ const styles = StyleSheet.create({
   entryType: {
     fontSize: 12,
     fontWeight: '700',
-    color: Palette.teal,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  entryTypeTip: { color: Palette.orange },
   entryContent: {
     fontSize: 15,
     lineHeight: 22,
-    color: Palette.textSecondary,
   },
 
   // Photo
@@ -146,51 +143,43 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: Palette.bgElevated,
   },
   entryPhoto: { borderRadius: 16 },
   photoCaption: {
     padding: 12,
     fontFamily: Fonts.handwritten,
     fontSize: 16,
-    color: Palette.textSecondary,
   },
 
   // Mood
   moodCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     gap: 12,
     borderLeftWidth: 3,
-    borderLeftColor: Palette.info,
   },
   moodEmoji: { fontSize: 32 },
   moodLabel: {
     fontFamily: Fonts.handwrittenBold,
     fontSize: 18,
-    color: Palette.info,
   },
 
   // Location
   locationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.bgSurface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     gap: 10,
     borderLeftWidth: 3,
-    borderLeftColor: Palette.red,
   },
   locationText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Palette.textPrimary,
     flex: 1,
   },
 });

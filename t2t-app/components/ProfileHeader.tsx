@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import type { Profile } from '@/types/supabase';
 
 interface ProfileHeaderProps {
@@ -23,6 +23,7 @@ export function ProfileHeader({
   onEditPress,
 }: ProfileHeaderProps) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   const displayName = profile?.display_name || profile?.username || t('common.anonymous');
   const username = profile?.username || '';
   const stats = profile?.stats as { countries?: number; followers?: number; following?: number } | null;
@@ -35,16 +36,16 @@ export function ProfileHeader({
     .slice(0, 2);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
       {/* Avatar + stats */}
       <View style={styles.topRow}>
         <View style={styles.avatarWrapper}>
-          <View style={styles.avatarRing}>
+          <View style={[styles.avatarRing, { borderColor: theme.teal, shadowColor: theme.teal }]}>
             {profile?.avatar_url ? (
               <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
             ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: theme.teal }]}>
+                <Text style={[styles.avatarInitials, { color: theme.bgSurface }]}>{initials}</Text>
               </View>
             )}
           </View>
@@ -52,22 +53,22 @@ export function ProfileHeader({
 
         <View style={styles.statsRow}>
           <StatBox value={diaryCount} label={t('profile.diaries')} />
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <StatBox value={stats?.followers || 0} label={t('profile.followers')} />
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <StatBox value={stats?.following || 0} label={t('profile.following')} />
         </View>
       </View>
 
       {/* Name + username + bio */}
       <View style={styles.infoSection}>
-        <Text style={styles.displayName}>{displayName}</Text>
-        {username ? <Text style={styles.username}>@{username}</Text> : null}
-        {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+        <Text style={[styles.displayName, { color: theme.textPrimary }]}>{displayName}</Text>
+        {username ? <Text style={[styles.username, { color: theme.textMuted }]}>@{username}</Text> : null}
+        {profile?.bio ? <Text style={[styles.bio, { color: theme.textSecondary }]}>{profile.bio}</Text> : null}
         {profile?.travel_style ? (
-          <View style={styles.stylePill}>
-            <Ionicons name="airplane-outline" size={12} color={Palette.orange} />
-            <Text style={styles.styleText}>{profile.travel_style}</Text>
+          <View style={[styles.stylePill, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}>
+            <Ionicons name="airplane-outline" size={12} color={theme.orange} />
+            <Text style={[styles.styleText, { color: theme.orange }]}>{profile.travel_style}</Text>
           </View>
         ) : null}
       </View>
@@ -75,28 +76,36 @@ export function ProfileHeader({
       {/* Action buttons */}
       <View style={styles.actionRow}>
         {isOwnProfile ? (
-          <TouchableOpacity style={styles.editBtn} onPress={onEditPress} activeOpacity={0.75}>
-            <Ionicons name="pencil" size={15} color={Palette.textPrimary} />
-            <Text style={styles.editBtnText}>{t('profile.edit_profile')}</Text>
+          <TouchableOpacity style={[styles.editBtn, { borderColor: theme.border, backgroundColor: theme.bgElevated }]} onPress={onEditPress} activeOpacity={0.75}>
+            <Ionicons name="pencil" size={15} color={theme.textPrimary} />
+            <Text style={[styles.editBtnText, { color: theme.textPrimary }]}>{t('profile.edit_profile')}</Text>
           </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity
-              style={[styles.followBtn, isFollowing && styles.followingBtn]}
+              style={[
+                styles.followBtn,
+                { backgroundColor: theme.teal, shadowColor: theme.teal },
+                isFollowing && [styles.followingBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]
+              ]}
               onPress={onFollowToggle}
               activeOpacity={0.82}
             >
-              <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
+              <Text style={[
+                styles.followBtnText,
+                { color: theme.buttonText },
+                isFollowing && [styles.followingBtnText, { color: theme.textPrimary }]
+              ]}>
                 {isFollowing ? t('profile.following_button') : t('profile.follow')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.iconBtn}
+              style={[styles.iconBtn, { borderColor: theme.border, backgroundColor: theme.bgElevated }]}
               accessibilityRole="button"
               accessibilityLabel={t('social.share_profile')}
               activeOpacity={0.75}
             >
-              <Ionicons name="share-outline" size={18} color={Palette.textPrimary} />
+              <Ionicons name="share-outline" size={18} color={theme.textPrimary} />
             </TouchableOpacity>
           </>
         )}
@@ -106,12 +115,13 @@ export function ProfileHeader({
 }
 
 function StatBox({ value, label }: { value: number; label: string }) {
+  const theme = useAppTheme();
   return (
     <View style={styles.statBox}>
-      <Text style={styles.statNumber}>
+      <Text style={[styles.statNumber, { color: theme.textPrimary }]}>
         {value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
       </Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statLabel, { color: theme.textMuted }]}>{label}</Text>
     </View>
   );
 }
@@ -121,9 +131,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    backgroundColor: Palette.bgSurface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.border,
   },
   topRow: {
     flexDirection: 'row',
@@ -139,10 +147,8 @@ const styles = StyleSheet.create({
     borderRadius: 45,
     padding: 3,
     borderWidth: 2.5,
-    borderColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Palette.teal,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -157,12 +163,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Palette.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitials: {
-    color: Palette.bgPrimary,
     fontSize: 28,
     fontWeight: '900',
     letterSpacing: -0.5,
@@ -180,17 +184,14 @@ const styles = StyleSheet.create({
   statDivider: {
     width: StyleSheet.hairlineWidth,
     height: 28,
-    backgroundColor: Palette.border,
   },
   statNumber: {
     fontSize: 20,
     fontWeight: '800',
-    color: Palette.textPrimary,
     letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: 11,
-    color: Palette.textMuted,
     marginTop: 3,
     fontWeight: '600',
   },
@@ -200,18 +201,15 @@ const styles = StyleSheet.create({
   displayName: {
     fontSize: 20,
     fontWeight: '800',
-    color: Palette.textPrimary,
     letterSpacing: -0.5,
   },
   username: {
     fontSize: 14,
-    color: Palette.textMuted,
     marginTop: 2,
     fontWeight: '500',
   },
   bio: {
     fontSize: 14,
-    color: Palette.textSecondary,
     lineHeight: 21,
     marginTop: 8,
   },
@@ -219,18 +217,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: Palette.bgElevated,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
     marginTop: 10,
     gap: 5,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
   },
   styleText: {
     fontSize: 12,
-    color: Palette.orange,
     fontWeight: '700',
   },
   actionRow: {
@@ -246,13 +241,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: Palette.bgElevated,
   },
   editBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: Palette.textPrimary,
   },
   followBtn: {
     flex: 1,
@@ -260,35 +252,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Palette.teal,
-    shadowColor: Palette.teal,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 6,
   },
   followingBtn: {
-    backgroundColor: Palette.bgElevated,
     borderWidth: 1,
-    borderColor: Palette.border,
     shadowOpacity: 0,
     elevation: 0,
   },
   followBtnText: {
-    color: Palette.bgPrimary,
     fontSize: 14,
     fontWeight: '800',
   },
   followingBtnText: {
-    color: Palette.textPrimary,
   },
   iconBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: Palette.bgElevated,
     justifyContent: 'center',
     alignItems: 'center',
   },

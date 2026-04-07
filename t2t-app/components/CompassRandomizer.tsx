@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Palette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface CompassRandomizerProps {
   onRandomize: () => void;
@@ -24,6 +24,7 @@ interface CompassRandomizerProps {
  * Includes progressive haptic feedback during spin.
  */
 export function CompassRandomizer({ onRandomize, disabled }: CompassRandomizerProps) {
+  const theme = useAppTheme();
   const rotation = useSharedValue(0);
   const scale = useSharedValue(1);
   const spinning = useRef(false);
@@ -78,7 +79,7 @@ export function CompassRandomizer({ onRandomize, disabled }: CompassRandomizerPr
       activeOpacity={0.8}
       disabled={disabled}
     >
-      <Animated.View style={[styles.btn, animatedStyle]}>
+      <Animated.View style={[styles.btn, { backgroundColor: theme.orange, shadowColor: theme.orange }, animatedStyle]}>
         <Ionicons name="compass" size={28} color="#fff" />
       </Animated.View>
     </TouchableOpacity>
@@ -96,11 +97,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Palette.orange,
     justifyContent: 'center',
     alignItems: 'center',
     // Orange glow aura
-    shadowColor: Palette.orange,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 16,

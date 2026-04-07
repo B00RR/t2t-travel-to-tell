@@ -30,6 +30,8 @@ export interface AppTheme {
   // Passport & premium
   navy: string;
   passGold: string;
+  passStamp: string;
+  passStampText: string;
 
   // Alpha helpers
   tealAlpha10: string;
@@ -40,6 +42,9 @@ export interface AppTheme {
 
   // Overlays
   overlay: string;
+  storyScrimTop: string;
+  storyScrimBottom: string;
+  storyScrimDeep: string;
 
   // Text on colored buttons / overlays
   buttonText: string;
@@ -65,7 +70,7 @@ const light: AppTheme = {
 
   textPrimary:   Palette.ink,
   textSecondary: Palette.inkMuted,
-  textMuted:     Palette.inkFaint,
+  textMuted:     '#7A7470', // Darkened from Palette.inkFaint (#9E9690) for WCAG AA 4.5:1 contrast on bg
 
   teal:    Palette.terracotta,
   tealDim: Palette.terracottaDim,
@@ -74,6 +79,8 @@ const light: AppTheme = {
 
   navy:     Palette.forest,
   passGold: Palette.amber,
+  passStamp: Palette.paper,
+  passStampText: Palette.ink,
 
   tealAlpha10:   'rgba(200,90,66,0.10)',
   tealAlpha15:   'rgba(200,90,66,0.15)',
@@ -82,6 +89,9 @@ const light: AppTheme = {
   orangeAlpha10: 'rgba(217,150,50,0.10)',
 
   overlay: Palette.overlayLight,
+  storyScrimTop:    Palette.storyScrimTop,
+  storyScrimBottom: Palette.storyScrimBottom,
+  storyScrimDeep:   Palette.storyScrimDeep,
 
   buttonText: '#fff',
   overlayText: '#fff',
@@ -113,6 +123,8 @@ const dark: AppTheme = {
 
   navy:     Palette.forestLight,
   passGold: Palette.amber,
+  passStamp: '#403D3B',
+  passStampText: '#F4EEE0',
 
   tealAlpha10:   'rgba(224,122,98,0.10)',
   tealAlpha15:   'rgba(224,122,98,0.15)',
@@ -121,6 +133,9 @@ const dark: AppTheme = {
   orangeAlpha10: 'rgba(232,168,76,0.10)',
 
   overlay: Palette.overlayDark,
+  storyScrimTop:    Palette.storyScrimTop, 
+  storyScrimBottom: Palette.storyScrimBottom,
+  storyScrimDeep:   Palette.storyScrimDeep,
 
   buttonText: '#fff',
   overlayText: '#fff',

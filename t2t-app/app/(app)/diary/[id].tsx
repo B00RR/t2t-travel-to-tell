@@ -167,6 +167,20 @@ export default function DiaryDetailScreen() {
     opacity: headerOpacity.value,
   }));
 
+  // Cinematic entrance
+  const contentScale = useSharedValue(0.96);
+  const contentOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    contentScale.value = withSpring(1, { damping: 20, stiffness: 90 });
+    contentOpacity.value = withTiming(1, { duration: 500 });
+  }, []);
+
+  const contentEntranceStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ scale: contentScale.value }],
+  }));
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -242,7 +256,7 @@ export default function DiaryDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, contentEntranceStyle]}>
       {/* Floating header */}
       <Animated.View style={[styles.floatingHeader, headerStyle]}>
         <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
@@ -347,7 +361,7 @@ export default function DiaryDetailScreen() {
         onCoverSet={(url) => setDiary(prev => prev ? { ...prev, cover_image_url: url } : prev)}
         onClose={() => setShowCoverPicker(false)}
       />
-    </View>
+    </Animated.View>
   );
 }
 

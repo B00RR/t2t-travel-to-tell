@@ -205,7 +205,18 @@
     "err_create_failed": "Unable to create diary. Please try again later.",
     "success_title": "Diary Created!",
     "success_msg": "Now you can start writing it.",
-    "illustration_hint": "Start documenting your next adventure"
+    "illustration_hint": "Start documenting your next adventure",
+    "step_details": "Details",
+    "step_cover": "Cover",
+    "step_preview": "Preview",
+    "cover_hint": "Tap to add a cover photo",
+    "cover_change": "Change cover",
+    "skip_cover": "Skip for now",
+    "preview_ready": "Ready to create your diary!",
+    "preview_no_desc": "No description added",
+    "back": "Back",
+    "next": "Next",
+    "handwritten_note": "Your story begins here..."
   },
   "map": {
     "title": "Map",

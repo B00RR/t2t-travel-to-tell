@@ -45,7 +45,7 @@ export function TravelStats({ diaries }: TravelStatsProps) {
   const items = [
     { icon: 'journal-outline', value: stats.published, label: t('stats.published'), color: theme.teal },
     { icon: 'flag-outline', value: stats.countries, label: t('stats.countries'), color: theme.orange },
-    { icon: 'sunny-outline', value: stats.totalDays, label: t('stats.days'), color: '#34C759' },
+    { icon: 'sunny-outline', value: stats.totalDays, label: t('stats.days'), color: theme.sage },
     { icon: 'heart-outline', value: stats.totalLikes, label: t('stats.likes'), color: theme.red },
   ] as const;
 

@@ -1,4 +1,10 @@
 import { Stack } from 'expo-router';
+import {
+  diaryDetailTransition,
+  modalTransition,
+  pushTransition,
+  fadeSlideTransition,
+} from '@/constants/transitions';
 
 export default function AppLayout() {
   return (
@@ -6,60 +12,35 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
       <Stack.Screen
         name="diary/[id]"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
-        }}
+        options={diaryDetailTransition}
       />
       <Stack.Screen
         name="diary/add-day"
-        options={{
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
-          animationDuration: 350,
-        }}
+        options={modalTransition}
       />
       <Stack.Screen
         name="diary/day/[day_id]"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
-        }}
+        options={pushTransition}
       />
       <Stack.Screen
         name="notifications"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
-        }}
+        options={pushTransition}
       />
       <Stack.Screen
         name="settings"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
-        }}
+        options={pushTransition}
       />
       <Stack.Screen
         name="planner/[id]"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
-        }}
+        options={fadeSlideTransition}
       />
       <Stack.Screen
         name="planner/create"
-        options={{
-          animation: 'slide_from_bottom',
-          animationDuration: 350,
-        }}
+        options={modalTransition}
       />
       <Stack.Screen
         name="profile/[id]"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
-        }}
+        options={fadeSlideTransition}
       />
     </Stack>
   );

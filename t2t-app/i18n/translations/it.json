@@ -205,7 +205,18 @@
     "err_create_failed": "Impossibile creare il diario. Riprova più tardi.",
     "success_title": "Diario Creato!",
     "success_msg": "Ora puoi iniziare a scriverlo.",
-    "illustration_hint": "Inizia a documentare la tua prossima avventura"
+    "illustration_hint": "Inizia a documentare la tua prossima avventura",
+    "step_details": "Dettagli",
+    "step_cover": "Copertina",
+    "step_preview": "Anteprima",
+    "cover_hint": "Tocca per aggiungere una foto di copertina",
+    "cover_change": "Cambia copertina",
+    "skip_cover": "Salta per ora",
+    "preview_ready": "Pronto per creare il tuo diario!",
+    "preview_no_desc": "Nessuna descrizione aggiunta",
+    "back": "Indietro",
+    "next": "Avanti",
+    "handwritten_note": "La tua storia inizia qui..."
   },
   "map": {
     "title": "Mappa",

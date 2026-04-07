@@ -166,13 +166,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
     borderLeftWidth: 3,
-    borderLeftColor: '#7C7BF5',
+    borderLeftColor: Palette.info,
   },
   moodEmoji: { fontSize: 32 },
   moodLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#9D9CF7',
+    color: Palette.info,
   },
 
   // Location

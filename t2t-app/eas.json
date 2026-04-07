@@ -8,8 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "cache": {
-        "key": "development-v1",
-        "paths": ["node_modules", ".expo"]
+        "key": "development-v2",
+        "paths": [".expo"]
       }
     },
     "preview": {
@@ -18,15 +18,15 @@
         "buildType": "apk"
       },
       "cache": {
-        "key": "preview-v1",
-        "paths": ["node_modules", ".expo"]
+        "key": "preview-v2",
+        "paths": [".expo"]
       }
     },
     "production": {
       "autoIncrement": true,
       "cache": {
-        "key": "production-v1",
-        "paths": ["node_modules", ".expo"]
+        "key": "production-v2",
+        "paths": [".expo"]
       }
     }
   },

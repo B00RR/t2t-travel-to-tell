@@ -19,7 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Spacing, Radius, Typography, Shadows, Fonts } from '@/constants/theme';
+import { Spacing, Radius, Typography, Shadows, Fonts, Glass } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const STEPS = 3;
@@ -400,7 +400,7 @@ function StepCover({ theme, t, coverUri, onPickCover }: StepCoverProps) {
               style={styles.coverGradient}
             />
             <View style={styles.coverChangeOverlay}>
-              <View style={[styles.coverChangeBadge, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+              <View style={[styles.coverChangeBadge, { backgroundColor: Glass.storyBg }]}>
                 <Ionicons name="camera" size={16} color="#fff" />
                 <Text style={styles.coverChangeText}>{t('create.cover_change')}</Text>
               </View>
@@ -765,14 +765,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Bottom bar
+  // Bottom bar — glassmorphism
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     paddingBottom: Platform.OS === 'ios' ? 32 : Spacing.md,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Glass.border,
+    backgroundColor: Glass.bg,
   },
   backBtn: {
     flexDirection: 'row',

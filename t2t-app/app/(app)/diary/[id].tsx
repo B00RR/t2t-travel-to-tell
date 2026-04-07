@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Floating header (over content)
+  // Floating header (over content) — glassmorphism
   floatingHeader: {
     position: 'absolute',
     top: 0,
@@ -404,18 +404,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingTop: Platform.OS === 'ios' ? 54 : 38,
-    paddingBottom: 8,
+    paddingBottom: 10,
+    backgroundColor: Glass.storyBg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Glass.storyBorder,
     zIndex: 20,
   },
   headerBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.10)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.20)',
   },
   floatingTitle: {
     flex: 1,
@@ -460,18 +463,18 @@ const styles = StyleSheet.create({
     zIndex: 15,
   },
 
-  // Floating social bar
+  // Floating social bar — glassmorphism
   floatingSocial: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 40 : 20,
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: Glass.storyBg,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: Glass.storyBorder,
     zIndex: 10,
   },
 

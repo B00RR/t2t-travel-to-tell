@@ -434,5 +434,20 @@
     "visibility_private": "Privato 🔒",
     "visibility_public": "Pubblico 🌍",
     "visibility_friends": "Amici 👥"
+  },
+  "onboarding": {
+    "skip": "Salta",
+    "slide1_title": "Scopri il Mondo",
+    "slide1_desc": "Esplora diari di viaggio da ogni angolo del pianeta. Lasciati ispirare da storie autentiche.",
+    "slide1_accent": "Ogni viaggio inizia con la curiosità",
+    "slide2_title": "Racconta la Tua Storia",
+    "slide2_desc": "Crea il tuo diario con foto, note e tappe. Ogni viaggio merita di essere ricordato.",
+    "slide2_accent": "Il tuo diario di viaggio digitale",
+    "slide3_title": "Connettiti",
+    "slide3_desc": "Segui altri viaggiatori, commenta le loro storie e pianifica insieme avventure.",
+    "slide3_accent": "Viaggiare è più bello insieme",
+    "slide4_title": "La Tua Mappa",
+    "slide4_desc": "Ogni diario aggiunge un pin alla tua mappa personale. Costruisci il tuo passaporto digitale.",
+    "slide4_accent": "Fissa i tuoi ricordi nel mondo"
   }
 }

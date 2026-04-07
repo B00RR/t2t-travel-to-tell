@@ -15,7 +15,7 @@ import { KenBurnsImage } from '@/components/KenBurnsImage';
 import { EntryCard } from '@/components/EntryCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useDayEntries } from '@/hooks/useDayEntries';
-import { Palette } from '@/constants/theme';
+import { Palette, Fonts, Typography } from '@/constants/theme';
 import type { DayEntry } from '@/types/dayEntry';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -210,9 +210,10 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   dayBadgeText: {
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontFamily: Fonts.handwrittenBold,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   heroTitle: {
     fontSize: 26,
@@ -224,8 +225,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   heroDate: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.handwritten,
+    fontSize: 17,
+    fontWeight: '400',
   },
   moodPill: {
     alignSelf: 'flex-start',

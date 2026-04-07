@@ -16,6 +16,7 @@ import { Spacing, Radius, Typography } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
 import { SortBar, type SortMode, type DurationFilter } from '@/components/explore/SortBar';
 import { ListHeader } from '@/components/explore/ListHeader';
+import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 
 type ExploreMode = 'browse' | 'map';
 
@@ -342,8 +343,11 @@ export default function DiscoveryScreen() {
           ListEmptyComponent={
             loading ? null : (
               <View style={styles.emptyContainer}>
-                <Ionicons name="search-outline" size={64} color={theme.border} />
-                <Text style={[styles.emptyText, { color: theme.textMuted }]}>{emptyText}</Text>
+                <EmptyStateIllustration
+                  type="no-results"
+                  title={emptyText}
+                  accent={t('explore.no_results_accent', 'Keep exploring...')}
+                />
               </View>
             )
           }

@@ -6,7 +6,7 @@ import type { DayEntry } from '@/types/dayEntry';
 import type { VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
 import { RichTextRenderer } from './RichTextRenderer';
-import { Palette } from '@/constants/theme';
+import { Palette, Fonts } from '@/constants/theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
@@ -151,9 +151,9 @@ const styles = StyleSheet.create({
   entryPhoto: { borderRadius: 16 },
   photoCaption: {
     padding: 12,
-    fontSize: 14,
+    fontFamily: Fonts.handwritten,
+    fontSize: 16,
     color: Palette.textSecondary,
-    fontStyle: 'italic',
   },
 
   // Mood
@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
   },
   moodEmoji: { fontSize: 32 },
   moodLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.handwrittenBold,
+    fontSize: 18,
     color: Palette.info,
   },
 

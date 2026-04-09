@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Radius, Typography, Spacing } from '@/constants/theme';
+import { Radius, Typography } from '@/constants/theme';
 
 export default function LoginScreen() {
   const { t } = useTranslation();

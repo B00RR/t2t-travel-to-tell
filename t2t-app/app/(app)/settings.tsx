@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Spacing, Radius, Typography } from '@/constants/theme';
+import { Radius, Typography } from '@/constants/theme';
 import i18n from '@/i18n';
 
 const LANGUAGES = [

@@ -375,53 +375,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  loadingText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
   },
-  emptyIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   emptyTitle: {
     ...Typography.h3,
     textAlign: 'center',
     marginBottom: 8,
-  },
-  emptySub: {
-    ...Typography.body,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  exploreBtn: {
-    marginTop: 24,
-    paddingHorizontal: 28,
-    paddingVertical: 13,
-    borderRadius: Radius.full,
-  },
-  exploreBtnText: {
-    color: '#fff',
-    ...Typography.label,
-  },
-  retryBtn: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: Radius.full,
-  },
-  retryBtnText: {
-    color: '#fff',
-    ...Typography.label,
   },
 });

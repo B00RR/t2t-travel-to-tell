@@ -286,49 +286,6 @@ export const Glass = {
 } as const;
 
 // ============================================================
-// GLOW
-// ============================================================
-
-export const Glow = {
-  terracotta: {
-    shadowColor: Palette.terracotta,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  golden: {
-    shadowColor: Palette.goldenHour,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  dark: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  // Legacy
-  teal: {
-    shadowColor: Palette.terracotta,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  orange: {
-    shadowColor: Palette.amber,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-} as const;
-
-// ============================================================
 // MOTION
 // ============================================================
 

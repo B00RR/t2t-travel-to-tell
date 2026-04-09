@@ -3,9 +3,7 @@
  * Proxied via Supabase Edge Function — API keys stay server-side.
  *
  * Hosts:
- *   - booking-com.p.rapidapi.com  (Hotels, Flights, Car Rental, Attractions)
- *   - tripadvisor16.p.rapidapi.com (Restaurants, Attractions, Hotels)
- *   - aerodatabox.p.rapidapi.com (Airport flights, flight status)
+ *   - booking-com.p.rapidapi.com  (Hotels, Flights)
  */
 
 import { supabase } from '@/lib/supabase';
@@ -15,8 +13,6 @@ import { supabase } from '@/lib/supabase';
 // Map host → API name for the proxy
 const HOST_TO_API: Record<string, string> = {
   'booking-com.p.rapidapi.com': 'booking',
-  'tripadvisor16.p.rapidapi.com': 'tripadvisor',
-  'aerodatabox.p.rapidapi.com': 'aerodatabox',
 };
 
 interface RapidAPIOptions {
@@ -74,39 +70,6 @@ export interface HotelOffer {
   currency: string;
   amenities: string[];
   imageUrl?: string;
-}
-
-export interface Restaurant {
-  id: string;
-  name: string;
-  cuisine: string[];
-  rating?: number;
-  priceLevel?: string;
-  address: string;
-  imageUrl?: string;
-}
-
-export interface Attraction {
-  id: string;
-  name: string;
-  category: string;
-  rating?: number;
-  priceLevel?: string;
-  address: string;
-  imageUrl?: string;
-}
-
-export interface AirportFlight {
-  flightNumber: string;
-  airline: string;
-  airport: string;
-  airportIata: string;
-  scheduledTime: string;
-  revisedTime?: string;
-  terminal?: string;
-  gate?: string;
-  status: string;
-  direction: 'departure' | 'arrival';
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -222,189 +185,7 @@ export async function searchFlights(params: {
   });
 }
 
-/* ══════════════════════════════════════════════════════════
-   TRIPADVISOR — Restaurants, Attractions, Hotels
-   Host: tripadvisor16.p.rapidapi.com
-   ══════════════════════════════════════════════════════════ */
-
-export async function searchRestaurants(params: {
-  locationId: string;   // Tripadvisor geoId
-  page?: number;
-}): Promise<Restaurant[]> {
-  const data = await rapidFetch<any>({
-    host: 'tripadvisor16.p.rapidapi.com',
-    path: '/api/v1/restaurant/searchRestaurants',
-    params: {
-      locationId: params.locationId,
-      page: String(params.page || 1),
-    },
-  });
-
-  if (!data.data?.data) return [];
-
-  return data.data.data.map((r: any): Restaurant => ({
-    id: String(r.locationId || r.restaurantsId || ''),
-    name: r.title || r.name || 'Restaurant',
-    cuisine: r.establishmentTypeAndCuisineTags || [],
-    rating: r.averageRating || undefined,
-    priceLevel: r.priceTagV2 || undefined,
-    address: r.address?.addressLine1 || r.address?.city || '',
-    imageUrl: r.heroImgUrl || r.thumbnail?.url || undefined,
-  }));
-}
-
-export async function searchTripadvisorHotels(params: {
-  geoId: string;       // Tripadvisor geoId
-  checkIn?: string;    // YYYY-MM-DD
-  checkOut?: string;   // YYYY-MM-DD
-  page?: number;
-}): Promise<HotelOffer[]> {
-  const queryParams: Record<string, string> = {
-    geoId: params.geoId,
-    page: String(params.page || 1),
-    currencyCode: 'EUR',
-  };
-  if (params.checkIn) queryParams.checkIn = params.checkIn;
-  if (params.checkOut) queryParams.checkOut = params.checkOut;
-
-  const data = await rapidFetch<any>({
-    host: 'tripadvisor16.p.rapidapi.com',
-    path: '/api/v1/hotels/searchHotels',
-    params: queryParams,
-  });
-
-  if (!data.data?.data) return [];
-
-  return data.data.data.map((h: any): HotelOffer => ({
-    id: String(h.id || ''),
-    name: h.title || h.name || 'Hotel',
-    location: h.primaryInfo || '',
-    latitude: h.latitude || 0,
-    longitude: h.longitude || 0,
-    rating: h.bubbleRating?.rating || undefined,
-    pricePerNight: h.priceForDisplay ? parseFloat(h.priceForDisplay.replace(/[^0-9.]/g, '')) : 0,
-    currency: 'EUR',
-    amenities: [],
-    imageUrl: h.cardPhotos?.[0]?.sizes?.urlTemplate || undefined,
-  }));
-}
-
-/* ══════════════════════════════════════════════════════════
-   AERODATABOX — Airport flights, flight status
-   Host: aerodatabox.p.rapidapi.com
-   ══════════════════════════════════════════════════════════ */
-
-export async function getAirportFlights(params: {
-  iata: string;           // Airport IATA code, e.g. "NAP"
-  direction?: 'departures' | 'arrivals';
-  hoursBefore?: number;   // default 2
-  hoursAfter?: number;    // default 12
-}): Promise<AirportFlight[]> {
-  const now = new Date();
-  const offsetMin = -(params.hoursBefore || 2) * 60;
-  const offsetMax = (params.hoursAfter || 12) * 60;
-
-  const data = await rapidFetch<any>({
-    host: 'aerodatabox.p.rapidapi.com',
-    path: `/flights/airports/iata/${params.iata}`,
-    params: {
-      offsetMinutes: String(offsetMin),
-      offsetMinutes2: String(offsetMax),
-      withLeg: 'false',
-      withCancelled: 'true',
-      withCodeshared: 'true',
-      withCargo: 'false',
-      withPrivate: 'false',
-      withLocation: 'false',
-    },
-  });
-
-  const direction = params.direction || 'departures';
-  const flights = direction === 'departures' ? (data.departures || []) : (data.arrivals || []);
-
-  return flights.map((f: any): AirportFlight => {
-    const mov = f.movement || {};
-    const airport = mov.airport || {};
-    const scheduled = mov.scheduledTime || {};
-    const revised = mov.revisedTime || {};
-
-    return {
-      flightNumber: f.number || f.callSign || '?',
-      airline: f.airline?.name || '?',
-      airport: airport.name || '',
-      airportIata: airport.iata || '',
-      scheduledTime: scheduled.local || scheduled.utc || '',
-      revisedTime: revised.local || revised.utc || undefined,
-      terminal: mov.terminal,
-      gate: mov.gate,
-      status: f.status || mov.quality?.[0] || 'Unknown',
-      direction: direction === 'departures' ? 'departure' : 'arrival',
-    };
-  });
-}
-
-export interface Airport {
-  iataCode: string;
-  name: string;
-  cityName: string;
-  countryName: string;
-}
-
-// Common airports for quick local search (no API call needed)
-const COMMON_AIRPORTS: Airport[] = [
-  { iataCode: 'NAP', name: 'Naples International Airport', cityName: 'Naples', countryName: 'Italy' },
-  { iataCode: 'FCO', name: 'Leonardo da Vinci–Fiumicino', cityName: 'Rome', countryName: 'Italy' },
-  { iataCode: 'CIA', name: 'Rome Ciampino', cityName: 'Rome', countryName: 'Italy' },
-  { iataCode: 'MXP', name: 'Milan Malpensa Airport', cityName: 'Milan', countryName: 'Italy' },
-  { iataCode: 'LIN', name: 'Milan Linate Airport', cityName: 'Milan', countryName: 'Italy' },
-  { iataCode: 'BLQ', name: 'Bologna Airport', cityName: 'Bologna', countryName: 'Italy' },
-  { iataCode: 'VCE', name: 'Venice Marco Polo Airport', cityName: 'Venice', countryName: 'Italy' },
-  { iataCode: 'FLR', name: 'Florence Airport', cityName: 'Florence', countryName: 'Italy' },
-  { iataCode: 'PMO', name: 'Palermo Airport', cityName: 'Palermo', countryName: 'Italy' },
-  { iataCode: 'CTA', name: 'Catania Airport', cityName: 'Catania', countryName: 'Italy' },
-  { iataCode: 'BRI', name: 'Bari Airport', cityName: 'Bari', countryName: 'Italy' },
-  { iataCode: 'LHR', name: 'London Heathrow', cityName: 'London', countryName: 'United Kingdom' },
-  { iataCode: 'LGW', name: 'London Gatwick', cityName: 'London', countryName: 'United Kingdom' },
-  { iataCode: 'CDG', name: 'Paris Charles de Gaulle', cityName: 'Paris', countryName: 'France' },
-  { iataCode: 'ORY', name: 'Paris Orly', cityName: 'Paris', countryName: 'France' },
-  { iataCode: 'BCN', name: 'Barcelona El Prat', cityName: 'Barcelona', countryName: 'Spain' },
-  { iataCode: 'MAD', name: 'Madrid Barajas', cityName: 'Madrid', countryName: 'Spain' },
-  { iataCode: 'AMS', name: 'Amsterdam Schiphol', cityName: 'Amsterdam', countryName: 'Netherlands' },
-  { iataCode: 'FRA', name: 'Frankfurt Airport', cityName: 'Frankfurt', countryName: 'Germany' },
-  { iataCode: 'MUC', name: 'Munich Airport', cityName: 'Munich', countryName: 'Germany' },
-  { iataCode: 'BER', name: 'Berlin Brandenburg', cityName: 'Berlin', countryName: 'Germany' },
-  { iataCode: 'JFK', name: 'John F. Kennedy International', cityName: 'New York', countryName: 'United States' },
-  { iataCode: 'LAX', name: 'Los Angeles International', cityName: 'Los Angeles', countryName: 'United States' },
-  { iataCode: 'DXB', name: 'Dubai International', cityName: 'Dubai', countryName: 'UAE' },
-  { iataCode: 'IST', name: 'Istanbul Airport', cityName: 'Istanbul', countryName: 'Turkey' },
-  { iataCode: 'ATH', name: 'Athens International', cityName: 'Athens', countryName: 'Greece' },
-  { iataCode: 'LIS', name: 'Lisbon Humberto Delgado', cityName: 'Lisbon', countryName: 'Portugal' },
-  { iataCode: 'BKK', name: 'Bangkok Suvarnabhumi', cityName: 'Bangkok', countryName: 'Thailand' },
-  { iataCode: 'HND', name: 'Tokyo Haneda', cityName: 'Tokyo', countryName: 'Japan' },
-  { iataCode: 'NRT', name: 'Tokyo Narita', cityName: 'Tokyo', countryName: 'Japan' },
-  { iataCode: 'SIN', name: 'Singapore Changi', cityName: 'Singapore', countryName: 'Singapore' },
-];
-
-export async function searchAirports(keyword: string): Promise<Airport[]> {
-  if (keyword.length < 2) return [];
-  const q = keyword.toUpperCase();
-  return COMMON_AIRPORTS.filter(a =>
-    a.iataCode.includes(q) ||
-    a.name.toUpperCase().includes(q) ||
-    a.cityName.toUpperCase().includes(q) ||
-    a.countryName.toUpperCase().includes(q)
-  ).slice(0, 8);
-}
-
 export const TravelAPI = {
-  // Booking COM
   searchHotels,
   searchFlights,
-  // Tripadvisor
-  searchRestaurants,
-  searchTripadvisorHotels,
-  // AeroDataBox
-  getAirportFlights,
-  // Airport search
-  searchAirports,
 };

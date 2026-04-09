@@ -161,7 +161,7 @@ export default function HomeScreen() {
         { text: t('common.cancel') || 'Cancel', style: 'cancel' },
       ],
     );
-  }, [diaries, t]);
+  }, [diaries, t, user?.id]);
 
   const renderCard = useCallback(
     ({ item }: { item: FeedDiary }) => (

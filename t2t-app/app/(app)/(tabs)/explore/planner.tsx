@@ -42,7 +42,7 @@ export default function PlannerScreen() {
     }
   }
 
-  async function handleClone(planId: string) {
+  const handleClone = useCallback(async (planId: string) => {
     if (!user) return;
     const newId = await clonePlan(planId);
     if (newId) {
@@ -57,7 +57,7 @@ export default function PlannerScreen() {
         },
       ]);
     }
-  }
+  }, [user, clonePlan, t, fetchMyPlans, router]);
 
   const plans = activeTab === 'my' ? myPlans : publicPlans;
 
@@ -69,7 +69,7 @@ export default function PlannerScreen() {
         onClone={activeTab === 'discover' ? handleClone : undefined}
       />
     ),
-    [user?.id, activeTab]
+    [user?.id, activeTab, handleClone]
   );
 
   return (

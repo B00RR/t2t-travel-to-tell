@@ -43,6 +43,19 @@ begin
     create policy "notifications_update_own" on public.notifications
       for update using (auth.uid() = user_id);
   end if;
+
+  -- Allow an authenticated user to create notifications where they are
+  -- the actor. Required by invite_diary_collaborator (SECURITY INVOKER)
+  -- so the RPC can emit a 'diary_invitation' notification for the invitee.
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'notifications'
+      and policyname = 'notifications_insert_actor'
+  ) then
+    create policy "notifications_insert_actor" on public.notifications
+      for insert with check (auth.uid() = actor_id);
+  end if;
 end $$;
 
 -- 2. diary_collaborators table

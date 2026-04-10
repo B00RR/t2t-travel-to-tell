@@ -43,7 +43,7 @@ export function useDayEntries(dayId: string | string[]) {
     try {
       const { data, error } = await supabase
         .from('day_entries')
-        .select('id, type, content, metadata, sort_order')
+        .select('id, type, content, metadata, sort_order, author_id, author:profiles!author_id(id, username, display_name, avatar_url)')
         .eq('day_id', id)
         .order('sort_order', { ascending: true });
 
@@ -122,12 +122,16 @@ export function useDayEntries(dayId: string | string[]) {
         }
       }
 
+      const { data: userData } = await supabase.auth.getUser();
+      const authorId = userData.user?.id;
+
       const { error } = await supabase.from('day_entries').insert({
         day_id: id,
         type,
         content: content.trim(),
         metadata,
         sort_order: getNextSortOrder(),
+        author_id: authorId,
       });
 
       if (error) {
@@ -176,12 +180,16 @@ export function useDayEntries(dayId: string | string[]) {
     async (emoji: string, label: string) => {
       setSaving(true);
 
+      const { data: userData } = await supabase.auth.getUser();
+      const authorId = userData.user?.id;
+
       const { error } = await supabase.from('day_entries').insert({
         day_id: id,
         type: 'mood',
         content: emoji,
         metadata: { label },
         sort_order: getNextSortOrder(),
+        author_id: authorId,
       });
 
       setSaving(false);

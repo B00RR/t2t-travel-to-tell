@@ -49,11 +49,20 @@ export interface LocationMetadata {
 
 // --- Entry types ---
 
+export interface EntryAuthor {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 export interface BaseDayEntry {
   id: string;
   day_id?: string;
   sort_order: number;
   content: string | null;
+  author_id?: string | null;
+  author?: EntryAuthor | null;
 }
 
 export interface TextDayEntry extends BaseDayEntry {

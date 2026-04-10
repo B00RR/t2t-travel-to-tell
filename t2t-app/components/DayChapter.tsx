@@ -27,6 +27,7 @@ interface DayChapterProps {
   dayDate: string | null;
   diaryId: string;
   isActive: boolean;
+  showAuthor?: boolean;
 }
 
 /**
@@ -35,7 +36,7 @@ interface DayChapterProps {
  * Mood entries shift the ambient background color.
  */
 export function DayChapter({
-  dayId, dayNumber, dayTitle, dayDate, diaryId, isActive,
+  dayId, dayNumber, dayTitle, dayDate, diaryId, isActive, showAuthor = false,
 }: DayChapterProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
@@ -136,7 +137,7 @@ export function DayChapter({
             entries
               .filter((e: DayEntry) => e.type !== 'photo' || e.id !== heroPhoto?.id)
               .map((entry: DayEntry) => (
-                <EntryCard key={entry.id} entry={entry} />
+                <EntryCard key={entry.id} entry={entry} showAuthor={showAuthor} />
               ))
           )}
         </View>

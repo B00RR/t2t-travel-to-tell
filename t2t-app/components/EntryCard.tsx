@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { DayEntry, VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
 import { RichTextRenderer } from './RichTextRenderer';
+import { AuthorBadge } from './AuthorBadge';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Fonts } from '@/constants/theme';
 
@@ -15,23 +16,28 @@ interface EntryCardProps {
   entry: DayEntry;
   onPress?: (entry: DayEntry) => void;
   onLongPress?: (entryId: string) => void;
+  showAuthor?: boolean;
 }
 
-export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
+export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: EntryCardProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const authorBadge = showAuthor && entry.author ? <AuthorBadge author={entry.author} /> : null;
 
   // --- MOOD ---
   if (entry.type === 'mood') {
     return (
-      <TouchableOpacity
-        style={[styles.moodCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.ocean }]}
-        onLongPress={() => onLongPress?.(entry.id)}
-        delayLongPress={600}
-      >
-        <Text style={styles.moodEmoji}>{entry.content}</Text>
-        <Text style={[styles.moodLabel, { color: theme.ocean }]}>{entry.metadata?.label || t('day.type_mood')}</Text>
-      </TouchableOpacity>
+      <View>
+        {authorBadge}
+        <TouchableOpacity
+          style={[styles.moodCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.ocean }]}
+          onLongPress={() => onLongPress?.(entry.id)}
+          delayLongPress={600}
+        >
+          <Text style={styles.moodEmoji}>{entry.content}</Text>
+          <Text style={[styles.moodLabel, { color: theme.ocean }]}>{entry.metadata?.label || t('day.type_mood')}</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -43,72 +49,86 @@ export function EntryCard({ entry, onPress, onLongPress }: EntryCardProps) {
         : 4 / 3;
 
     return (
-      <TouchableOpacity
-        style={[styles.photoCard, { backgroundColor: theme.bgElevated }]}
-        onLongPress={() => onLongPress?.(entry.id)}
-        delayLongPress={600}
-      >
-        <Image
-          source={{ uri: entry.content || '' }}
-          style={[styles.entryPhoto, { width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar }]}
-          resizeMode="cover"
-        />
-        {entry.metadata?.caption ? (
-          <Text style={[styles.photoCaption, { color: theme.textSecondary }]}>{entry.metadata.caption}</Text>
-        ) : null}
-      </TouchableOpacity>
+      <View>
+        {authorBadge}
+        <TouchableOpacity
+          style={[styles.photoCard, { backgroundColor: theme.bgElevated }]}
+          onLongPress={() => onLongPress?.(entry.id)}
+          delayLongPress={600}
+        >
+          <Image
+            source={{ uri: entry.content || '' }}
+            style={[styles.entryPhoto, { width: IMAGE_WIDTH, height: IMAGE_WIDTH / ar }]}
+            resizeMode="cover"
+          />
+          {entry.metadata?.caption ? (
+            <Text style={[styles.photoCaption, { color: theme.textSecondary }]}>{entry.metadata.caption}</Text>
+          ) : null}
+        </TouchableOpacity>
+      </View>
     );
   }
 
   // --- VIDEO ---
   if (entry.type === 'video') {
-    return <VideoEntryCard entry={entry as VideoDayEntry} onLongPress={() => onLongPress?.(entry.id)} />;
+    return (
+      <View>
+        {authorBadge}
+        <VideoEntryCard entry={entry as VideoDayEntry} onLongPress={() => onLongPress?.(entry.id)} />
+      </View>
+    );
   }
 
   // --- LOCATION ---
   if (entry.type === 'location') {
     return (
-      <TouchableOpacity
-        style={[styles.locationCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.red }]}
-        onPress={() => onPress?.(entry)}
-        onLongPress={() => onLongPress?.(entry.id)}
-        delayLongPress={600}
-      >
-        <Ionicons name="location" size={20} color={theme.red} />
-        <Text style={[styles.locationText, { color: theme.textPrimary }]}>{entry.content}</Text>
-      </TouchableOpacity>
+      <View>
+        {authorBadge}
+        <TouchableOpacity
+          style={[styles.locationCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.red }]}
+          onPress={() => onPress?.(entry)}
+          onLongPress={() => onLongPress?.(entry.id)}
+          delayLongPress={600}
+        >
+          <Ionicons name="location" size={20} color={theme.red} />
+          <Text style={[styles.locationText, { color: theme.textPrimary }]}>{entry.content}</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
   // --- TEXT / TIP ---
   return (
-    <TouchableOpacity
-      style={[
-        styles.entryCard,
-        { backgroundColor: theme.bgSurface, borderLeftColor: theme.teal },
-        entry.type === 'tip' && { borderLeftColor: theme.orange },
-      ]}
-      onPress={() => onPress?.(entry)}
-      onLongPress={() => onLongPress?.(entry.id)}
-      delayLongPress={600}
-    >
-      <View style={styles.entryHeader}>
-        <Ionicons
-          name={entry.type === 'tip' ? 'bulb' : 'document-text'}
-          size={18}
-          color={entry.type === 'tip' ? theme.orange : theme.teal}
-        />
-        <Text style={[styles.entryType, { color: entry.type === 'tip' ? theme.orange : theme.teal }]}>
-          {entry.type === 'tip' ? t('day.type_tip') : t('day.type_text')}
-        </Text>
-        <Ionicons name="pencil" size={14} color={theme.textMuted} style={{ marginLeft: 'auto' }} />
-      </View>
-      {entry.type === 'text' && entry.content ? (
-        <RichTextRenderer text={entry.content} />
-      ) : (
-        <Text style={[styles.entryContent, { color: theme.textSecondary }]}>{entry.content}</Text>
-      )}
-    </TouchableOpacity>
+    <View>
+      {authorBadge}
+      <TouchableOpacity
+        style={[
+          styles.entryCard,
+          { backgroundColor: theme.bgSurface, borderLeftColor: theme.teal },
+          entry.type === 'tip' && { borderLeftColor: theme.orange },
+        ]}
+        onPress={() => onPress?.(entry)}
+        onLongPress={() => onLongPress?.(entry.id)}
+        delayLongPress={600}
+      >
+        <View style={styles.entryHeader}>
+          <Ionicons
+            name={entry.type === 'tip' ? 'bulb' : 'document-text'}
+            size={18}
+            color={entry.type === 'tip' ? theme.orange : theme.teal}
+          />
+          <Text style={[styles.entryType, { color: entry.type === 'tip' ? theme.orange : theme.teal }]}>
+            {entry.type === 'tip' ? t('day.type_tip') : t('day.type_text')}
+          </Text>
+          <Ionicons name="pencil" size={14} color={theme.textMuted} style={{ marginLeft: 'auto' }} />
+        </View>
+        {entry.type === 'text' && entry.content ? (
+          <RichTextRenderer text={entry.content} />
+        ) : (
+          <Text style={[styles.entryContent, { color: theme.textSecondary }]}>{entry.content}</Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 }
 

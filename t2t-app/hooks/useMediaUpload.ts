@@ -195,6 +195,7 @@ export function useMediaUpload({
         content: null, // Resolved on-demand
         metadata,
         sort_order: getNextSortOrder(),
+        author_id: userId,
       });
 
       if (entryError) {

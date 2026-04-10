@@ -13,6 +13,8 @@ import { Radius, Spacing } from '@/constants/theme';
 // Hooks & Types
 import { useDayEntries } from '@/hooks/useDayEntries';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
+import { useDiaryPermissions } from '@/hooks/useDiaryPermissions';
+import { useDiaryCollaborators } from '@/hooks/useDiaryCollaborators';
 import type { DayEntry } from '@/types/dayEntry';
 
 // Components
@@ -39,6 +41,16 @@ export default function DayDetailScreen() {
     dayInfo, entries, loading, saving,
     fetchDayInfo, fetchEntries, addEntry, addMood, updateEntry, deleteEntry, moveEntry, getNextSortOrder,
   } = useDayEntries(day_id as string);
+
+  // Collaborative permissions & author attribution
+  const permissions = useDiaryPermissions(diary_id as string | undefined);
+  const { collaborators } = useDiaryCollaborators(diary_id as string | undefined);
+  const hasCollaborators = collaborators.length > 0;
+  const isOwner = permissions.role === 'owner';
+  const canEditEntry = useCallback(
+    (entry: DayEntry) => isOwner || entry.author_id === user?.id,
+    [isOwner, user?.id],
+  );
 
   const { uploading: uploadingMedia, pickAndUploadMedia } = useMediaUpload({
     userId: user?.id,
@@ -88,9 +100,19 @@ export default function DayDetailScreen() {
 
   const handleStartEdit = (entry: DayEntry) => {
     if (entry.type === 'photo') return;
+    if (!canEditEntry(entry)) return;
     setEditingEntry(entry);
     setEditContent(entry.content || '');
   };
+
+  const handleDeleteEntry = useCallback(
+    (entryId: string) => {
+      const entry = entries.find(e => e.id === entryId);
+      if (!entry || !canEditEntry(entry)) return;
+      deleteEntry(entryId);
+    },
+    [entries, canEditEntry, deleteEntry],
+  );
 
   const handleSaveEdit = async () => {
     if (!editingEntry) return;
@@ -153,7 +175,7 @@ export default function DayDetailScreen() {
           {dayInfo?.date && <Text style={[styles.headerDate, { color: theme.textMuted }]}>{dayInfo.date}</Text>}
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          {entries.length > 1 && (
+          {entries.length > 1 && isOwner && (
             <TouchableOpacity style={styles.headerIcon} onPress={() => { setReorderMode(r => !r); setShowAddMenu(false); }}>
               <Ionicons name={reorderMode ? 'checkmark-circle' : 'reorder-three-outline'} size={26} color={reorderMode ? theme.sage : theme.teal} />
             </TouchableOpacity>
@@ -211,11 +233,17 @@ export default function DayDetailScreen() {
         )}
 
         {/* Entry List */}
-        {entries.map((entry, idx) => (
-          reorderMode ? (
+        {entries.map((entry, idx) => {
+          const reorderable = isOwner;
+          return reorderMode && reorderable ? (
             <View key={entry.id} style={styles.reorderRow}>
               <View style={{ flex: 1 }}>
-                <EntryCard entry={entry} onPress={() => {}} onLongPress={() => {}} />
+                <EntryCard
+                  entry={entry}
+                  onPress={() => {}}
+                  onLongPress={() => {}}
+                  showAuthor={hasCollaborators}
+                />
               </View>
               <View style={styles.reorderBtns}>
                 <TouchableOpacity
@@ -239,10 +267,11 @@ export default function DayDetailScreen() {
               key={entry.id}
               entry={entry}
               onPress={handleStartEdit}
-              onLongPress={deleteEntry}
+              onLongPress={handleDeleteEntry}
+              showAuthor={hasCollaborators}
             />
-          )
-        ))}
+          );
+        })}
 
         {/* Inline Add Form */}
         {addingType && (

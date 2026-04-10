@@ -2,17 +2,20 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './useAuth';
 
+export type NotificationType = 'like' | 'comment' | 'follow' | 'diary_invitation';
+
 export interface Notification {
   id: string;
   user_id: string;
   actor_id: string;
-  type: 'like' | 'comment' | 'follow';
+  type: NotificationType;
   target_id: string;
   is_read: boolean;
   created_at: string;
   actor?: {
     username: string;
     avatar_url: string | null;
+    display_name?: string | null;
   };
 }
 
@@ -32,7 +35,8 @@ export function useNotifications() {
         *,
         actor:profiles!actor_id (
           username,
-          avatar_url
+          avatar_url,
+          display_name
         )
       `)
       .eq('user_id', user.id)

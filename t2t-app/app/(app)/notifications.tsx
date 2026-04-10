@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, RefreshControl,
+  ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -10,14 +10,17 @@ import * as Haptics from 'expo-haptics';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppTheme } from '@/hooks/useAppTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 
 type NotifType = Notification['type'];
 
 function getTypeConfig(theme: AppTheme) {
   return {
-    like:    { icon: 'heart' as const,       color: theme.red,            bg: theme.red + '18' },
-    comment: { icon: 'chatbubble' as const,  color: theme.sage,           bg: theme.sage + '18' },
-    follow:  { icon: 'person-add' as const,  color: theme.teal,           bg: theme.tealAlpha10 },
+    like:              { icon: 'heart' as const,        color: theme.red,   bg: theme.red + '18' },
+    comment:           { icon: 'chatbubble' as const,   color: theme.sage,  bg: theme.sage + '18' },
+    follow:            { icon: 'person-add' as const,   color: theme.teal,  bg: theme.tealAlpha10 },
+    diary_invitation:  { icon: 'book' as const,         color: theme.orange, bg: theme.orange + '18' },
   };
 }
 
@@ -77,7 +80,55 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useAppTheme();
+  const { user } = useAuth();
   const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications();
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+
+  const respondToInvitation = useCallback(
+    async (notification: Notification, accept: boolean) => {
+      if (!user?.id) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      setRespondingId(notification.id);
+
+      // Look up the collaborator row (diary_id = target_id, user_id = me)
+      const { data: collabRow, error: lookupError } = await supabase
+        .from('diary_collaborators')
+        .select('id, status')
+        .eq('diary_id', notification.target_id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (lookupError || !collabRow) {
+        setRespondingId(null);
+        Alert.alert(t('common.error'), t('notifications.invitation_error'));
+        return;
+      }
+
+      const { error: rpcError } = await supabase.rpc('respond_diary_invitation', {
+        p_collab_id: collabRow.id,
+        p_accept: accept,
+      });
+
+      setRespondingId(null);
+
+      if (rpcError) {
+        console.error('respond_diary_invitation failed', rpcError);
+        Alert.alert(t('common.error'), t('notifications.invitation_error'));
+        return;
+      }
+
+      if (!notification.is_read) await markAsRead(notification.id);
+      await fetchNotifications();
+
+      if (accept) {
+        Alert.alert(t('common.success'), t('notifications.invitation_accepted'));
+        router.push(`/(app)/diary/${notification.target_id}`);
+      } else {
+        Alert.alert(t('common.success'), t('notifications.invitation_declined'));
+      }
+    },
+    [user?.id, t, markAsRead, fetchNotifications, router],
+  );
 
   const listData = useMemo<ListItem[]>(() => {
     const buckets: Record<string, Notification[]> = { today: [], yesterday: [], older: [] };
@@ -103,6 +154,8 @@ export default function NotificationsScreen() {
     if (!n.is_read) await markAsRead(n.id);
     if (n.type === 'follow') {
       router.push(`/(app)/profile/${n.actor_id}`);
+    } else if (n.type === 'diary_invitation') {
+      router.push(`/(app)/diary/${n.target_id}`);
     } else {
       router.push(`/(app)/diary/${n.target_id}`);
     }
@@ -117,8 +170,10 @@ export default function NotificationsScreen() {
       );
     }
     const n = item.data;
-    const actorName = n.actor?.username || t('common.anonymous');
+    const actorName = n.actor?.display_name || n.actor?.username || t('common.anonymous');
     const actionText = t(`notifications.${n.type}`);
+    const isInvitation = n.type === 'diary_invitation';
+    const isResponding = respondingId === n.id;
 
     return (
       <TouchableOpacity
@@ -128,6 +183,7 @@ export default function NotificationsScreen() {
           !n.is_read && { backgroundColor: theme.tealAlpha10 },
         ]}
         onPress={() => handlePress(n)}
+        activeOpacity={isInvitation ? 1 : 0.6}
       >
         <AvatarWithIcon name={actorName} avatarUrl={n.actor?.avatar_url} type={n.type} theme={theme} />
         <View style={styles.textBlock}>
@@ -138,6 +194,38 @@ export default function NotificationsScreen() {
           <Text style={{ fontSize: 12, color: theme.textMuted, marginTop: 3 }}>
             {formatRelativeTime(n.created_at, t)}
           </Text>
+          {isInvitation && (
+            <View style={styles.inviteActions}>
+              <TouchableOpacity
+                style={[styles.inviteBtn, styles.inviteBtnAccept, { backgroundColor: theme.teal }]}
+                onPress={() => respondToInvitation(n, true)}
+                disabled={isResponding}
+                accessibilityRole="button"
+                accessibilityLabel={t('notifications.accept')}
+              >
+                {isResponding ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.inviteBtnAcceptText}>{t('notifications.accept')}</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.inviteBtn,
+                  styles.inviteBtnDecline,
+                  { borderColor: theme.border, backgroundColor: theme.bgSurface },
+                ]}
+                onPress={() => respondToInvitation(n, false)}
+                disabled={isResponding}
+                accessibilityRole="button"
+                accessibilityLabel={t('notifications.decline')}
+              >
+                <Text style={[styles.inviteBtnDeclineText, { color: theme.textPrimary }]}>
+                  {t('notifications.decline')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         {!n.is_read && <View style={[styles.unreadDot, { backgroundColor: theme.teal }]} />}
       </TouchableOpacity>
@@ -254,4 +342,34 @@ const styles = StyleSheet.create({
   },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 },
   emptyText: { fontSize: 16, marginTop: 12 },
+  inviteActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  inviteBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    minWidth: 88,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inviteBtnAccept: {},
+  inviteBtnAcceptText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inviteBtnDecline: {
+    borderWidth: 1,
+  },
+  inviteBtnDeclineText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
 });

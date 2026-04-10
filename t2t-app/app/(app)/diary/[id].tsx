@@ -16,12 +16,15 @@ import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useFollow } from '@/hooks/useFollow';
+import { useDiaryCollaborators } from '@/hooks/useDiaryCollaborators';
+import { useDiaryPermissions } from '@/hooks/useDiaryPermissions';
 import { SocialActionBar } from '@/components/SocialActionBar';
 import { CommentsModal } from '@/components/CommentsModal';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
 import { DayChapter } from '@/components/DayChapter';
 import { DoubleTapLike } from '@/components/DoubleTapLike';
 import { JourneyProgressBar } from '@/components/JourneyProgressBar';
+import { CollaboratorAvatarStack } from '@/components/CollaboratorAvatarStack';
 import { Diary } from '@/types/supabase';
 import { Palette, Glass } from '@/constants/theme';
 
@@ -54,6 +57,16 @@ export default function DiaryDetailScreen() {
   const [showCoverPicker, setShowCoverPicker] = useState(false);
 
   const { isFollowing, toggleFollow, loading: followLoading } = useFollow(user?.id, diary?.author_id);
+
+  // Collaborative diary data + permissions
+  const permissions = useDiaryPermissions(typeof id === 'string' ? id : undefined);
+  const { collaborators, leaveCollaboration } = useDiaryCollaborators(
+    typeof id === 'string' ? id : undefined,
+  );
+  const hasCollaborators = collaborators.length > 0;
+  const isOwner = permissions.role === 'owner';
+  const isCollaborator = permissions.role === 'collaborator';
+  const canAddDay = permissions.canAddDays;
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -118,13 +131,48 @@ export default function DiaryDetailScreen() {
   }
 
   function handleOptions() {
+    const buttons: Parameters<typeof Alert.alert>[2] = [
+      { text: t('common.cancel'), style: 'cancel' },
+    ];
+
+    if (isOwner) {
+      buttons.push({
+        text: t('collab.manage'),
+        onPress: () =>
+          router.push({ pathname: '/diary/collaborators', params: { id: id as string } }),
+      });
+      buttons.push({
+        text: t('diary.delete_diary'),
+        style: 'destructive',
+        onPress: confirmDelete,
+      });
+    } else if (isCollaborator) {
+      buttons.push({
+        text: t('collab.leave'),
+        style: 'destructive',
+        onPress: confirmLeave,
+      });
+    }
+
+    Alert.alert(t('diary.options'), t('diary.what_to_do'), buttons);
+  }
+
+  function confirmLeave() {
     Alert.alert(
-      t('diary.options'),
-      t('diary.what_to_do'),
+      t('collab.leave_confirm_title'),
+      t('collab.leave_confirm_msg'),
       [
         { text: t('common.cancel'), style: 'cancel' },
-        { text: t('diary.delete_diary'), style: 'destructive', onPress: confirmDelete },
-      ]
+        {
+          text: t('collab.leave'),
+          style: 'destructive',
+          onPress: async () => {
+            const ok = await leaveCollaboration();
+            if (ok) router.replace('/(app)/(tabs)/home' as never);
+            else Alert.alert(t('common.error'), t('collab.invite_error'));
+          },
+        },
+      ],
     );
   }
 
@@ -208,7 +256,22 @@ export default function DiaryDetailScreen() {
           <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.floatingTitle} numberOfLines={1}>{diary.title}</Text>
+          <View style={styles.floatingTitleWrap}>
+            <Text style={styles.floatingTitle} numberOfLines={1}>{diary.title}</Text>
+            {hasCollaborators && (
+              <View style={styles.floatingAvatarStack}>
+                <CollaboratorAvatarStack
+                  collaborators={collaborators}
+                  size={20}
+                  onPress={
+                    isOwner
+                      ? () => router.push({ pathname: '/diary/collaborators', params: { id: id as string } })
+                      : undefined
+                  }
+                />
+              </View>
+            )}
+          </View>
           <TouchableOpacity style={styles.headerBtn} onPress={handleOptions}>
             <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
           </TouchableOpacity>
@@ -222,7 +285,7 @@ export default function DiaryDetailScreen() {
           )}
           <Text style={styles.emptyDaysHint}>{t('diary.no_days')}</Text>
 
-          {user?.id === diary.author_id && (
+          {canAddDay && (
             <TouchableOpacity
               style={styles.addDayBtn}
               onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
@@ -262,9 +325,24 @@ export default function DiaryDetailScreen() {
         <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.floatingTitle} numberOfLines={1}>{diary.title}</Text>
+        <View style={styles.floatingTitleWrap}>
+          <Text style={styles.floatingTitle} numberOfLines={1}>{diary.title}</Text>
+          {hasCollaborators && (
+            <View style={styles.floatingAvatarStack}>
+              <CollaboratorAvatarStack
+                collaborators={collaborators}
+                size={20}
+                onPress={
+                  isOwner
+                    ? () => router.push({ pathname: '/diary/collaborators', params: { id: id as string } })
+                    : undefined
+                }
+              />
+            </View>
+          )}
+        </View>
         <View style={styles.headerActions}>
-          {user?.id !== diary.author_id && (
+          {user?.id !== diary.author_id && !isCollaborator && (
             <TouchableOpacity
               style={[styles.miniFollowBtn, isFollowing && styles.miniFollowBtnActive]}
               onPress={toggleFollow}
@@ -316,6 +394,7 @@ export default function DiaryDetailScreen() {
             dayDate={item.date}
             diaryId={id as string}
             isActive={index === currentDayIndex}
+            showAuthor={hasCollaborators}
           />
         )}
       />
@@ -336,8 +415,8 @@ export default function DiaryDetailScreen() {
         />
       </View>
 
-      {/* Add day button for owner */}
-      {user?.id === diary.author_id && (
+      {/* Add day button for owner or accepted collaborator */}
+      {canAddDay && (
         <TouchableOpacity
           style={styles.floatingAddDay}
           onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
@@ -420,8 +499,12 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(255,255,255,0.20)',
   },
-  floatingTitle: {
+  floatingTitleWrap: {
     flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  floatingTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: '#fff',
@@ -430,7 +513,9 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
-    marginHorizontal: 8,
+  },
+  floatingAvatarStack: {
+    marginTop: 4,
   },
   headerActions: {
     flexDirection: 'row',

@@ -43,14 +43,22 @@ export function useDayEntries(dayId: string | string[]) {
     try {
       const { data, error } = await supabase
         .from('day_entries')
-        .select('id, type, content, metadata, sort_order')
+        .select('id, type, content, metadata, sort_order, author_id, author:profiles!author_id(id, username, display_name, avatar_url)')
         .eq('day_id', id)
         .order('sort_order', { ascending: true });
 
       if (!error && data) {
+        // PostgREST types the joined `author` as an array, but the FK
+        // author_id → profiles.id always resolves to a single row.
+        // Normalize to the single-object shape expected by EntryAuthor.
+        const normalized = (data as unknown as Array<DayEntry & { author?: unknown }>).map((row) => ({
+          ...row,
+          author: Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null,
+        })) as DayEntry[];
+
         // For photo entries: resolve signed URLs from storagePath
         const resolved = await Promise.all(
-          data.map(async (entry: DayEntry) => {
+          normalized.map(async (entry: DayEntry) => {
             if (entry.type === 'photo' && entry.metadata?.storagePath) {
               const { data: urlData } = await supabase.storage
                 .from('diary-media')
@@ -122,12 +130,16 @@ export function useDayEntries(dayId: string | string[]) {
         }
       }
 
+      const { data: userData } = await supabase.auth.getUser();
+      const authorId = userData.user?.id;
+
       const { error } = await supabase.from('day_entries').insert({
         day_id: id,
         type,
         content: content.trim(),
         metadata,
         sort_order: getNextSortOrder(),
+        author_id: authorId,
       });
 
       if (error) {
@@ -176,12 +188,16 @@ export function useDayEntries(dayId: string | string[]) {
     async (emoji: string, label: string) => {
       setSaving(true);
 
+      const { data: userData } = await supabase.auth.getUser();
+      const authorId = userData.user?.id;
+
       const { error } = await supabase.from('day_entries').insert({
         day_id: id,
         type: 'mood',
         content: emoji,
         metadata: { label },
         sort_order: getNextSortOrder(),
+        author_id: authorId,
       });
 
       setSaving(false);

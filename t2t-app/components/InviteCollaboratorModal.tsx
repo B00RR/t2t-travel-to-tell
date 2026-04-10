@@ -55,11 +55,13 @@ export function InviteCollaboratorModal({
       setResults([]);
       return;
     }
+    // Escape ILIKE wildcards to prevent enumeration of the profiles table
+    const escaped = trimmed.replace(/[\\%_]/g, '\\$&');
     setSearching(true);
     const { data, error } = await supabase
       .from('profiles')
       .select('id, username, display_name, avatar_url')
-      .ilike('username', `%${trimmed}%`)
+      .ilike('username', `%${escaped}%`)
       .limit(10);
 
     if (!error && data) {

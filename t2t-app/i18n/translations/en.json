@@ -436,6 +436,8 @@
     "user_not_found": "User not found",
     "cannot_invite_self": "You cannot invite yourself",
     "limit_reached": "Max 10 collaborators per diary",
+    "already_collaborator": "User is already a collaborator",
+    "reinvite_cooldown": "Please wait before re-inviting this user",
     "remove": "Remove",
     "remove_confirm_title": "Remove collaborator",
     "remove_confirm_msg": "Remove this collaborator from the diary?",

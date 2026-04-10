@@ -96,6 +96,44 @@ create trigger trg_collab_limit
   before insert or update on public.diary_collaborators
   for each row execute function public.check_collaborator_limit();
 
+-- 4b. Enforce update scope: prevent tampering with immutable fields and
+--     restrict invited users to legitimate status transitions.
+create or replace function public.enforce_collab_update_scope()
+returns trigger
+language plpgsql
+security invoker
+as $$
+declare
+  v_is_owner boolean;
+begin
+  -- Immutable fields for everyone
+  if NEW.diary_id <> OLD.diary_id
+     or NEW.user_id <> OLD.user_id
+     or NEW.invited_by is distinct from OLD.invited_by
+     or NEW.invited_at <> OLD.invited_at then
+    raise exception 'Cannot modify immutable collaborator fields';
+  end if;
+
+  select exists (
+    select 1 from public.diaries
+    where id = OLD.diary_id and author_id = auth.uid()
+  ) into v_is_owner;
+
+  -- Non-owner (the invited user) may only transition status and touch responded_at
+  if not v_is_owner and auth.uid() = OLD.user_id then
+    if NEW.status not in ('accepted', 'declined', 'removed') then
+      raise exception 'Invalid status transition';
+    end if;
+  end if;
+
+  return NEW;
+end;
+$$;
+
+create trigger trg_collab_update_scope
+  before update on public.diary_collaborators
+  for each row execute function public.enforce_collab_update_scope();
+
 -- 5. RLS on diary_collaborators
 alter table public.diary_collaborators enable row level security;
 
@@ -264,6 +302,8 @@ as $$
 declare
   v_user_id uuid;
   v_collab_id uuid;
+  v_prev_status text;
+  v_prev_responded_at timestamptz;
 begin
   -- Authorize: caller must be the diary owner
   if not exists (
@@ -284,6 +324,23 @@ begin
 
   if v_user_id = auth.uid() then
     raise exception 'Cannot invite yourself';
+  end if;
+
+  -- Re-invite cooldown: prevent notification spam when an owner rapidly
+  -- removes and re-invites the same user.
+  select status, responded_at
+    into v_prev_status, v_prev_responded_at
+  from public.diary_collaborators
+  where diary_id = p_diary_id and user_id = v_user_id;
+
+  if v_prev_status = 'accepted' then
+    raise exception 'Already a collaborator';
+  end if;
+
+  if v_prev_status = 'removed'
+     and v_prev_responded_at is not null
+     and v_prev_responded_at > now() - interval '1 hour' then
+    raise exception 'Re-invite cooldown active';
   end if;
 
   -- Insert or reset invitation

@@ -436,6 +436,8 @@
     "user_not_found": "Utente non trovato",
     "cannot_invite_self": "Non puoi invitare te stesso",
     "limit_reached": "Massimo 10 collaboratori per diario",
+    "already_collaborator": "L'utente è già un collaboratore",
+    "reinvite_cooldown": "Attendi prima di invitare di nuovo questo utente",
     "remove": "Rimuovi",
     "remove_confirm_title": "Rimuovi collaboratore",
     "remove_confirm_msg": "Rimuovere questo collaboratore dal diario?",

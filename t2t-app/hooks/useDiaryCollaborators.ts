@@ -68,6 +68,8 @@ export function useDiaryCollaborators(diaryId?: string): UseDiaryCollaboratorsRe
         if (msg.includes('Cannot invite yourself')) return { ok: false, errorKey: 'collab.cannot_invite_self' };
         if (msg.includes('Not authorized')) return { ok: false, errorKey: 'collab.invite_error' };
         if (msg.includes('Max 10 collaborators')) return { ok: false, errorKey: 'collab.limit_reached' };
+        if (msg.includes('Already a collaborator')) return { ok: false, errorKey: 'collab.already_collaborator' };
+        if (msg.includes('Re-invite cooldown')) return { ok: false, errorKey: 'collab.reinvite_cooldown' };
         return { ok: false, errorKey: 'collab.invite_error' };
       }
 

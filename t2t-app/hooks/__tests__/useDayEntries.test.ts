@@ -9,6 +9,10 @@ jest.mock('@/lib/supabase', () => ({
     storage: {
       from: jest.fn(),
     },
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+    },
+    rpc: jest.fn().mockResolvedValue({ data: null, error: null }),
   },
 }));
 
@@ -30,7 +34,7 @@ describe('useDayEntries', () => {
     const mockEntries = [
       { id: '1', type: 'text', content: 'test', sort_order: 1 },
     ];
-    
+
     const mockFrom = jest.fn().mockReturnValue({
       select: jest.fn().mockReturnValue({
         eq: jest.fn().mockReturnValue({
@@ -38,7 +42,7 @@ describe('useDayEntries', () => {
         })
       })
     });
-    
+
     (supabase.from as jest.Mock).mockImplementation(mockFrom);
 
     const { result } = renderHook(() => useDayEntries('day-1'));
@@ -48,7 +52,11 @@ describe('useDayEntries', () => {
     });
 
     expect(result.current.loading).toBe(false);
-    expect(result.current.entries).toEqual(mockEntries);
+    // The hook normalizes the joined `author` relation (PostgREST returns it
+    // as an array or undefined) to a single object or null.
+    expect(result.current.entries).toEqual(
+      mockEntries.map(e => ({ ...e, author: null })),
+    );
   });
 
   it('resolves photo storagePath to signed urls during fetch', async () => {

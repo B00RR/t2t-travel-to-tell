@@ -48,9 +48,17 @@ export function useDayEntries(dayId: string | string[]) {
         .order('sort_order', { ascending: true });
 
       if (!error && data) {
+        // PostgREST types the joined `author` as an array, but the FK
+        // author_id → profiles.id always resolves to a single row.
+        // Normalize to the single-object shape expected by EntryAuthor.
+        const normalized = (data as unknown as Array<DayEntry & { author?: unknown }>).map((row) => ({
+          ...row,
+          author: Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null,
+        })) as DayEntry[];
+
         // For photo entries: resolve signed URLs from storagePath
         const resolved = await Promise.all(
-          data.map(async (entry: DayEntry) => {
+          normalized.map(async (entry: DayEntry) => {
             if (entry.type === 'photo' && entry.metadata?.storagePath) {
               const { data: urlData } = await supabase.storage
                 .from('diary-media')

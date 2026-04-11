@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ActivityIndicator, Platform,
+  View, Text, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import Animated, {
@@ -46,7 +46,7 @@ const DARK_MAP_STYLE = [
  */
 export function WanderlustMap() {
   const { t } = useTranslation();
-  const { locations, loading, error, refresh } = usePublicMapLocations(true);
+  const { locations, loading } = usePublicMapLocations(true);
   const clusters = useClusteredLocations(locations);
   const [selectedCluster, setSelectedCluster] = useState<LocationCluster | null>(null);
   const mapRef = useRef<MapView>(null);
@@ -155,6 +155,7 @@ const HotspotMarker = React.memo(function HotspotMarker({
       -1,
       false,
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

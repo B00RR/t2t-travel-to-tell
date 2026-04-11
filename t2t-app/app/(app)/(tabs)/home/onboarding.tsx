@@ -17,7 +17,7 @@ import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { InteractiveGlobe } from '@/components/InteractiveGlobe';
-import { Spacing, Typography, Radius, Fonts, Shadows } from '@/constants/theme';
+import { Spacing, Typography, Fonts, Shadows } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);

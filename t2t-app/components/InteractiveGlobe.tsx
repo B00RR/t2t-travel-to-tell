@@ -1,4 +1,8 @@
-import React, { useRef, useMemo, Component, ReactNode } from 'react';
+/* eslint-disable react/no-unknown-property */
+// react/no-unknown-property is disabled because this file uses @react-three/fiber,
+// which extends JSX with three.js-native props (position, args, intensity, roughness, metalness, etc.)
+// that ESLint's react plugin does not recognize. These are NOT HTML attributes.
+import React, { useRef, Component, ReactNode } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Canvas, useFrame } from '@react-three/fiber/native';
 import * as THREE from 'three';
@@ -104,8 +108,6 @@ function Globe({ theme }: GlobeProps) {
       meshRef.current.rotation.x = 0.15 + Math.sin(state.clock.elapsedTime * 0.3) * 0.05;
     }
   });
-
-  const wireColor = useMemo(() => new THREE.Color(theme.teal), [theme.teal]);
 
   return (
     <group>

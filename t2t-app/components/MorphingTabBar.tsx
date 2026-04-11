@@ -6,17 +6,16 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
   interpolate,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Spacing, Radius, Typography, Shadows, Glass } from '@/constants/theme';
+import { Typography, Shadows } from '@/constants/theme';
 
 interface MorphingTabBarProps {
-  state: { routes: Array<{ key: string; name: string }>; index: number };
+  state: { routes: { key: string; name: string }[]; index: number };
   descriptors: Record<string, { options: { title?: string } }>;
   navigation: { emit: (e: any) => any; navigate: (name: string) => void };
 }
@@ -47,6 +46,7 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
   const mountProgress = useSharedValue(0);
   useEffect(() => {
     mountProgress.value = withSpring(1, { damping: 18, stiffness: 90 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const containerStyle = useAnimatedStyle(() => ({

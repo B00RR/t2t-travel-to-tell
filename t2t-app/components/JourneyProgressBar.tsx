@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface JourneyProgressBarProps {

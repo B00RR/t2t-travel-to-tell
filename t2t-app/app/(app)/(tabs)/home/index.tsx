@@ -45,6 +45,7 @@ export default function HomeScreen() {
         router.replace('/(app)/(tabs)/home/onboarding' as never);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDiscover = useCallback(async (isRefreshing = false) => {
@@ -175,7 +176,6 @@ export default function HomeScreen() {
     [user?.id, handleLongPress]
   );
 
-  const emptyIcon = tab === 'following' ? 'people-outline' : 'compass-outline';
   const emptyTitle = tab === 'following' ? t('home.no_following') : t('home.no_diaries');
   const emptySub = tab === 'following' ? t('home.no_following_sub') : t('home.no_diaries_sub');
 

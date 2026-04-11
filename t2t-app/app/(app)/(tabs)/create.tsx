@@ -1,13 +1,12 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert, ScrollView, Platform, Image,
-  Dimensions, KeyboardAvoidingView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Animated, {
-  FadeInRight, FadeInLeft, FadeInUp, FadeOutLeft, FadeOutRight,
+  FadeInRight, FadeInUp, FadeOutLeft,
   useSharedValue, useAnimatedStyle, withSpring, withTiming,
-  interpolate, Extrapolation,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
@@ -21,7 +20,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows, Fonts, Glass } from '@/constants/theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const STEPS = 3;
 
 type Step = 0 | 1 | 2;

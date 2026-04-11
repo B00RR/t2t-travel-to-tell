@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { Colors, Spacing, Typography, Radius, Motion } from '../../constants/theme';
+import { Colors, Spacing, Typography, Radius } from '../../constants/theme';
 
 export interface ButtonProps {
   onPress: () => void;

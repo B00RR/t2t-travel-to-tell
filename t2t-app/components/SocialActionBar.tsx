@@ -14,8 +14,6 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { Typography } from '@/constants/theme';
 import type { SocialCounters } from '@/types/social';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface SocialActionBarProps {
   diaryId: string;
   userId: string | undefined;
@@ -40,6 +38,7 @@ function AnimatedHeart({ active, size, colors }: { active: boolean; size: number
       );
     }
     prevActive.current = active;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -69,6 +68,7 @@ function AnimatedBookmark({ active, size, colors }: { active: boolean; size: num
       );
     }
     prevActive.current = active;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   const animatedStyle = useAnimatedStyle(() => ({

@@ -1,19 +1,16 @@
 import React, { useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Image, Dimensions, Platform,
+  Dimensions, Platform,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
   SlideInDown,
   SlideOutDown,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Palette, Glass } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
 import type { PublicMapLocation } from '@/hooks/usePublicMapLocations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

@@ -11,6 +11,7 @@
     "anonymous": "Anonymous",
     "loading": "Loading...",
     "save": "Save",
+    "ok": "OK",
     "cancel": "Cancel",
     "logout": "Logout",
     "logout_confirm": "Are you sure you want to log out?",
@@ -129,6 +130,7 @@
   "diary": {
     "options": "Diary Options",
     "what_to_do": "What do you want to do?",
+    "edit_diary": "Edit Diary",
     "delete_diary": "Delete Diary",
     "confirm_delete_title": "Are you sure?",
     "confirm_delete_msg": "This action is irreversible and will delete all days and associated photos.",
@@ -150,6 +152,27 @@
     "err_calc_day": "Unable to calculate day number.",
     "err_add_day": "Unable to add day.",
     "no_entries": "No entries in this day yet."
+  },
+  "edit_diary": {
+    "title": "Edit Diary",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "err_save_failed": "Unable to save changes. Please try again.",
+    "saved_title": "Changes saved",
+    "saved_msg": "Your diary has been updated.",
+    "visibility_label": "Visibility",
+    "visibility_private": "Private",
+    "visibility_private_desc": "Only you can see it",
+    "visibility_public": "Public",
+    "visibility_public_desc": "Visible to everyone in the feed",
+    "visibility_friends": "Followers only",
+    "visibility_friends_desc": "People who follow you",
+    "status_label": "Status",
+    "status_draft": "Draft",
+    "status_draft_desc": "Hidden from feed",
+    "status_published": "Published",
+    "status_published_desc": "Ready to read",
+    "permission_denied": "Only the owner can edit this diary."
   },
   "day": {
     "title": "Day {{number}}",

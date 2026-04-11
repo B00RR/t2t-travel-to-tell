@@ -9,7 +9,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  interpolate,
 } from 'react-native-reanimated';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -28,7 +27,7 @@ import { CollaboratorAvatarStack } from '@/components/CollaboratorAvatarStack';
 import { Diary } from '@/types/supabase';
 import { Palette, Glass } from '@/constants/theme';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type DiaryDay = {
   id: string;
@@ -89,6 +88,7 @@ export default function DiaryDetailScreen() {
         }
       })();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diary?.id, user?.id]);
 
   const fetchDiaryDetails = useCallback(async () => {
@@ -136,6 +136,11 @@ export default function DiaryDetailScreen() {
     ];
 
     if (isOwner) {
+      buttons.push({
+        text: t('diary.edit_diary'),
+        onPress: () =>
+          router.push({ pathname: '/diary/edit/[id]', params: { id: id as string } }),
+      });
       buttons.push({
         text: t('collab.manage'),
         onPress: () =>
@@ -222,6 +227,7 @@ export default function DiaryDetailScreen() {
   useEffect(() => {
     contentScale.value = withSpring(1, { damping: 20, stiffness: 90 });
     contentOpacity.value = withTiming(1, { duration: 500 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const contentEntranceStyle = useAnimatedStyle(() => ({

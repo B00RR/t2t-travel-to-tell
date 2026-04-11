@@ -11,6 +11,7 @@
     "anonymous": "Anonimo",
     "loading": "Caricamento...",
     "save": "Salva",
+    "ok": "OK",
     "cancel": "Annulla",
     "logout": "Logout",
     "logout_confirm": "Vuoi davvero uscire?",
@@ -129,6 +130,7 @@
   "diary": {
     "options": "Opzioni Diario",
     "what_to_do": "Cosa vuoi fare?",
+    "edit_diary": "Modifica Diario",
     "delete_diary": "Elimina Diario",
     "confirm_delete_title": "Sei sicuro?",
     "confirm_delete_msg": "Questa azione è irreversibile e cancellerà tutte le giornate e le foto associate.",
@@ -150,6 +152,27 @@
     "err_calc_day": "Impossibile calcolare il numero del giorno.",
     "err_add_day": "Impossibile aggiungere la giornata.",
     "no_entries": "Nessun contenuto in questo giorno."
+  },
+  "edit_diary": {
+    "title": "Modifica Diario",
+    "save": "Salva modifiche",
+    "saving": "Salvataggio…",
+    "err_save_failed": "Impossibile salvare le modifiche. Riprova.",
+    "saved_title": "Modifiche salvate",
+    "saved_msg": "Il tuo diario è stato aggiornato.",
+    "visibility_label": "Visibilità",
+    "visibility_private": "Privato",
+    "visibility_private_desc": "Solo tu puoi vederlo",
+    "visibility_public": "Pubblico",
+    "visibility_public_desc": "Visibile a tutti nel feed",
+    "visibility_friends": "Solo follower",
+    "visibility_friends_desc": "Chi ti segue",
+    "status_label": "Stato",
+    "status_draft": "Bozza",
+    "status_draft_desc": "Nascosto dal feed",
+    "status_published": "Pubblicato",
+    "status_published_desc": "Pronto da leggere",
+    "permission_denied": "Solo il proprietario può modificare questo diario."
   },
   "day": {
     "title": "Giorno {{number}}",

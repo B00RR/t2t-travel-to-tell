@@ -5,8 +5,13 @@ import {
   pushTransition,
   fadeSlideTransition,
 } from '@/constants/transitions';
+import { usePushRegistration } from '@/hooks/usePushRegistration';
 
 export default function AppLayout() {
+  // Silent push registration — only runs for authenticated users
+  // because (app)/_layout.tsx is only mounted inside the auth gate.
+  usePushRegistration();
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />

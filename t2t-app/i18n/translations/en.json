@@ -295,7 +295,11 @@
     "register_now": "Register",
     "email_placeholder": "email@example.com",
     "password_placeholder": "••••••••",
-    "register_success": "Registration complete! Check your email."
+    "register_success": "Registration complete! Check your email.",
+    "continue_with": "Or continue with",
+    "google": "Google",
+    "err_google_failed": "Google login failed. Please try again.",
+    "err_google_no_account": "No account found with this Google account. Please register first."
   },
   "planner": {
     "tab": "Planner",

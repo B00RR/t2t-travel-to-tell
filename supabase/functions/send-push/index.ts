@@ -26,7 +26,7 @@ const corsHeaders = {
 };
 
 // ── Types ───────────────────────────────────────────────
-type NotificationType = "like" | "comment" | "follow" | "diary_invitation" | string;
+type NotificationType = "like" | "comment" | "follow" | "diary_invitation" | "badge" | string;
 
 interface TriggerPayload {
   notification_id: string;
@@ -51,9 +51,22 @@ interface ExpoPushMessage {
 }
 
 // ── Copy helpers ────────────────────────────────────────
+const BADGE_EMOJI: Record<string, string> = {
+  first_journey: "✈️",
+  storyteller: "📖",
+  elite_traveler: "🏆",
+  globetrotter: "🌍",
+  explorer: "🧭",
+  marco_polo: "🗺️",
+  popular: "❤️",
+  influencer: "🌟",
+  social_butterfly: "🤝",
+};
+
 function buildCopy(
   type: NotificationType,
   actorName: string,
+  targetId?: string,
 ): { title: string; body: string } {
   switch (type) {
     case "like":
@@ -64,6 +77,9 @@ function buildCopy(
       return { title: "T2T", body: `${actorName} ha iniziato a seguirti` };
     case "diary_invitation":
       return { title: "T2T", body: `${actorName} ti ha invitato a collaborare a un diario` };
+    case "badge":
+      const emoji = BADGE_EMOJI[targetId ?? ""] ?? "🏆";
+      return { title: `${emoji} Badge guadagnato!`, body: `${actorName} ha guadagnato un nuovo badge` };
     default:
       return { title: "T2T", body: `${actorName} ha interagito con te` };
   }
@@ -138,7 +154,7 @@ Deno.serve(async (req) => {
     actorRes.data?.display_name?.trim() ||
     actorRes.data?.username?.trim() ||
     "Qualcuno";
-  const { title, body } = buildCopy(payload.type, actorName);
+  const { title, body } = buildCopy(payload.type, actorName, payload.target_id);
 
   const messages: ExpoPushMessage[] = tokens.map((token) => ({
     to: token,

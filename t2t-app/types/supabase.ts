@@ -455,6 +455,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          awarded_at: string
+          badge_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saves: {
         Row: {
           created_at: string
@@ -1052,6 +1081,28 @@ export type Database = {
           from: "*"
           to: "diaries"
           isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      check_and_award_badges: {
+        Args: { p_user_id: string }
+        Returns: string[]
+        SetofOptions: {
+          isSetofReturn: true
+        }
+      }
+      match_travel_buddies: {
+        Args: { p_user_id: string; p_limit?: number; p_min_score?: number }
+        Returns: {
+          user_id: string
+          username: string | null
+          display_name: string | null
+          avatar_url: string | null
+          travel_style: string | null
+          match_score: number
+          common_destinations: string[] | null
+        }[]
+        SetofOptions: {
           isSetofReturn: true
         }
       }

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { Comment } from '@/types/social';
 import { validateComment } from '@/utils/inputValidator';
 import { supabase } from '@/lib/supabase';
+import { getNetworkStateAsync } from 'expo-network';
+import { offlineQueue } from '@/lib/offline';
 
 export function useComments() {
   const { t } = useTranslation();
@@ -39,7 +41,6 @@ export function useComments() {
   }, []);
 
   const addComment = useCallback(async (diaryId: string, userId: string, content: string, parentId: string | null = null) => {
-    // Input validation (length, XSS sanitisation)
     const validation = validateComment(content);
     if (!validation.valid) {
       Alert.alert(t('social.err_comment_validation'), validation.reason);
@@ -48,20 +49,33 @@ export function useComments() {
 
     setSubmitting(true);
 
-    const { error: dbError } = await supabase
-      .from('comments')
-      .insert({
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
+
+    if (online) {
+      const { error: dbError } = await supabase
+        .from('comments')
+        .insert({
+          diary_id: diaryId,
+          user_id: userId,
+          content: validation.sanitized,
+          parent_id: parentId,
+        });
+
+      setSubmitting(false);
+
+      if (dbError) {
+        Alert.alert(t('common.error'), t('social.err_comment_post'));
+        return false;
+      }
+    } else {
+      await offlineQueue.addAction('CREATE', 'comments', {
         diary_id: diaryId,
         user_id: userId,
         content: validation.sanitized,
         parent_id: parentId,
       });
-
-    setSubmitting(false);
-
-    if (dbError) {
-      Alert.alert(t('common.error'), t('social.err_comment_post'));
-      return false;
+      setSubmitting(false);
     }
 
     await fetchComments(diaryId);
@@ -75,11 +89,19 @@ export function useComments() {
         text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
-          const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId);
-          if (dbError) {
-            Alert.alert(t('common.error'), t('social.err_comment_delete'));
+          const networkState = await getNetworkStateAsync();
+          const online = networkState.isConnected ?? true;
+
+          if (online) {
+            const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId);
+            if (dbError) {
+              Alert.alert(t('common.error'), t('social.err_comment_delete'));
+            } else {
+              await fetchComments(diaryId);
+            }
           } else {
-            await fetchComments(diaryId);
+            setComments(prev => prev.filter(c => c.id !== commentId));
+            await offlineQueue.addAction('DELETE', 'comments', { id: commentId });
           }
         }
       }
@@ -95,16 +117,32 @@ export function useComments() {
 
     setSubmitting(true);
 
-    const { error: dbError } = await supabase
-      .from('comments')
-      .update({ content: validation.sanitized })
-      .eq('id', commentId);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    setSubmitting(false);
+    if (online) {
+      const { error: dbError } = await supabase
+        .from('comments')
+        .update({ content: validation.sanitized })
+        .eq('id', commentId);
 
-    if (dbError) {
-      Alert.alert(t('common.error'), t('social.err_comment_update'));
-      return false;
+      setSubmitting(false);
+
+      if (dbError) {
+        Alert.alert(t('common.error'), t('social.err_comment_update'));
+        return false;
+      }
+    } else {
+      await offlineQueue.addAction('UPDATE', 'comments', {
+        id: commentId,
+        content: validation.sanitized,
+      });
+      setComments(prev =>
+        prev.map(c =>
+          c.id === commentId ? { ...c, content: validation.sanitized } : c
+        )
+      );
+      setSubmitting(false);
     }
 
     await fetchComments(diaryId);

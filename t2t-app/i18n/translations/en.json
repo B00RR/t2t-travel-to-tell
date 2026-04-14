@@ -597,5 +597,11 @@
     "slide4_title": "Your Map",
     "slide4_desc": "Each diary adds a pin to your personal map. Build your digital passport.",
     "slide4_accent": "Pin your memories to the world"
+  },
+  "offline": {
+    "offline_mode": "You're offline",
+    "pending_actions": "{{count}} pending action(s)",
+    "syncing": "Syncing...",
+    "tap_to_sync": "Tap to sync"
   }
 }

@@ -597,5 +597,11 @@
     "slide4_title": "La Tua Mappa",
     "slide4_desc": "Ogni diario aggiunge un pin alla tua mappa personale. Costruisci il tuo passaporto digitale.",
     "slide4_accent": "Fissa i tuoi ricordi nel mondo"
+  },
+  "offline": {
+    "offline_mode": "Sei offline",
+    "pending_actions": "{{count}} azione(i) in coda",
+    "syncing": "Sincronizzazione...",
+    "tap_to_sync": "Tocca per sincronizzare"
   }
 }

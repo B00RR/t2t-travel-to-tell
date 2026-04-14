@@ -29,6 +29,7 @@ export default function PasswordChangeScreen() {
   const [confirm, setConfirm] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNext, setShowNext] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
@@ -131,9 +132,9 @@ export default function PasswordChangeScreen() {
           label={t('password_change.confirm')}
           value={confirm}
           onChangeText={setConfirm}
-          secureTextEntry={!showNext}
-          onToggleVisible={() => setShowNext(v => !v)}
-          visible={showNext}
+          secureTextEntry={!showConfirm}
+          onToggleVisible={() => setShowConfirm(v => !v)}
+          visible={showConfirm}
           theme={theme}
         />
 
@@ -179,6 +180,7 @@ function Field({
   theme: Theme;
   autoFocus?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.field}>
       <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>{label}</Text>
@@ -198,7 +200,7 @@ function Field({
           onPress={onToggleVisible}
           style={styles.visToggle}
           accessibilityRole="button"
-          accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+          accessibilityLabel={visible ? t('password_change.hide_password') : t('password_change.show_password')}
         >
           <Ionicons
             name={visible ? 'eye-off-outline' : 'eye-outline'}

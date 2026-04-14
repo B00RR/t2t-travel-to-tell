@@ -258,7 +258,7 @@ describe('useMediaUpload', () => {
       await result.current.pickAndUploadMedia();
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Upload error:', 'Manipulation failed');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Upload error for asset:', 'Manipulation failed');
     expect(alertSpy).toHaveBeenCalledWith('common.upload_error', 'media.upload_failed');
 
     consoleErrorSpy.mockRestore();

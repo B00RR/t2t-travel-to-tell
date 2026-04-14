@@ -48,9 +48,14 @@ export default function DeleteAccountScreen() {
 
       // The session is now invalid server-side; force sign-out locally
       // so the auth listener routes us back to the login screen.
-      await supabase.auth.signOut();
-      // No explicit navigation — the root layout will redirect on
-      // session change.
+      // If signOut itself fails, the account is already deleted server-side
+      // so we still sign out to clear the local session.
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // Account already deleted — local session cleanup is best-effort.
+        // The auth listener will eventually detect the invalid session.
+      }
     } catch (err) {
       console.error('delete-account error:', err);
       setDeleting(false);

@@ -198,6 +198,7 @@
     "err_add_failed": "Unable to add content.",
     "err_delete_failed": "Unable to delete content.",
     "err_update_failed": "Unable to update content.",
+    "view_photo": "View photo fullscreen",
     "geocode_not_found": "Location not found on the map. The stop was saved but won't appear as a pin.",
     "geocode_failed": "Could not resolve the location coordinates. The stop was saved but won't appear as a pin.",
     "map_save_failed": "The stop was saved in your diary but could not be added to the map.",
@@ -508,7 +509,12 @@
     "err_short": "Password must be at least 8 characters long.",
     "err_same": "The new password must be different from the current one.",
     "err_wrong_current": "Current password is incorrect.",
-    "err_generic": "Unable to update password. Please try again."
+    "err_generic": "Unable to update password. Please try again.",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
+  },
+  "lightbox": {
+    "close": "Close image"
   },
   "delete_account": {
     "title": "Delete account",

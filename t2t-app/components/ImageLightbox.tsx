@@ -15,6 +15,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ interface ImageLightboxProps {
  * pinch-gesture dance.
  */
 export function ImageLightbox({ visible, uri, caption, onClose }: ImageLightboxProps) {
+  const { t } = useTranslation();
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export function ImageLightbox({ visible, uri, caption, onClose }: ImageLightboxP
           activeOpacity={1}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close image"
+          accessibilityLabel={t('lightbox.close')}
         >
           <View style={styles.center} pointerEvents="box-none">
             <Image
@@ -82,7 +84,7 @@ export function ImageLightbox({ visible, uri, caption, onClose }: ImageLightboxP
           style={styles.closeBtn}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close image"
+          accessibilityLabel={t('lightbox.close')}
         >
           <Ionicons name="close" size={28} color="#fff" />
         </TouchableOpacity>

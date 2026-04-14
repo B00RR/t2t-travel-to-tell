@@ -143,12 +143,12 @@ export default function DiaryDetailScreen() {
       buttons.push({
         text: t('diary.edit_diary'),
         onPress: () =>
-          router.push({ pathname: '/diary/edit/[id]', params: { id: id as string } }),
+          router.push({ pathname: '/diary/edit/[id]' as any, params: { id: id as string } }),
       });
       buttons.push({
         text: t('collab.manage'),
         onPress: () =>
-          router.push({ pathname: '/diary/collaborators', params: { id: id as string } }),
+          router.push({ pathname: '/diary/collaborators' as any, params: { id: id as string } }),
       });
       buttons.push({
         text: t('diary.delete_diary'),
@@ -275,7 +275,7 @@ export default function DiaryDetailScreen() {
                   size={20}
                   onPress={
                     isOwner
-                      ? () => router.push({ pathname: '/diary/collaborators', params: { id: id as string } })
+                      ? () => router.push({ pathname: '/diary/collaborators' as any, params: { id: id as string } })
                       : undefined
                   }
                 />
@@ -344,7 +344,7 @@ export default function DiaryDetailScreen() {
                 size={20}
                 onPress={
                   isOwner
-                    ? () => router.push({ pathname: '/diary/collaborators', params: { id: id as string } })
+                    ? () => router.push({ pathname: '/diary/collaborators' as any, params: { id: id as string } })
                     : undefined
                 }
               />

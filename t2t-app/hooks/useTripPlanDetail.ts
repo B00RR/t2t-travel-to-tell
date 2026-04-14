@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
+import { getNetworkStateAsync } from 'expo-network';
+import { offlineQueue } from '@/lib/offline';
 import type { TripPlan, TripPlanStop, ChecklistItem } from '@/types/tripPlan';
 
 export function useTripPlanDetail(planId: string | string[]) {
@@ -55,27 +57,43 @@ export function useTripPlanDetail(planId: string | string[]) {
 
   const updatePlan = useCallback(async (updates: Partial<Pick<TripPlan, 'title' | 'description' | 'visibility' | 'destinations' | 'start_date' | 'end_date' | 'budget_estimate' | 'cover_image_url'>>) => {
     setSaving(true);
-    const { error } = await supabase
-      .from('trip_plans')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id);
-    setSaving(false);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('updatePlan error', error);
-      return false;
+    if (online) {
+      const { error } = await supabase
+        .from('trip_plans')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      setSaving(false);
+
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        console.error('updatePlan error', error);
+        return false;
+      }
+      setPlan(prev => prev ? { ...prev, ...updates } : prev);
+    } else {
+      await offlineQueue.addAction('UPDATE', 'trip_plans', { id, ...updates });
+      setPlan(prev => prev ? { ...prev, ...updates } : prev);
+      setSaving(false);
     }
-    setPlan(prev => prev ? { ...prev, ...updates } : prev);
     return true;
   }, [id, t]);
 
   const deletePlan = useCallback(async () => {
-    const { error } = await supabase.from('trip_plans').delete().eq('id', id);
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('deletePlan error', error);
-      return false;
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
+
+    if (online) {
+      const { error } = await supabase.from('trip_plans').delete().eq('id', id);
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        console.error('deletePlan error', error);
+        return false;
+      }
+    } else {
+      await offlineQueue.addAction('DELETE', 'trip_plans', { id });
     }
     return true;
   }, [id, t]);
@@ -84,43 +102,70 @@ export function useTripPlanDetail(planId: string | string[]) {
   const addStop = useCallback(async (stop: Omit<TripPlanStop, 'id' | 'trip_plan_id' | 'created_at'>) => {
     setSaving(true);
     const nextOrder = stops.length > 0 ? Math.max(...stops.map(s => s.sort_order)) + 1 : 1;
-    const { data, error } = await supabase
-      .from('trip_plan_stops')
-      .insert({ ...stop, trip_plan_id: id, sort_order: nextOrder })
-      .select()
-      .single();
-    setSaving(false);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('addStop error', error);
-      return false;
+    if (online) {
+      const { data, error } = await supabase
+        .from('trip_plan_stops')
+        .insert({ ...stop, trip_plan_id: id, sort_order: nextOrder })
+        .select()
+        .single();
+      setSaving(false);
+
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        console.error('addStop error', error);
+        return false;
+      }
+      setStops(prev => [...prev, data as TripPlanStop]);
+    } else {
+      const tempId = `temp_stop_${Date.now()}`;
+      const tempStop = { ...stop, id: tempId, trip_plan_id: id, sort_order: nextOrder } as TripPlanStop;
+      await offlineQueue.addAction('CREATE', 'trip_plan_stops', { ...stop, trip_plan_id: id, sort_order: nextOrder });
+      setStops(prev => [...prev, tempStop]);
+      setSaving(false);
     }
-    setStops(prev => [...prev, data as TripPlanStop]);
     return true;
   }, [id, stops, t]);
 
   const updateStop = useCallback(async (stopId: string, updates: Partial<Pick<TripPlanStop, 'title' | 'location_name' | 'notes'>>) => {
     setSaving(true);
-    const { error } = await supabase
-      .from('trip_plan_stops')
-      .update(updates)
-      .eq('id', stopId);
-    setSaving(false);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      return false;
+    if (online) {
+      const { error } = await supabase
+        .from('trip_plan_stops')
+        .update(updates)
+        .eq('id', stopId);
+      setSaving(false);
+
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        return false;
+      }
+      setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...updates } : s));
+    } else {
+      await offlineQueue.addAction('UPDATE', 'trip_plan_stops', { id: stopId, ...updates });
+      setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...updates } : s));
+      setSaving(false);
     }
-    setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...updates } : s));
     return true;
   }, [t]);
 
   const deleteStop = useCallback(async (stopId: string) => {
-    const { error } = await supabase.from('trip_plan_stops').delete().eq('id', stopId);
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      return false;
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
+
+    if (online) {
+      const { error } = await supabase.from('trip_plan_stops').delete().eq('id', stopId);
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        return false;
+      }
+    } else {
+      await offlineQueue.addAction('DELETE', 'trip_plan_stops', { id: stopId });
     }
     setStops(prev => prev.filter(s => s.id !== stopId));
     return true;
@@ -131,49 +176,72 @@ export function useTripPlanDetail(planId: string | string[]) {
     const item = checklist.find(i => i.id === itemId);
     if (!item) return;
 
-    // Optimistic update
     const newChecked = !item.is_checked;
     setChecklist(prev => prev.map(i => i.id === itemId ? { ...i, is_checked: newChecked } : i));
 
-    const { error } = await supabase
-      .from('trip_plan_checklist_items')
-      .update({ is_checked: newChecked })
-      .eq('id', itemId);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    if (error) {
-      // Rollback
-      setChecklist(prev => prev.map(i => i.id === itemId ? { ...i, is_checked: item.is_checked } : i));
-      console.error('toggleChecklistItem error', error);
+    if (online) {
+      const { error } = await supabase
+        .from('trip_plan_checklist_items')
+        .update({ is_checked: newChecked })
+        .eq('id', itemId);
+
+      if (error) {
+        setChecklist(prev => prev.map(i => i.id === itemId ? { ...i, is_checked: item.is_checked } : i));
+        console.error('toggleChecklistItem error', error);
+      }
+    } else {
+      await offlineQueue.addAction('UPDATE', 'trip_plan_checklist_items', { id: itemId, is_checked: newChecked });
     }
   }, [checklist]);
 
   const addChecklistItem = useCallback(async (label: string, category: ChecklistItem['category']) => {
     setSaving(true);
     const nextOrder = checklist.length > 0 ? Math.max(...checklist.map(i => i.sort_order)) + 1 : 1;
-    const { data, error } = await supabase
-      .from('trip_plan_checklist_items')
-      .insert({ trip_plan_id: id, label, category, is_checked: false, sort_order: nextOrder })
-      .select()
-      .single();
-    setSaving(false);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      return false;
+    if (online) {
+      const { data, error } = await supabase
+        .from('trip_plan_checklist_items')
+        .insert({ trip_plan_id: id, label, category, is_checked: false, sort_order: nextOrder })
+        .select()
+        .single();
+      setSaving(false);
+
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        return false;
+      }
+      setChecklist(prev => [...prev, data as ChecklistItem]);
+    } else {
+      const tempId = `temp_checklist_${Date.now()}`;
+      const tempItem = { id: tempId, trip_plan_id: id, label, category, is_checked: false, sort_order: nextOrder } as ChecklistItem;
+      await offlineQueue.addAction('CREATE', 'trip_plan_checklist_items', { trip_plan_id: id, label, category, is_checked: false, sort_order: nextOrder });
+      setChecklist(prev => [...prev, tempItem]);
+      setSaving(false);
     }
-    setChecklist(prev => [...prev, data as ChecklistItem]);
     return true;
   }, [id, checklist, t]);
 
   const deleteChecklistItem = useCallback(async (itemId: string) => {
-    const { error } = await supabase
-      .from('trip_plan_checklist_items')
-      .delete()
-      .eq('id', itemId);
+    const networkState = await getNetworkStateAsync();
+    const online = networkState.isConnected ?? true;
 
-    if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      return false;
+    if (online) {
+      const { error } = await supabase
+        .from('trip_plan_checklist_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) {
+        Alert.alert(t('common.error'), t('common.error_generic'));
+        return false;
+      }
+    } else {
+      await offlineQueue.addAction('DELETE', 'trip_plan_checklist_items', { id: itemId });
     }
     setChecklist(prev => prev.filter(i => i.id !== itemId));
     return true;

@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
+import { getNetworkStateAsync } from 'expo-network';
+import { offlineQueue } from '@/lib/offline';
 import type { DayEntry, DayInfo } from '@/types/dayEntry';
 
 /**
@@ -15,8 +17,26 @@ export function useDayEntries(dayId: string | string[]) {
   const [entries, setEntries] = useState<DayEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const mountedRef = useRef(true);
 
   const id = Array.isArray(dayId) ? dayId[0] : dayId;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    (async () => {
+      try {
+        const networkState = await getNetworkStateAsync();
+        if (mountedRef.current) {
+          setIsOnline(networkState?.isConnected ?? true);
+        }
+      } catch {
+        if (mountedRef.current) {
+          setIsOnline(true);
+        }
+      }
+    })();
+  }, []);
 
   const getNextSortOrder = useCallback(() => {
     return entries.length > 0
@@ -106,6 +126,9 @@ export function useDayEntries(dayId: string | string[]) {
       if (!content.trim()) return false;
       setSaving(true);
 
+      const networkState = await getNetworkStateAsync();
+      const online = networkState?.isConnected ?? true;
+
       let metadata: Record<string, any> | null = null;
 
       if (type === 'tip') {
@@ -113,68 +136,89 @@ export function useDayEntries(dayId: string | string[]) {
       } else if (type === 'location') {
         metadata = { place_name: content.trim() };
 
-        // Geocode the location name to get coordinates
-        try {
-          const results = await Location.geocodeAsync(content.trim());
-          if (results.length > 0) {
-            metadata.coordinates = {
-              lat: results[0].latitude,
-              lng: results[0].longitude,
-            };
-          } else {
-            Alert.alert(t('common.warning'), t('day.geocode_not_found'));
+        if (online) {
+          try {
+            const results = await Location.geocodeAsync(content.trim());
+            if (results.length > 0) {
+              metadata.coordinates = {
+                lat: results[0].latitude,
+                lng: results[0].longitude,
+              };
+            } else {
+              Alert.alert(t('common.warning'), t('day.geocode_not_found'));
+            }
+          } catch (e) {
+            console.warn('Geocoding failed, saving without coordinates:', e);
+            Alert.alert(t('common.warning'), t('day.geocode_failed'));
           }
-        } catch (e) {
-          console.warn('Geocoding failed, saving without coordinates:', e);
-          Alert.alert(t('common.warning'), t('day.geocode_failed'));
         }
       }
 
       const { data: userData } = await supabase.auth.getUser();
       const authorId = userData.user?.id;
+      const sortOrder = getNextSortOrder();
+      const tempId = `temp_${Date.now()}`;
 
-      const { error } = await supabase.from('day_entries').insert({
+      const newEntry = {
+        id: tempId,
         day_id: id,
         type,
         content: content.trim(),
         metadata,
-        sort_order: getNextSortOrder(),
-        author_id: authorId,
-      });
+        sort_order: sortOrder,
+        author_id: authorId ?? null,
+        author: userData.user ? { id: userData.user.id, username: '', display_name: '', avatar_url: null } : null,
+      } as DayEntry;
 
-      if (error) {
-        setSaving(false);
-        Alert.alert(t('common.error'), t('day.err_add_failed'));
-        console.error('Error adding entry:', error);
-        return false;
-      }
+      if (online) {
+        const { error } = await supabase.from('day_entries').insert({
+          day_id: id,
+          type,
+          content: content.trim(),
+          metadata,
+          sort_order: sortOrder,
+          author_id: authorId,
+        });
 
-      // For location entries with coordinates, also save to diary_locations via RPC
-      if (type === 'location' && metadata?.coordinates) {
-        try {
-          const { data: dayData } = await supabase
-            .from('diary_days')
-            .select('diary_id')
-            .eq('id', id)
-            .single();
-
-          if (dayData?.diary_id) {
-            const { lat, lng } = metadata.coordinates;
-            const { error: locError } = await supabase.rpc('insert_diary_location', {
-              p_diary_id: dayData.diary_id,
-              p_day_id: id,
-              p_name: content.trim(),
-              p_lat: lat,
-              p_lng: lng,
-            });
-            if (locError) {
-              console.error('Failed to save diary_location:', locError);
-              Alert.alert(t('common.warning'), t('day.map_save_failed'));
-            }
-          }
-        } catch (e) {
-          console.warn('Failed to save to diary_locations:', e);
+        if (error) {
+          setSaving(false);
+          Alert.alert(t('common.error'), t('day.err_add_failed'));
+          console.error('Error adding entry:', error);
+          return false;
         }
+
+        if (type === 'location' && metadata?.coordinates) {
+          try {
+            const { data: dayData } = await supabase
+              .from('diary_days')
+              .select('diary_id')
+              .eq('id', id)
+              .single();
+
+            if (dayData?.diary_id) {
+              const { lat, lng } = metadata.coordinates;
+              await supabase.rpc('insert_diary_location', {
+                p_diary_id: dayData.diary_id,
+                p_day_id: id,
+                p_name: content.trim(),
+                p_lat: lat,
+                p_lng: lng,
+              });
+            }
+          } catch (e) {
+            console.warn('Failed to save to diary_locations:', e);
+          }
+        }
+      } else {
+        setEntries(prev => [...prev, newEntry]);
+        await offlineQueue.addAction('CREATE', 'day_entries', {
+          day_id: id,
+          type,
+          content: content.trim(),
+          metadata,
+          sort_order: sortOrder,
+          author_id: authorId,
+        });
       }
 
       setSaving(false);
@@ -188,24 +232,40 @@ export function useDayEntries(dayId: string | string[]) {
     async (emoji: string, label: string) => {
       setSaving(true);
 
+      const networkState = await getNetworkStateAsync();
+      const online = networkState?.isConnected ?? true;
+
       const { data: userData } = await supabase.auth.getUser();
       const authorId = userData.user?.id;
+      const sortOrder = getNextSortOrder();
 
-      const { error } = await supabase.from('day_entries').insert({
-        day_id: id,
-        type: 'mood',
-        content: emoji,
-        metadata: { label },
-        sort_order: getNextSortOrder(),
-        author_id: authorId,
-      });
+      if (online) {
+        const { error } = await supabase.from('day_entries').insert({
+          day_id: id,
+          type: 'mood',
+          content: emoji,
+          metadata: { label },
+          sort_order: sortOrder,
+          author_id: authorId,
+        });
 
-      setSaving(false);
+        setSaving(false);
 
-      if (error) {
-        Alert.alert(t('common.error'), t('day.err_add_failed'));
-        console.error('Error adding mood:', error);
-        return false;
+        if (error) {
+          Alert.alert(t('common.error'), t('day.err_add_failed'));
+          console.error('Error adding mood:', error);
+          return false;
+        }
+      } else {
+        await offlineQueue.addAction('CREATE', 'day_entries', {
+          day_id: id,
+          type: 'mood',
+          content: emoji,
+          metadata: { label },
+          sort_order: sortOrder,
+          author_id: authorId,
+        });
+        setSaving(false);
       }
 
       await fetchEntries();
@@ -219,17 +279,33 @@ export function useDayEntries(dayId: string | string[]) {
       if (!newContent.trim()) return false;
       setSaving(true);
 
-      const { error } = await supabase
-        .from('day_entries')
-        .update({ content: newContent.trim() })
-        .eq('id', entryId);
+      const networkState = await getNetworkStateAsync();
+      const online = networkState?.isConnected ?? true;
 
-      setSaving(false);
+      if (online) {
+        const { error } = await supabase
+          .from('day_entries')
+          .update({ content: newContent.trim() })
+          .eq('id', entryId);
 
-      if (error) {
-        Alert.alert(t('common.error'), t('day.err_update_failed'));
-        console.error('Error updating entry:', error);
-        return false;
+        setSaving(false);
+
+        if (error) {
+          Alert.alert(t('common.error'), t('day.err_update_failed'));
+          console.error('Error updating entry:', error);
+          return false;
+        }
+      } else {
+        await offlineQueue.addAction('UPDATE', 'day_entries', {
+          id: entryId,
+          content: newContent.trim(),
+        });
+        setEntries(prev =>
+          prev.map(e =>
+            e.id === entryId ? { ...e, content: newContent.trim() } : e
+          )
+        );
+        setSaving(false);
       }
 
       await fetchEntries();
@@ -274,6 +350,9 @@ export function useDayEntries(dayId: string | string[]) {
             onPress: async () => {
               const entry = entries.find(e => e.id === entryId);
 
+              const networkState = await getNetworkStateAsync();
+              const online = networkState.isConnected ?? true;
+
               const pathsToRemove: string[] = [];
               if (entry?.type === 'photo' && entry.metadata?.storagePath) {
                 pathsToRemove.push(entry.metadata.storagePath);
@@ -291,21 +370,27 @@ export function useDayEntries(dayId: string | string[]) {
                     .from('diary-media')
                     .remove(pathsToRemove);
                 } catch (e) {
-                  // Best-effort cleanup
                   console.warn('Failed to cleanup media', e);
                 }
               }
 
-              const { error } = await supabase
-                .from('day_entries')
-                .delete()
-                .eq('id', entryId);
+              if (online) {
+                const { error } = await supabase
+                  .from('day_entries')
+                  .delete()
+                  .eq('id', entryId);
 
-              if (!error) {
-                await fetchEntries();
+                if (!error) {
+                  await fetchEntries();
+                } else {
+                  Alert.alert(t('common.error'), t('day.err_delete_failed'));
+                  console.error('Error deleting entry:', error);
+                }
               } else {
-                Alert.alert(t('common.error'), t('day.err_delete_failed'));
-                console.error('Error deleting entry:', error);
+                setEntries(prev => prev.filter(e => e.id !== entryId));
+                await offlineQueue.addAction('DELETE', 'day_entries', {
+                  id: entryId,
+                });
               }
               resolve();
             },
@@ -321,6 +406,7 @@ export function useDayEntries(dayId: string | string[]) {
     entries,
     loading,
     saving,
+    isOnline,
     fetchDayInfo,
     fetchEntries,
     addEntry,

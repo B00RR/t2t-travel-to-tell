@@ -28,3 +28,7 @@ coverage/
 # Temp
 *.log
 npm-debug.log*
+
+# Supabase
+.supabase-connection.json
+migrate.js

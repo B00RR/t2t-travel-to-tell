@@ -7,8 +7,11 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import * as WebBrowser from 'expo-web-browser';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius, Typography } from '@/constants/theme';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -17,6 +20,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
 
   async function handleLogin() {
@@ -48,6 +52,57 @@ export default function LoginScreen() {
       router.replace('/(app)' as any);
     }
     setLoading(false);
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 't2tapp://login',
+          skipBrowserRedirect: false,
+        },
+      });
+
+      if (error) {
+        console.error('Google sign in error:', error);
+        Alert.alert(t('common.error'), t('auth.err_google_failed'));
+        setGoogleLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          't2tapp://login'
+        );
+
+        if (result.type === 'cancel') {
+          setGoogleLoading(false);
+          return;
+        }
+
+        if (result.type === 'success') {
+          const url = result.url;
+          if (url.includes('access_token=') || url.includes('auth_callback')) {
+            const { data: authData, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || !authData.session) {
+              Alert.alert(t('common.error'), t('auth.err_google_failed'));
+            } else {
+              router.replace('/(app)' as any);
+            }
+          }
+        } else {
+          Alert.alert(t('common.error'), t('auth.err_google_failed'));
+        }
+      }
+    } catch (e) {
+      console.error('Google sign in exception:', e);
+      Alert.alert(t('common.error'), t('auth.err_google_failed'));
+    } finally {
+      setGoogleLoading(false);
+    }
   }
 
   return (
@@ -135,6 +190,30 @@ export default function LoginScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>{t('common.login')}</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.dividerRow}>
+              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+              <Text style={[styles.dividerText, { color: theme.textMuted }]}>{t('auth.continue_with')}</Text>
+              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.googleButton, { backgroundColor: theme.bgSurface, borderColor: theme.border }]}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading}
+              activeOpacity={0.85}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={theme.textPrimary} />
+              ) : (
+                <>
+                  <View style={styles.googleIconWrap}>
+                    <Text style={styles.googleIconText}>G</Text>
+                  </View>
+                  <Text style={[styles.googleButtonText, { color: theme.textPrimary }]}>{t('auth.google')}</Text>
+                </>
               )}
             </TouchableOpacity>
 
@@ -240,6 +319,48 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    borderRadius: Radius.sm,
+    height: 52,
+    borderWidth: 1,
+  },
+  googleIconWrap: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#dadce0',
+  },
+  googleIconText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4285f4',
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   footerRow: {
     alignItems: 'center',

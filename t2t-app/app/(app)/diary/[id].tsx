@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as Linking from 'expo-linking';
 import {
-  View, Text, StyleSheet, ActivityIndicator, TouchableOpacity,
-  Alert, Dimensions, FlatList, Share, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  ActivityIndicator, Alert, Image, Dimensions, Share,
+  Modal, TextInput, FlatList, Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -120,11 +122,13 @@ export default function DiaryDetailScreen() {
 
   async function handleShare() {
     if (!diary) return;
+    const deepLink = Linking.createURL(`diary/${diary.id}`);
     const destinations = diary.destinations?.join(', ') || '';
     const message = [
       `📖 ${diary.title}`,
       destinations ? `📍 ${destinations}` : null,
       diary.description ? `\n${diary.description}` : null,
+      `\n🔗 ${deepLink}`,
       `\n🌍 T2T — Travel to Tell`,
     ].filter(Boolean).join('\n');
     try { await Share.share({ message, title: diary.title }); } catch {}
@@ -139,12 +143,12 @@ export default function DiaryDetailScreen() {
       buttons.push({
         text: t('diary.edit_diary'),
         onPress: () =>
-          router.push({ pathname: '/diary/edit/[id]', params: { id: id as string } }),
+          router.push({ pathname: '/diary/edit/[id]' as any, params: { id: id as string } }),
       });
       buttons.push({
         text: t('collab.manage'),
         onPress: () =>
-          router.push({ pathname: '/diary/collaborators', params: { id: id as string } }),
+          router.push({ pathname: '/diary/collaborators' as any, params: { id: id as string } }),
       });
       buttons.push({
         text: t('diary.delete_diary'),
@@ -271,7 +275,7 @@ export default function DiaryDetailScreen() {
                   size={20}
                   onPress={
                     isOwner
-                      ? () => router.push({ pathname: '/diary/collaborators', params: { id: id as string } })
+                      ? () => router.push({ pathname: '/diary/collaborators' as any, params: { id: id as string } })
                       : undefined
                   }
                 />
@@ -340,7 +344,7 @@ export default function DiaryDetailScreen() {
                 size={20}
                 onPress={
                   isOwner
-                    ? () => router.push({ pathname: '/diary/collaborators', params: { id: id as string } })
+                    ? () => router.push({ pathname: '/diary/collaborators' as any, params: { id: id as string } })
                     : undefined
                 }
               />

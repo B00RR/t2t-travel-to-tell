@@ -17,6 +17,7 @@ import type { FeedDiary } from '@/types/supabase';
 import type { SortMode, DurationFilter } from '@/components/explore/SortBar';
 import { ListHeader } from '@/components/explore/ListHeader';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
+import { AdvancedFiltersModal, FilterBadge, matchesAdvancedFilters, type AdvancedFilters } from '@/components/explore/AdvancedFilters';
 
 type ExploreMode = 'browse' | 'map';
 
@@ -48,6 +49,8 @@ export default function DiscoveryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [durationFilter, setDurationFilter] = useState<DurationFilter>('all');
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({ budget: 'all', tripType: 'all', season: 'all' });
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [diaries, setDiaries] = useState<FeedDiary[]>([]);
   const [trendingDiaries, setTrendingDiaries] = useState<FeedDiary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -232,12 +235,15 @@ export default function DiscoveryScreen() {
     []
   );
 
-  const displayDiaries = useMemo(() =>
-    sortMode === 'trending'
+  const displayDiaries = useMemo(() => {
+    const filtered = (sortMode === 'trending'
       ? trendingDiaries.filter(d => matchesDuration(d, durationFilter))
-      : diaries.filter(d => matchesDuration(d, durationFilter)),
-    [sortMode, durationFilter, trendingDiaries, diaries]
-  );
+      : diaries.filter(d => matchesDuration(d, durationFilter))
+    ).filter(d => matchesAdvancedFilters(d, advancedFilters));
+    return filtered;
+  }, [sortMode, durationFilter, trendingDiaries, diaries, advancedFilters]);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const isSearchMode = searchQuery.trim().length > 0;
 
@@ -302,8 +308,30 @@ export default function DiscoveryScreen() {
               <Ionicons name="close-circle" size={20} color={theme.textMuted} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            style={styles.filterBtn}
+            onPress={() => setShowAdvancedFilters(true)}
+          >
+            <Ionicons name="options-outline" size={20} color={theme.textMuted} />
+            <FilterBadge
+              count={[
+                advancedFilters.budget !== 'all',
+                advancedFilters.tripType !== 'all',
+                advancedFilters.season !== 'all',
+              ].filter(Boolean).length}
+              theme={theme}
+              onPress={() => setShowAdvancedFilters(true)}
+            />
+          </TouchableOpacity>
         </View>
       </View>
+
+      <AdvancedFiltersModal
+        visible={showAdvancedFilters}
+        onClose={() => setShowAdvancedFilters(false)}
+        filters={advancedFilters}
+        onFiltersChange={setAdvancedFilters}
+      />
 
       {loading && !refreshing ? (
         <View style={styles.listContent}>
@@ -358,79 +386,89 @@ export default function DiscoveryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  headerTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  mapHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    zIndex: 2,
-  },
-  modeToggleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  headerTitle: {
-    ...Typography.h1,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: Radius.sm,
-    paddingHorizontal: 12,
-    height: 44,
-    borderWidth: 1,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-  },
-  listContent: {
-    padding: 10,
-    paddingBottom: 100,
-  },
-  columnWrapper: {
-    justifyContent: 'space-between',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 100,
-  },
-  emptyText: {
-    fontSize: 16,
-    marginTop: 16,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-  },
-  footerLoader: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-});
+function createStyles(t: ReturnType<typeof useAppTheme>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      paddingTop: Platform.OS === 'ios' ? 56 : 40,
+      paddingHorizontal: 20,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+    },
+    headerTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Spacing.md,
+    },
+    mapHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: Platform.OS === 'ios' ? 56 : 40,
+      paddingHorizontal: 20,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      zIndex: 2,
+    },
+    modeToggleBtn: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+    },
+    headerTitle: {
+      ...Typography.h1,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: Radius.sm,
+      paddingHorizontal: 12,
+      height: 44,
+      borderWidth: 1,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    filterBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingLeft: 8,
+      borderLeftWidth: 1,
+      borderLeftColor: t.border,
+      marginLeft: 8,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+    },
+    listContent: {
+      padding: 10,
+      paddingBottom: 100,
+    },
+    columnWrapper: {
+      justifyContent: 'space-between',
+    },
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 100,
+    },
+    emptyText: {
+      fontSize: 16,
+      marginTop: 16,
+      textAlign: 'center',
+      paddingHorizontal: 40,
+    },
+    footerLoader: {
+      paddingVertical: 20,
+      alignItems: 'center',
+    },
+  });
+}

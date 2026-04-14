@@ -65,12 +65,41 @@
     "sort_popular": "Più Popolari",
     "sort_trending": "Tendenza",
     "duration_all": "Tutti",
-    "duration_short": "Breve (≤4gg)",
+    "duration_short": "Breve (<4gg)",
     "duration_medium": "Media (5-14gg)",
     "duration_long": "Lungo (15+gg)",
     "suggestions_title": "Persone da seguire",
     "suggestions_diaries": "diari",
     "wanderlust_map": "Mappa Wanderlust"
+  },
+  "filter": {
+    "title": "Filtri",
+    "reset": "Reimposta",
+    "apply": "Applica",
+    "apply_default": "Applica",
+    "active": "attivi",
+    "budget_title": "Budget",
+    "trip_type_title": "Tipo di Viaggio",
+    "season_title": "Stagione",
+    "all": "Tutti",
+    "budget_free": "Gratuito",
+    "budget_budget": "Economico (<50EUR)",
+    "budget_moderate": "Moderato (50-100EUR)",
+    "budget_expensive": "Costoso (100-200EUR)",
+    "budget_luxury": "Lusso (>200EUR)",
+    "trip_type_all": "Tutti i Tipi",
+    "trip_type_adventure": "Avventura",
+    "trip_type_relaxation": "Relax",
+    "trip_type_cultural": "Culturale",
+    "trip_type_nature": "Natura",
+    "trip_type_city": "Città",
+    "trip_type_beach": "Spiaggia",
+    "trip_type_food": "Enogastronomia",
+    "season_all": "Tutte le Stagioni",
+    "season_spring": "Primavera",
+    "season_summer": "Estate",
+    "season_fall": "Autunno",
+    "season_winter": "Inverno"
   },
   "profile": {
     "title": "Profilo",
@@ -122,10 +151,15 @@
     "err_comment_validation": "Commento non valido",
     "err_comment_post": "Impossibile pubblicare il commento.",
     "err_comment_delete": "Impossibile eliminare il commento.",
+    "err_comment_update": "Impossibile aggiornare il commento.",
     "err_follow_toggle": "Impossibile aggiornare lo stato del follow.",
     "delete_comment": "Elimina",
     "delete_comment_confirm": "Vuoi eliminare questo commento?",
-    "share_message": "Scopri questo diario di viaggio: {{title}}"
+    "share_message": "Scopri questo diario di viaggio: {{title}}",
+    "reply": "Rispondi",
+    "add_reply": "Scrivi una risposta...",
+    "show_replies": "Mostra {{count}} risposte",
+    "hide_replies": "Nascondi risposte"
   },
   "diary": {
     "options": "Opzioni Diario",
@@ -295,7 +329,11 @@
     "register_now": "Registrati",
     "email_placeholder": "email@example.com",
     "password_placeholder": "••••••••",
-    "register_success": "Registrazione completata! Controlla la tua email."
+    "register_success": "Registrazione completata! Controlla la tua email.",
+    "continue_with": "Oppure continua con",
+    "google": "Google",
+    "err_google_failed": "Accesso con Google fallito. Riprova.",
+    "err_google_no_account": "Nessun account trovato con questo Google. Registrati prima."
   },
   "planner": {
     "tab": "Planner",
@@ -477,7 +515,17 @@
     "unknown_author": "Sconosciuto",
     "collab_badge": "Collab",
     "count": "{{current}}/{{max}} collaboratori",
-    "diary_title_fallback": "un diario"
+    "diary_title_fallback": "un diario",
+    "plan_invite_error": "Impossibile invitare al piano",
+    "plan_user_not_found": "Utente non trovato",
+    "plan_cannot_invite_self": "Non puoi invitare te stesso",
+    "plan_limit_reached": "Massimo 10 collaboratori per piano",
+    "plan_already_collaborator": "L'utente è già un collaboratore",
+    "plan_remove_confirm_title": "Rimuovi collaboratore",
+    "plan_remove_confirm_msg": "Rimuovere questo collaboratore dal piano di viaggio?",
+    "plan_leave": "Lascia il piano",
+    "plan_leave_confirm_title": "Lasciare questo piano di viaggio?",
+    "plan_leave_confirm_msg": "Non potrai più modificare questo piano."
   },
   "settings": {
     "title": "Impostazioni",
@@ -549,5 +597,18 @@
     "slide4_title": "La Tua Mappa",
     "slide4_desc": "Ogni diario aggiunge un pin alla tua mappa personale. Costruisci il tuo passaporto digitale.",
     "slide4_accent": "Fissa i tuoi ricordi nel mondo"
+  },
+  "offline": {
+    "offline_mode": "Sei offline",
+    "pending_actions": "{{count}} azione(i) in coda",
+    "syncing": "Sincronizzazione...",
+    "tap_to_sync": "Tocca per sincronizzare"
+  },
+  "realtime": {
+    "collaborator_online": "{{name}} è online",
+    "collaborators_online": "{{count}} collaboratori online",
+    "editing": "sta modificando",
+    "viewing": "sta visualizzando",
+    "sync_indicator": "Sincronizzato"
   }
 }

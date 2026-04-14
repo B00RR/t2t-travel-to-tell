@@ -603,5 +603,12 @@
     "pending_actions": "{{count}} pending action(s)",
     "syncing": "Syncing...",
     "tap_to_sync": "Tap to sync"
+  },
+  "realtime": {
+    "collaborator_online": "{{name}} is online",
+    "collaborators_online": "{{count}} collaborators online",
+    "editing": "editing",
+    "viewing": "viewing",
+    "sync_indicator": "Synced"
   }
 }

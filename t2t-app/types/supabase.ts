@@ -65,6 +65,7 @@ export type Database = {
       }
       day_entries: {
         Row: {
+          author_id: string | null
           content: string | null
           day_id: string
           id: string
@@ -73,6 +74,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          author_id?: string | null
           content?: string | null
           day_id: string
           id?: string
@@ -81,6 +83,7 @@ export type Database = {
           type: string
         }
         Update: {
+          author_id?: string | null
           content?: string | null
           day_id?: string
           id?: string
@@ -91,6 +94,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "day_entries_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "diary_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "day_entries_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_presence: {
+        Row: {
+          day_id: string | null
+          diary_id: string
+          last_seen: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          day_id?: string | null
+          diary_id: string
+          last_seen?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          day_id?: string | null
+          diary_id?: string
+          last_seen?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_presence_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_presence_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_presence_day_id_fkey"
             columns: ["day_id"]
             isOneToOne: false
             referencedRelation: "diary_days"
@@ -251,6 +307,58 @@ export type Database = {
             columns: ["diary_id"]
             isOneToOne: false
             referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_collaborators: {
+        Row: {
+          id: string
+          diary_id: string
+          invited_at: string
+          invited_by: string
+          responded_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          diary_id: string
+          id?: string
+          invited_at?: string
+          invited_by: string
+          responded_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          diary_id?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string
+          responded_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_collaborators_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_collaborators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_collaborators_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1014,6 +1122,18 @@ export type Database = {
           p_name: string
         }
         Returns: undefined
+      }
+      get_diary_presence: {
+        Args: { p_diary_id: string }
+        Returns: {
+          user_id: string
+          username: string | null
+          display_name: string | null
+          avatar_url: string | null
+          day_id: string | null
+          status: string
+          last_seen: string
+        }[]
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
       populate_geometry_columns:

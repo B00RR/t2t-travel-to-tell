@@ -603,5 +603,12 @@
     "pending_actions": "{{count}} azione(i) in coda",
     "syncing": "Sincronizzazione...",
     "tap_to_sync": "Tocca per sincronizzare"
+  },
+  "realtime": {
+    "collaborator_online": "{{name}} è online",
+    "collaborators_online": "{{count}} collaboratori online",
+    "editing": "sta modificando",
+    "viewing": "sta visualizzando",
+    "sync_indicator": "Sincronizzato"
   }
 }

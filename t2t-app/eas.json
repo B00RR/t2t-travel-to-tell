@@ -10,6 +10,13 @@
       "cache": {
         "key": "development-v2",
         "paths": [".expo"]
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://zlgxvogwyvqmezzhelfn.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpsZ3h2b2d3eXZxbWV6emhlbGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDQyMTcsImV4cCI6MjA4OTQyMDIxN30.rodqqeatWQs0GqyEiz3JnDXx1V1vFvvtEFFIT2BQwQw",
+        "EXPO_PUBLIC_PEXELS_API_KEY": "vF4hj3FaUCxRGJWRp6bhWC0lvuhYDY2skOxf1lBxQlPmd2TJ7TJBlhyA",
+        "EXPO_PUBLIC_RAPIDAPI_KEY": "97d574e580msh85e48806d477ce7p1b7640jsnb4457213eaed",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyBBbKqn5g68HxIHbzcM6JNOdbBVBD9_zUw"
       }
     },
     "preview": {
@@ -20,6 +27,13 @@
       "cache": {
         "key": "preview-v2",
         "paths": [".expo"]
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://zlgxvogwyvqmezzhelfn.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpsZ3h2b2d3eXZxbWV6emhlbGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDQyMTcsImV4cCI6MjA4OTQyMDIxN30.rodqqeatWQs0GqyEiz3JnDXx1V1vFvvtEFFIT2BQwQw",
+        "EXPO_PUBLIC_PEXELS_API_KEY": "vF4hj3FaUCxRGJWRp6bhWC0lvuhYDY2skOxf1lBxQlPmd2TJ7TJBlhyA",
+        "EXPO_PUBLIC_RAPIDAPI_KEY": "97d574e580msh85e48806d477ce7p1b7640jsnb4457213eaed",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyBBbKqn5g68HxIHbzcM6JNOdbBVBD9_zUw"
       }
     },
     "production": {
@@ -27,6 +41,13 @@
       "cache": {
         "key": "production-v2",
         "paths": [".expo"]
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://zlgxvogwyvqmezzhelfn.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpsZ3h2b2d3eXZxbWV6emhlbGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDQyMTcsImV4cCI6MjA4OTQyMDIxN30.rodqqeatWQs0GqyEiz3JnDXx1V1vFvvtEFFIT2BQwQw",
+        "EXPO_PUBLIC_PEXELS_API_KEY": "vF4hj3FaUCxRGJWRp6bhWC0lvuhYDY2skOxf1lBxQlPmd2TJ7TJBlhyA",
+        "EXPO_PUBLIC_RAPIDAPI_KEY": "97d574e580msh85e48806d477ce7p1b7640jsnb4457213eaed",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyBBbKqn5g68HxIHbzcM6JNOdbBVBD9_zUw"
       }
     }
   },

@@ -4,7 +4,7 @@ import * as Linking from 'expo-linking';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, Image, Dimensions, Share,
-  Modal, TextInput,
+  Modal, TextInput, FlatList, Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,

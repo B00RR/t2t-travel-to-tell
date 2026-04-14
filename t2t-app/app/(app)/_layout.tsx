@@ -36,6 +36,14 @@ export default function AppLayout() {
         options={pushTransition}
       />
       <Stack.Screen
+        name="settings/password"
+        options={pushTransition}
+      />
+      <Stack.Screen
+        name="settings/delete-account"
+        options={pushTransition}
+      />
+      <Stack.Screen
         name="planner/[id]"
         options={fadeSlideTransition}
       />

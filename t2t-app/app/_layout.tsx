@@ -21,6 +21,7 @@ import 'react-native-reanimated';
 import '../i18n';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { ThemePreferenceProvider } from '@/hooks/useThemePreference';
 
 export { ErrorBoundary };
 
@@ -73,9 +74,11 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <RootLayoutNav />
-      </AuthProvider>
+      <ThemePreferenceProvider>
+        <AuthProvider>
+          <RootLayoutNav />
+        </AuthProvider>
+      </ThemePreferenceProvider>
     </GestureHandlerRootView>
   );
 }

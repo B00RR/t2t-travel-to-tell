@@ -1,4 +1,5 @@
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useThemePreference } from '@/hooks/useThemePreference';
 import { Palette } from '@/constants/theme';
 
 /**
@@ -148,6 +149,11 @@ const dark: AppTheme = {
 };
 
 export function useAppTheme(): AppTheme {
-  const scheme = useColorScheme() ?? 'light';
+  // User-selected override ('light' | 'dark' | 'system') takes precedence
+  // over the OS color scheme. `useThemePreference` is provider-aware and
+  // falls back to system when the provider isn't mounted (e.g. tests).
+  const { resolved } = useThemePreference();
+  const systemFallback = useColorScheme() ?? 'light';
+  const scheme = resolved ?? systemFallback;
   return scheme === 'dark' ? dark : light;
 }

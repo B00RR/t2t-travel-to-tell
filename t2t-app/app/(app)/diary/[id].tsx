@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as Linking from 'expo-linking';
 import {
-  View, Text, StyleSheet, ActivityIndicator, TouchableOpacity,
-  Alert, Dimensions, FlatList, Share, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  ActivityIndicator, Alert, Image, Dimensions, Share,
+  Modal, TextInput,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -120,11 +122,13 @@ export default function DiaryDetailScreen() {
 
   async function handleShare() {
     if (!diary) return;
+    const deepLink = Linking.createURL(`diary/${diary.id}`);
     const destinations = diary.destinations?.join(', ') || '';
     const message = [
       `📖 ${diary.title}`,
       destinations ? `📍 ${destinations}` : null,
       diary.description ? `\n${diary.description}` : null,
+      `\n🔗 ${deepLink}`,
       `\n🌍 T2T — Travel to Tell`,
     ].filter(Boolean).join('\n');
     try { await Share.share({ message, title: diary.title }); } catch {}

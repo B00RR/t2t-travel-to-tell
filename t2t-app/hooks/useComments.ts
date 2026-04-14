@@ -86,6 +86,31 @@ export function useComments() {
     ]);
   }, [fetchComments, t]);
 
+  const updateComment = useCallback(async (commentId: string, diaryId: string, content: string) => {
+    const validation = validateComment(content);
+    if (!validation.valid) {
+      Alert.alert(t('social.err_comment_validation'), validation.reason);
+      return false;
+    }
+
+    setSubmitting(true);
+
+    const { error: dbError } = await supabase
+      .from('comments')
+      .update({ content: validation.sanitized })
+      .eq('id', commentId);
+
+    setSubmitting(false);
+
+    if (dbError) {
+      Alert.alert(t('common.error'), t('social.err_comment_update'));
+      return false;
+    }
+
+    await fetchComments(diaryId);
+    return true;
+  }, [fetchComments, t]);
+
   return {
     comments,
     loading,
@@ -94,5 +119,6 @@ export function useComments() {
     fetchComments,
     addComment,
     deleteComment,
+    updateComment,
   };
 }

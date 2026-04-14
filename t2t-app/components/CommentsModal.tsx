@@ -21,20 +21,26 @@ interface CommentsModalProps {
 export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsModalProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const { comments, loading, submitting, fetchComments, addComment, deleteComment } = useComments();
+  const { comments, loading, submitting, fetchComments, addComment, deleteComment, updateComment } = useComments();
   const [inputText, setInputText] = useState('');
 
   const handleDelete = useCallback((commentId: string) => {
     deleteComment(commentId, diaryId);
   }, [deleteComment, diaryId]);
 
+  const handleEdit = useCallback((commentId: string, content: string) => {
+    updateComment(commentId, diaryId, content);
+  }, [updateComment, diaryId]);
+
   const renderComment = useCallback(({ item }: { item: typeof comments[number] }) => (
     <CommentItem
       comment={item}
       currentUserId={userId}
       onDelete={handleDelete}
+      onEdit={handleEdit}
+      isSubmitting={submitting}
     />
-  ), [userId, handleDelete]);
+  ), [userId, handleDelete, handleEdit, submitting]);
 
   useEffect(() => {
     if (visible && diaryId) {

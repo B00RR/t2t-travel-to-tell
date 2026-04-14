@@ -151,6 +151,7 @@
     "err_comment_validation": "Commento non valido",
     "err_comment_post": "Impossibile pubblicare il commento.",
     "err_comment_delete": "Impossibile eliminare il commento.",
+    "err_comment_update": "Impossibile aggiornare il commento.",
     "err_follow_toggle": "Impossibile aggiornare lo stato del follow.",
     "delete_comment": "Elimina",
     "delete_comment_confirm": "Vuoi eliminare questo commento?",

@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, Image, Dimensions, Share,
   Modal, TextInput,
 } from 'react-native';
+import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -94,6 +95,7 @@ export default function TripPlanDetailScreen() {
 
   async function handleShare() {
     if (!plan) return;
+    const deepLink = Linking.createURL(`planner/${plan.id}`);
     const dests = plan.destinations?.join(', ') || '';
     const lines: string[] = [];
     lines.push(`🗺️ ${plan.title}`);
@@ -109,6 +111,7 @@ export default function TripPlanDetailScreen() {
     }
     const budget = plan.budget_estimate as Record<string, any> | null;
     if (budget?.total) lines.push(`\n💰 Budget: ${budget.total} ${budget.currency || 'EUR'}`);
+    lines.push(`\n🔗 ${deepLink}`);
     lines.push(`\n✈️ Pianifica su T2T — Travel to Tell`);
     try { await Share.share({ message: lines.join('\n'), title: plan.title }); } catch {}
   }

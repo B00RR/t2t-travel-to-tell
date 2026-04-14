@@ -481,7 +481,17 @@
     "unknown_author": "Unknown",
     "collab_badge": "Collab",
     "count": "{{current}}/{{max}} collaborators",
-    "diary_title_fallback": "a diary"
+    "diary_title_fallback": "a diary",
+    "plan_invite_error": "Unable to invite to trip plan",
+    "plan_user_not_found": "User not found",
+    "plan_cannot_invite_self": "You cannot invite yourself",
+    "plan_limit_reached": "Max 10 collaborators per plan",
+    "plan_already_collaborator": "User is already a collaborator",
+    "plan_remove_confirm_title": "Remove collaborator",
+    "plan_remove_confirm_msg": "Remove this collaborator from the trip plan?",
+    "plan_leave": "Leave plan",
+    "plan_leave_confirm_title": "Leave this trip plan?",
+    "plan_leave_confirm_msg": "You will no longer be able to edit this plan."
   },
   "settings": {
     "title": "Settings",

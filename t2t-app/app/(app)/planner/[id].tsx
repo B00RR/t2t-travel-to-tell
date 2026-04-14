@@ -10,10 +10,13 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useTripPlanDetail } from '@/hooks/useTripPlanDetail';
 import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
+import { useTripPlanCollaborators } from '@/hooks/useTripPlanCollaborators';
 import { TripPlanStopItem } from '@/components/TripPlanStopItem';
 import { ChecklistSection } from '@/components/ChecklistSection';
 import { BudgetSection } from '@/components/BudgetSection';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
+import { InviteCollaboratorModal } from '@/components/InviteCollaboratorModal';
+import { TripPlanCollaboratorListItem } from '@/components/TripPlanCollaboratorListItem';
 import type { TripPlan } from '@/types/tripPlan';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
 
@@ -38,9 +41,21 @@ export default function TripPlanDetailScreen() {
 
   const { creating, clonePlan } = useCreateTripPlan(user?.id);
   const isOwner = plan?.author_id === user?.id;
+  const isCollaborator = !isOwner;
+
+  const {
+    collaborators,
+    pending,
+    loading: collabLoading,
+    refresh: refreshCollab,
+    inviteCollaborator,
+    removeCollaborator,
+    leaveCollaboration,
+  } = useTripPlanCollaborators(isOwner || isCollaborator ? (id as string) : undefined);
 
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
+  const [showCollabModal, setShowCollabModal] = useState(false);
   const [editForm, setEditForm] = useState({
     title: '', description: '', destinations: '',
     start_date: '', end_date: '', visibility: 'private' as Visibility,
@@ -202,6 +217,73 @@ export default function TripPlanDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t('collab.title')}</Text>
+            {(isOwner || isCollaborator) && (
+              <TouchableOpacity style={styles.addBtn} onPress={() => setShowCollabModal(true)} disabled={collabLoading}>
+                <Ionicons name="people-outline" size={16} color="#fff" />
+                <Text style={styles.addBtnText}>{t('collab.manage')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {collabLoading ? (
+            <ActivityIndicator size="small" color={theme.teal} />
+          ) : collaborators.length > 0 || pending.length > 0 ? (
+            <View style={styles.collabSection}>
+              {pending.length > 0 && (
+                <>
+                  <Text style={[styles.collabLabel, { color: theme.textMuted }]}>
+                    {t('collab.pending_section', { count: pending.length })}
+                  </Text>
+                  {pending.map(c => (
+                    <TripPlanCollaboratorListItem
+                      key={c.id}
+                      collaborator={c}
+                      canRemove={isOwner}
+                      onRemove={removeCollaborator}
+                      isPending
+                    />
+                  ))}
+                </>
+              )}
+              {collaborators.length > 0 && (
+                <>
+                  <Text style={[styles.collabLabel, { color: theme.textMuted }]}>
+                    {t('collab.accepted_section', { count: collaborators.length })}
+                  </Text>
+                  {collaborators.map(c => (
+                    <TripPlanCollaboratorListItem
+                      key={c.id}
+                      collaborator={c}
+                      canRemove={isOwner}
+                      onRemove={removeCollaborator}
+                    />
+                  ))}
+                </>
+              )}
+            </View>
+          ) : (
+            <Text style={[styles.emptyText, { marginBottom: 16 }]}>{t('collab.empty')}</Text>
+          )}
+
+          {isCollaborator && (
+            <TouchableOpacity style={styles.leaveBtn} onPress={() => {
+              Alert.alert(t('collab.plan_leave_confirm_title'), t('collab.plan_leave_confirm_msg'), [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('collab.plan_leave'), style: 'destructive', onPress: async () => {
+                  const ok = await leaveCollaboration();
+                  if (ok) router.replace('/(app)/(tabs)/explore/planner' as never);
+                }},
+              ]);
+            }}>
+              <Ionicons name="exit-outline" size={16} color={theme.red} />
+              <Text style={[styles.leaveBtnText, { color: theme.red }]}>{t('collab.plan_leave')}</Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.divider} />
+
+          <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('planner.stops')}</Text>
             {isOwner && (
               <TouchableOpacity style={styles.addBtn} onPress={handleAddStop} disabled={saving}>
@@ -232,6 +314,13 @@ export default function TripPlanDetailScreen() {
       </ScrollView>
 
       <CoverImagePicker visible={showCoverPicker} itemId={id as string} table="trip_plans" userId={user?.id} destinations={plan.destinations || []} onCoverSet={(url) => updatePlan({ cover_image_url: url })} onClose={() => setShowCoverPicker(false)} />
+
+      <InviteCollaboratorModal
+        visible={showCollabModal}
+        onClose={() => setShowCollabModal(false)}
+        onInvite={inviteCollaborator}
+        excludedUserIds={[plan?.author_id || '', ...collaborators.map(c => c.user_id), ...pending.map(p => p.user_id)]}
+      />
 
       {/* Edit Metadata Modal */}
       <Modal visible={editVisible} animationType="slide" presentationStyle="pageSheet">
@@ -313,6 +402,10 @@ function makeStyles(t: AppTheme) {
     addBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
     emptyStops: { alignItems: 'center', paddingVertical: 24, gap: 10 },
     emptyText: { fontSize: 15, color: t.textMuted, textAlign: 'center' },
+    collabSection: { marginBottom: 16 },
+    collabLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 4 },
+    leaveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, marginTop: 8 },
+    leaveBtnText: { fontSize: 14, fontWeight: '600' },
     modalContainer: { flex: 1, backgroundColor: t.bg },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: t.border },
     modalCancel: { fontSize: 16, color: t.textSecondary },

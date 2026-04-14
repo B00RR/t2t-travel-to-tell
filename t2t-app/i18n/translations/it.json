@@ -481,7 +481,17 @@
     "unknown_author": "Sconosciuto",
     "collab_badge": "Collab",
     "count": "{{current}}/{{max}} collaboratori",
-    "diary_title_fallback": "un diario"
+    "diary_title_fallback": "un diario",
+    "plan_invite_error": "Impossibile invitare al piano",
+    "plan_user_not_found": "Utente non trovato",
+    "plan_cannot_invite_self": "Non puoi invitare te stesso",
+    "plan_limit_reached": "Massimo 10 collaboratori per piano",
+    "plan_already_collaborator": "L'utente è già un collaboratore",
+    "plan_remove_confirm_title": "Rimuovi collaboratore",
+    "plan_remove_confirm_msg": "Rimuovere questo collaboratore dal piano di viaggio?",
+    "plan_leave": "Lascia il piano",
+    "plan_leave_confirm_title": "Lasciare questo piano di viaggio?",
+    "plan_leave_confirm_msg": "Non potrai più modificare questo piano."
   },
   "settings": {
     "title": "Impostazioni",

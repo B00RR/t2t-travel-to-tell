@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, type ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -81,6 +81,7 @@ export function KenBurnsImage({
       cancelAnimation(translateX);
       cancelAnimation(translateY);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paused, duration, maxScale, uri]);
 
   const animatedStyle = useAnimatedStyle(() => ({

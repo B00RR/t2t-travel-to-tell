@@ -169,6 +169,7 @@ export default function TravelSearchScreen() {
     setCategory(cat);
     flightSearch.clear();
     hotelSearch.clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = useCallback((query: string) => {

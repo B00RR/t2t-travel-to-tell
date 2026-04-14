@@ -63,7 +63,7 @@ export function CoverImagePicker({
       if (error) throw error;
       onCoverSet(url);
       onClose();
-    } catch (e) {
+    } catch {
       Alert.alert(t('common.error'), t('cover.err_set_failed'));
     } finally {
       setUploading(false);

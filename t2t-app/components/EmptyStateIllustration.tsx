@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withRepeat, withTiming,
-  withSequence, withDelay, FadeInUp, withSpring,
+  withSequence, withDelay, FadeInUp,
   Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -71,6 +71,7 @@ function EmptyStateIllustrationComponent({ type, title, subtitle, accent }: Empt
       -1,
       true,
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const mainIconStyle = useAnimatedStyle(() => ({

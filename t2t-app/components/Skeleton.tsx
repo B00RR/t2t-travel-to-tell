@@ -31,6 +31,7 @@ export const Skeleton = ({ width, height, borderRadius, style }: SkeletonProps) 
       -1, // infinite
       true // reverse
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

@@ -14,7 +14,7 @@ import { TripPlanStopItem } from '@/components/TripPlanStopItem';
 import { ChecklistSection } from '@/components/ChecklistSection';
 import { BudgetSection } from '@/components/BudgetSection';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
-import type { TripPlanStop, TripPlan } from '@/types/tripPlan';
+import type { TripPlan } from '@/types/tripPlan';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
 
 type Visibility = TripPlan['visibility'];
@@ -95,7 +95,7 @@ export default function TripPlanDetailScreen() {
     const budget = plan.budget_estimate as Record<string, any> | null;
     if (budget?.total) lines.push(`\n💰 Budget: ${budget.total} ${budget.currency || 'EUR'}`);
     lines.push(`\n✈️ Pianifica su T2T — Travel to Tell`);
-    try { await Share.share({ message: lines.join('\n'), title: plan.title }); } catch (_) {}
+    try { await Share.share({ message: lines.join('\n'), title: plan.title }); } catch {}
   }
 
   async function handleClone() {

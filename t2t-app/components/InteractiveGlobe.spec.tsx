@@ -4,6 +4,7 @@ import { InteractiveGlobe } from './InteractiveGlobe';
 
 jest.mock('@react-three/fiber/native', () => ({
   Canvas: ({ children, testID }: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { View } = require('react-native');
     return <View testID={testID}>{children}</View>;
   },

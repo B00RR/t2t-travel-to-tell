@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Animated, {
   useSharedValue,
@@ -50,6 +50,7 @@ export function JourneyMap({ userId }: JourneyMapProps) {
       opacity.value = withDelay(200, withTiming(1, { duration: 600, easing: Easing.out(Easing.ease) }));
       translateY.value = withDelay(200, withTiming(0, { duration: 600, easing: Easing.out(Easing.ease) }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, locations.length]);
 
   const animStyle = useAnimatedStyle(() => ({

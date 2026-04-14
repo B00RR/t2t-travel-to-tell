@@ -7,7 +7,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withDelay,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,6 +50,7 @@ export function PassportCard({
   useEffect(() => {
     cardScale.value = withSpring(1, { damping: 15, stiffness: 100 });
     cardOpacity.value = withTiming(1, { duration: 500 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cardAnimStyle = useAnimatedStyle(() => ({
@@ -186,6 +186,7 @@ function CountryStamp({ country, index }: { country: string; index: number }) {
       index * 60,
       withSpring(1, { damping: 10, stiffness: 200 }),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animStyle = useAnimatedStyle(() => ({

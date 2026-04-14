@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography } from '@/constants/theme';
-import InteractiveGlobe from '@/components/InteractiveGlobe';
+import { InteractiveGlobe } from '@/components/InteractiveGlobe';
 import { PeopleToFollow } from '@/components/PeopleToFollow';
 import { SortBar, SortMode, DurationFilter } from './SortBar';
 

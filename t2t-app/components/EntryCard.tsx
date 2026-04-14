@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +6,7 @@ import type { DayEntry, VideoDayEntry } from '@/types/dayEntry';
 import { VideoEntryCard } from './VideoEntryCard';
 import { RichTextRenderer } from './RichTextRenderer';
 import { AuthorBadge } from './AuthorBadge';
+import { ImageLightbox } from './ImageLightbox';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Fonts } from '@/constants/theme';
 
@@ -22,6 +23,7 @@ interface EntryCardProps {
 export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: EntryCardProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const authorBadge = showAuthor && entry.author ? <AuthorBadge author={entry.author} /> : null;
 
   // --- MOOD ---
@@ -53,8 +55,11 @@ export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: E
         {authorBadge}
         <TouchableOpacity
           style={[styles.photoCard, { backgroundColor: theme.bgElevated }]}
+          onPress={() => setLightboxOpen(true)}
           onLongPress={() => onLongPress?.(entry.id)}
           delayLongPress={600}
+          accessibilityRole="button"
+          accessibilityLabel={t('day.view_photo')}
         >
           <Image
             source={{ uri: entry.content || '' }}
@@ -65,6 +70,12 @@ export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: E
             <Text style={[styles.photoCaption, { color: theme.textSecondary }]}>{entry.metadata.caption}</Text>
           ) : null}
         </TouchableOpacity>
+        <ImageLightbox
+          visible={lightboxOpen}
+          uri={entry.content}
+          caption={entry.metadata?.caption}
+          onClose={() => setLightboxOpen(false)}
+        />
       </View>
     );
   }

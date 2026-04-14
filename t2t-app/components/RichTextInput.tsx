@@ -2,7 +2,7 @@
  * TextInput with a formatting toolbar supporting Bold, Italic, and Bullet list.
  * Uses Markdown-like syntax: **bold**, *italic*, - bullet
  */
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
   View, TextInput, TouchableOpacity, Text, StyleSheet, NativeSyntheticEvent,
   TextInputSelectionChangeEventData,

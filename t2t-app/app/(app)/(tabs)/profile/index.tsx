@@ -150,7 +150,7 @@ export default function ProfileScreen() {
     const message = `${name}${bio}\n\nFollow me on T2T — Travel to Tell`;
     try {
       await Share.share({ message, title: name });
-    } catch (_) {}
+    } catch {}
   }
 
   function handleLogout() {

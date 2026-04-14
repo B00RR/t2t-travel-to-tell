@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Dimensions, Platform,
+  View, Text, StyleSheet, ScrollView, Dimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -15,7 +15,7 @@ import { KenBurnsImage } from '@/components/KenBurnsImage';
 import { EntryCard } from '@/components/EntryCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useDayEntries } from '@/hooks/useDayEntries';
-import { Fonts, Typography } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import type { DayEntry } from '@/types/dayEntry';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -62,6 +62,7 @@ export function DayChapter({
       titleOpacity.value = 0;
       titleTranslateY.value = 30;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
   const titleAnimStyle = useAnimatedStyle(() => ({

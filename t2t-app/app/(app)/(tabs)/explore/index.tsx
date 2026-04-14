@@ -14,7 +14,7 @@ import { WanderlustMap } from '@/components/WanderlustMap';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
-import { SortBar, type SortMode, type DurationFilter } from '@/components/explore/SortBar';
+import type { SortMode, DurationFilter } from '@/components/explore/SortBar';
 import { ListHeader } from '@/components/explore/ListHeader';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 
@@ -170,6 +170,7 @@ export default function DiscoveryScreen() {
 
   useEffect(() => {
     Promise.all([fetchBrowse(0, false, sortMode), fetchTrending()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSortChange = useCallback((mode: SortMode) => {

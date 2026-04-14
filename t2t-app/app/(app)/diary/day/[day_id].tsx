@@ -8,7 +8,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
 
 // Hooks & Types
 import { useDayEntries } from '@/hooks/useDayEntries';

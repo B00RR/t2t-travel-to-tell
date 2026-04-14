@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react-native';
 import { EmptyStateIllustration } from '../EmptyStateIllustration';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -6,7 +5,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 // Mock hook
 jest.mock('@/hooks/useAppTheme');
 jest.mock('react-native-reanimated', () => {
-  const React = require('react');
+  /* eslint-disable @typescript-eslint/no-require-imports */
   const { View } = require('react-native');
   return {
     __esModule: true,

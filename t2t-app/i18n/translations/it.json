@@ -155,7 +155,11 @@
     "err_follow_toggle": "Impossibile aggiornare lo stato del follow.",
     "delete_comment": "Elimina",
     "delete_comment_confirm": "Vuoi eliminare questo commento?",
-    "share_message": "Scopri questo diario di viaggio: {{title}}"
+    "share_message": "Scopri questo diario di viaggio: {{title}}",
+    "reply": "Rispondi",
+    "add_reply": "Scrivi una risposta...",
+    "show_replies": "Mostra {{count}} risposte",
+    "hide_replies": "Nascondi risposte"
   },
   "diary": {
     "options": "Opzioni Diario",

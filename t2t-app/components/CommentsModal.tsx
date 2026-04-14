@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity,
   FlatList, TextInput, KeyboardAvoidingView, Platform,
@@ -7,9 +7,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useComments } from '@/hooks/useComments';
-import { CommentItem } from './CommentItem';
+import { ThreadedCommentItem } from './ThreadedCommentItem';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius } from '@/constants/theme';
+import { buildCommentTree, type CommentThread } from '@/utils/commentUtils';
 
 interface CommentsModalProps {
   visible: boolean;
@@ -24,6 +25,8 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
   const { comments, loading, submitting, fetchComments, addComment, deleteComment, updateComment } = useComments();
   const [inputText, setInputText] = useState('');
 
+  const commentThreads = useMemo(() => buildCommentTree(comments), [comments]);
+
   const handleDelete = useCallback((commentId: string) => {
     deleteComment(commentId, diaryId);
   }, [deleteComment, diaryId]);
@@ -32,15 +35,23 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
     updateComment(commentId, diaryId, content);
   }, [updateComment, diaryId]);
 
-  const renderComment = useCallback(({ item }: { item: typeof comments[number] }) => (
-    <CommentItem
-      comment={item}
+  const handleReply = useCallback((parentId: string, content: string) => {
+    if (!userId) return;
+    addComment(diaryId, userId, content, parentId);
+  }, [userId, diaryId, addComment]);
+
+  const renderThread = useCallback(({ item }: { item: CommentThread }) => (
+    <ThreadedCommentItem
+      thread={item}
       currentUserId={userId}
       onDelete={handleDelete}
       onEdit={handleEdit}
+      onReply={handleReply}
       isSubmitting={submitting}
+      depth={0}
+      maxDepth={3}
     />
-  ), [userId, handleDelete, handleEdit, submitting]);
+  ), [userId, handleDelete, handleEdit, handleReply, submitting]);
 
   useEffect(() => {
     if (visible && diaryId) {
@@ -57,12 +68,26 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
     }
   };
 
+  const totalComments = useMemo(() => {
+    let count = 0;
+    const countRecursive = (threads: CommentThread[]) => {
+      threads.forEach(t => {
+        count++;
+        countRecursive(t.replies);
+      });
+    };
+    countRecursive(commentThreads);
+    return count;
+  }, [commentThreads]);
+
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: theme.bgSurface }]}>
           <View style={[styles.header, { borderBottomColor: theme.border }]}>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>{t('social.comments')} ({comments.length})</Text>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>
+              {t('social.comments')} ({totalComments})
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Ionicons name="close-circle" size={28} color={theme.textMuted} />
             </TouchableOpacity>
@@ -74,10 +99,10 @@ export function CommentsModal({ visible, diaryId, userId, onClose }: CommentsMod
             </View>
           ) : (
             <FlatList
-              data={comments}
-              keyExtractor={(item) => item.id}
+              data={commentThreads}
+              keyExtractor={(item) => item.comment.id}
               contentContainerStyle={styles.listContent}
-              renderItem={renderComment}
+              renderItem={renderThread}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <Ionicons name="chatbubbles-outline" size={48} color={theme.border} />

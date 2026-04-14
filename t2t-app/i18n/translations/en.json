@@ -155,7 +155,11 @@
     "err_follow_toggle": "Unable to update follow status.",
     "delete_comment": "Delete",
     "delete_comment_confirm": "Do you want to delete this comment?",
-    "share_message": "Check out this travel diary: {{title}}"
+    "share_message": "Check out this travel diary: {{title}}",
+    "reply": "Reply",
+    "add_reply": "Write a reply...",
+    "show_replies": "Show {{count}} replies",
+    "hide_replies": "Hide replies"
   },
   "diary": {
     "options": "Diary Options",

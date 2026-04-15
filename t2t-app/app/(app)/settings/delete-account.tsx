@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert, Platform, KeyboardAvoidingView, ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +22,7 @@ export default function DeleteAccountScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const [confirmInput, setConfirmInput] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -68,7 +70,7 @@ export default function DeleteAccountScreen() {
       style={[styles.container, { backgroundColor: theme.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { borderBottomColor: theme.border, paddingTop: insets.top + 12 }]}>
         <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
           <Ionicons name="close" size={26} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -146,7 +148,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },

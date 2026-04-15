@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -41,6 +42,7 @@ const TAB_LABELS: Record<string, string> = {
 export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBarProps) {
   const theme = useAppTheme();
   const { unreadCount } = useNotifications();
+  const insets = useSafeAreaInsets();
 
   // Mount animation
   const mountProgress = useSharedValue(0);
@@ -75,6 +77,7 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
         {
           backgroundColor: theme.bgSurface,
           borderTopColor: theme.border,
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 28 : 10),
         },
         Shadows.tabBar,
         containerStyle,
@@ -154,7 +157,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 10,
     paddingTop: 10,
   },
   tabBtn: {

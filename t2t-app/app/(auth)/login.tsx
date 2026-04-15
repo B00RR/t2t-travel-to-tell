@@ -57,11 +57,13 @@ export default function LoginScreen() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     try {
+      const redirectUrl = 't2tapp://login';
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 't2tapp://login',
-          skipBrowserRedirect: false,
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
         },
       });
 
@@ -75,22 +77,53 @@ export default function LoginScreen() {
       if (data?.url) {
         const result = await WebBrowser.openAuthSessionAsync(
           data.url,
-          't2tapp://login'
+          redirectUrl
         );
 
-        if (result.type === 'cancel') {
+        if (result.type === 'cancel' || result.type === 'dismiss') {
           setGoogleLoading(false);
           return;
         }
 
-        if (result.type === 'success') {
+        if (result.type === 'success' && result.url) {
+          // Parse tokens from the URL fragment (#access_token=...&refresh_token=...)
           const url = result.url;
-          if (url.includes('access_token=') || url.includes('auth_callback')) {
-            const { data: authData, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError || !authData.session) {
-              Alert.alert(t('common.error'), t('auth.err_google_failed'));
+          const hashIndex = url.indexOf('#');
+
+          if (hashIndex !== -1) {
+            const fragment = url.substring(hashIndex + 1);
+            const params = new URLSearchParams(fragment);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+
+            if (accessToken && refreshToken) {
+              const { error: sessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+
+              if (sessionError) {
+                console.error('Session set error:', sessionError);
+                Alert.alert(t('common.error'), t('auth.err_google_failed'));
+              } else {
+                router.replace('/(app)' as any);
+              }
             } else {
+              // Try getting an existing session (might have been set via cookie)
+              const { data: sessionData } = await supabase.auth.getSession();
+              if (sessionData?.session) {
+                router.replace('/(app)' as any);
+              } else {
+                Alert.alert(t('common.error'), t('auth.err_google_failed'));
+              }
+            }
+          } else {
+            // No fragment — check for query params or existing session
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData?.session) {
               router.replace('/(app)' as any);
+            } else {
+              Alert.alert(t('common.error'), t('auth.err_google_failed'));
             }
           }
         } else {

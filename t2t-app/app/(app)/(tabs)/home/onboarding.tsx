@@ -4,6 +4,7 @@ import {
   Dimensions, NativeSyntheticEvent, NativeScrollEvent,
   Platform, StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue, useAnimatedStyle, interpolate,
   useAnimatedScrollHandler, FadeInUp,
@@ -80,6 +81,7 @@ export default function OnboardingScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useSharedValue(0);
@@ -147,7 +149,7 @@ export default function OnboardingScreen() {
   }, [theme, t]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg, paddingTop: insets.top + 12 }]}>
       <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
 
       {/* Skip button */}
@@ -172,7 +174,7 @@ export default function OnboardingScreen() {
       />
 
       {/* Footer — animated dots + next button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) + 12 }]}>
         <View style={styles.dots}>
           {SLIDES.map((_, i) => {
             return <AnimatedDot key={i} index={i} scrollX={scrollX} theme={theme} />;
@@ -218,7 +220,6 @@ function AnimatedDot({ index, scrollX, theme }: { index: number; scrollX: Shared
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 60 : 48,
   },
   skipBtn: {
     alignSelf: 'flex-end',
@@ -265,7 +266,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
-    paddingBottom: Platform.OS === 'ios' ? 48 : 32,
   },
   dots: {
     flexDirection: 'row',

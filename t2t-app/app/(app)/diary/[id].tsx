@@ -6,6 +6,7 @@ import {
   ActivityIndicator, Alert, Image, Dimensions, Share,
   Modal, TextInput, FlatList, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -52,6 +53,7 @@ export default function DiaryDetailScreen() {
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // Social UI state
   const [showComments, setShowComments] = useState(false);
@@ -262,7 +264,7 @@ export default function DiaryDetailScreen() {
   if (days.length === 0) {
     return (
       <View style={styles.container}>
-        <Animated.View style={[styles.floatingHeader, headerStyle]}>
+        <Animated.View style={[styles.floatingHeader, headerStyle, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
@@ -331,7 +333,7 @@ export default function DiaryDetailScreen() {
   return (
     <Animated.View style={[styles.container, contentEntranceStyle]}>
       {/* Floating header */}
-      <Animated.View style={[styles.floatingHeader, headerStyle]}>
+      <Animated.View style={[styles.floatingHeader, headerStyle, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
@@ -370,7 +372,7 @@ export default function DiaryDetailScreen() {
       </Animated.View>
 
       {/* Journey progress bar */}
-      <View style={styles.progressBarWrap}>
+      <View style={[styles.progressBarWrap, { top: insets.top + 52 }]}>
         <JourneyProgressBar
           totalDays={days.length}
           currentDay={currentDayIndex}
@@ -411,7 +413,7 @@ export default function DiaryDetailScreen() {
       </DoubleTapLike>
 
       {/* Floating social bar */}
-      <View style={styles.floatingSocial}>
+      <View style={[styles.floatingSocial, { bottom: Math.max(insets.bottom, 20) }]}>
         <SocialActionBar
           diaryId={id as string}
           userId={user?.id}
@@ -428,7 +430,7 @@ export default function DiaryDetailScreen() {
       {/* Add day button for owner or accepted collaborator */}
       {canAddDay && (
         <TouchableOpacity
-          style={styles.floatingAddDay}
+          style={[styles.floatingAddDay, { bottom: Math.max(insets.bottom, 20) + 60 }]}
           onPress={() => router.push({ pathname: '/diary/add-day', params: { diary_id: id } })}
         >
           <Ionicons name="add" size={22} color="#fff" />

@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, ScrollView, Platform, Image,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   FadeInRight, FadeInUp, FadeOutLeft,
   useSharedValue, useAnimatedStyle, withSpring, withTiming,
@@ -29,6 +30,7 @@ export default function CreateDiaryScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState<Step>(0);
   const [title, setTitle] = useState('');
@@ -83,13 +85,19 @@ export default function CreateDiaryScreen() {
     setLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
+    if (!user?.id) {
+      setLoading(false);
+      Alert.alert(t('common.error'), t('auth.err_not_authenticated', 'You must be logged in to create a diary.'));
+      return;
+    }
+
     const destArray = destinations.split(',').map(d => d.trim()).filter(d => d.length > 0);
 
     // 1. Create the diary
     const { data, error } = await supabase
       .from('diaries')
       .insert({
-        author_id: user?.id,
+        author_id: user.id,
         title: title.trim(),
         description: description.trim(),
         destinations: destArray,
@@ -156,7 +164,7 @@ export default function CreateDiaryScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
           {t('create.title')}
         </Text>
@@ -511,7 +519,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Platform.OS === 'ios' ? 60 : 48,
     paddingBottom: Spacing.sm,
   },
   headerTitle: {

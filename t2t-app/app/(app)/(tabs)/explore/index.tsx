@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList,
-  TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Platform,
+  TouchableOpacity, ActivityIndicator, RefreshControl, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +46,7 @@ export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
@@ -58,6 +60,7 @@ export default function DiscoveryScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [fetchError, setFetchError] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -102,8 +105,10 @@ export default function DiscoveryScreen() {
     const { data, error } = await query;
 
     if (error) {
-      Alert.alert(t('common.error'), t('explore.error_fetch'));
+      console.error('Explore fetch error:', error);
+      setFetchError(true);
     } else if (data) {
+      setFetchError(false);
       setDiaries(prev => pageNum === 0 ? data as FeedDiary[] : [...prev, ...data as FeedDiary[]]);
       setHasMore(data.length === PAGE_SIZE);
     }
@@ -267,7 +272,7 @@ export default function DiscoveryScreen() {
   if (exploreMode === 'map') {
     return (
       <View style={[styles.container, { backgroundColor: theme.bg }]}>
-        <View style={[styles.mapHeader, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+        <View style={[styles.mapHeader, { backgroundColor: theme.bg, borderBottomColor: theme.border, paddingTop: insets.top + 12 }]}>
           <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('explore.wanderlust_map')}</Text>
           <TouchableOpacity
             style={[styles.modeToggleBtn, { backgroundColor: theme.bgElevated, borderColor: theme.border }]}
@@ -283,7 +288,7 @@ export default function DiscoveryScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border, paddingTop: insets.top + 12 }]}>
         <View style={styles.headerTopRow}>
           <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('explore.title')}</Text>
           <TouchableOpacity
@@ -344,6 +349,20 @@ export default function DiscoveryScreen() {
             <View style={{ width: '48%' }}><DiaryCardSkeleton /></View>
           </View>
         </View>
+      ) : fetchError && displayDiaries.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <EmptyStateIllustration
+            type="no-results"
+            title={t('explore.error_fetch')}
+            accent={t('common.retry')}
+          />
+          <TouchableOpacity
+            style={[styles.retryBtn, { backgroundColor: theme.teal }]}
+            onPress={() => { setFetchError(false); fetchBrowse(0, false, sortMode); }}
+          >
+            <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           data={displayDiaries}
@@ -392,7 +411,6 @@ function createStyles(t: ReturnType<typeof useAppTheme>) {
       flex: 1,
     },
     header: {
-      paddingTop: Platform.OS === 'ios' ? 56 : 40,
       paddingHorizontal: 20,
       paddingBottom: 12,
       borderBottomWidth: 1,
@@ -407,7 +425,6 @@ function createStyles(t: ReturnType<typeof useAppTheme>) {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingTop: Platform.OS === 'ios' ? 56 : 40,
       paddingHorizontal: 20,
       paddingBottom: 12,
       borderBottomWidth: 1,
@@ -469,6 +486,17 @@ function createStyles(t: ReturnType<typeof useAppTheme>) {
     footerLoader: {
       paddingVertical: 20,
       alignItems: 'center',
+    },
+    retryBtn: {
+      marginTop: 20,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    retryBtnText: {
+      color: '#fff',
+      fontWeight: '700' as const,
+      fontSize: 15,
     },
   });
 }

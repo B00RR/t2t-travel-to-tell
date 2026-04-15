@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, ScrollView, Platform,
   KeyboardAvoidingView, Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,7 @@ export default function EditDiaryScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const permissions = useDiaryPermissions(id);
 
   const [diary, setDiary] = useState<Diary | null>(null);
@@ -154,7 +156,7 @@ export default function EditDiaryScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={[styles2.header, { borderBottomColor: theme.border }]}>
+      <View style={[styles2.header, { borderBottomColor: theme.border, paddingTop: insets.top + 12 }]}>
         <TouchableOpacity style={styles2.headerBtn} onPress={() => router.back()}>
           <Ionicons name="close" size={26} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -372,7 +374,7 @@ export default function EditDiaryScreen() {
       </ScrollView>
 
       {/* Save button */}
-      <View style={[styles2.footer, { borderTopColor: theme.border, backgroundColor: theme.bg }]}>
+      <View style={[styles2.footer, { borderTopColor: theme.border, backgroundColor: theme.bg, paddingBottom: Math.max(insets.bottom, Spacing.md) }]}>
         <TouchableOpacity
           style={[
             styles2.saveBtn,
@@ -422,7 +424,6 @@ const createStyles = (theme: AppTheme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: Spacing.lg,
-      paddingTop: Platform.OS === 'ios' ? 60 : 40,
       paddingBottom: Spacing.md,
       borderBottomWidth: 1,
     },
@@ -590,7 +591,6 @@ const createStyles = (theme: AppTheme) =>
       bottom: 0,
       paddingHorizontal: Spacing.xl,
       paddingTop: Spacing.md,
-      paddingBottom: Platform.OS === 'ios' ? 32 : Spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
     },
     saveBtn: {

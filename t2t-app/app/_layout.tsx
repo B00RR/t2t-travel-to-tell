@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments, SplashScreen, ErrorBoundary } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import {
   PlayfairDisplay_400Regular,
@@ -74,11 +75,13 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemePreferenceProvider>
-        <AuthProvider>
-          <RootLayoutNav />
-        </AuthProvider>
-      </ThemePreferenceProvider>
+      <SafeAreaProvider>
+        <ThemePreferenceProvider>
+          <AuthProvider>
+            <RootLayoutNav />
+          </AuthProvider>
+        </ThemePreferenceProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

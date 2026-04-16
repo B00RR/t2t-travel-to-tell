@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Share
 } from 'react-native';
 import MapView, { Marker, Callout, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -13,6 +13,7 @@ import { useMapLocations } from '@/hooks/useMapLocations';
 import { usePublicMapLocations, type PublicMapLocation } from '@/hooks/usePublicMapLocations';
 import { Palette } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatMapExport, type GeoExportFormat } from '@/utils/exportMap';
 
 type MapMode = 'mine' | 'discover';
 
@@ -74,6 +75,36 @@ export default function MapScreen() {
       );
     }
   }, [locations, mode]);
+
+  const runMapExport = useCallback(async (format: GeoExportFormat) => {
+    if (locations.length === 0) {
+      Alert.alert(t('map.export_title'), t('map.export_empty'));
+      return;
+    }
+    try {
+      const title = mode === 'mine' ? t('map.my_map') : t('map.discover');
+      const content = formatMapExport(locations, format, `T2T — ${title}`);
+      await Share.share({
+        title: `T2T ${format.toUpperCase()}`,
+        message: content,
+      });
+    } catch (err) {
+      console.error('[map] export failed', err);
+      Alert.alert(t('common.error'), t('map.export_error'));
+    }
+  }, [locations, mode, t]);
+
+  const openExportMenu = useCallback(() => {
+    Alert.alert(
+      t('map.export_title'),
+      t('map.export_subtitle'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: 'KML', onPress: () => runMapExport('kml') },
+        { text: 'GPX', onPress: () => runMapExport('gpx') },
+      ]
+    );
+  }, [runMapExport, t]);
 
   const centerOnMe = useCallback(async () => {
     if (!locationPermission) {
@@ -181,6 +212,21 @@ export default function MapScreen() {
         accessibilityLabel={t('map.center_on_me')}
       >
         <Ionicons name="locate" size={24} color={Palette.teal} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.fabExport}
+        onPress={openExportMenu}
+        accessibilityRole="button"
+        accessibilityLabel={t('map.export_title')}
+        accessibilityState={{ disabled: locations.length === 0 }}
+        disabled={locations.length === 0}
+      >
+        <Ionicons
+          name="share-outline"
+          size={22}
+          color={locations.length === 0 ? Palette.textSecondary : Palette.teal}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -319,5 +365,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
+  },
+  fabExport: {
+    position: 'absolute',
+    bottom: 96,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Palette.bgElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Palette.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });

@@ -130,7 +130,9 @@
     "saved_diaries": "Salvati",
     "no_saved": "Nessun diario salvato ancora.",
     "explore_diaries": "Esplora i diari",
-    "edit": "Modifica Profilo"
+    "edit": "Modifica Profilo",
+    "timeline_tab": "Timeline",
+    "timeline_empty": "Nessun viaggio da mostrare in timeline."
   },
   "social": {
     "comments": "Commenti",
@@ -289,7 +291,11 @@
     "loading_stories": "Caricamento storie di viaggio...",
     "stories_here": "Storie da qui",
     "view_diary": "Vedi diario",
-    "center_on_me": "Centra su di me"
+    "center_on_me": "Centra su di me",
+    "export_title": "Esporta mappa",
+    "export_subtitle": "Scegli il formato di esportazione",
+    "export_empty": "Nessun luogo da esportare.",
+    "export_error": "Esportazione non riuscita. Riprova."
   },
   "cover": {
     "title": "Immagine di Copertina",
@@ -542,7 +548,12 @@
     "delete_account_subtitle": "Azione irreversibile",
     "logout": "Esci dall'account",
     "version": "Versione",
-    "saved": "Preferenze salvate"
+    "saved": "Preferenze salvate",
+    "export_title": "Esporta dati",
+    "export_subtitle": "Scarica i tuoi dati in formato JSON o CSV",
+    "export_in_progress": "Esportazione in corso…",
+    "export_error": "Impossibile esportare i dati. Riprova.",
+    "export_share_title": "T2T — Esporta dati"
   },
   "password_change": {
     "title": "Cambia password",

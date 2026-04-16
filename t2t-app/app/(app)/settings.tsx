@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Share } from 'react-native';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +11,11 @@ import { useThemePreference, ThemePreference } from '@/hooks/useThemePreference'
 import { Radius, Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import i18n from '@/i18n';
+import {
+  fetchProfileExport,
+  formatProfileExport,
+  type ExportFormat,
+} from '@/utils/exportProfile';
 
 const LANGUAGES = [
   { code: 'it', label: 'Italiano', flag: '🇮🇹' },
@@ -30,6 +36,7 @@ export default function SettingsScreen() {
   const { user } = useAuth();
   const { updateProfile } = useUserProfile(user?.id);
   const { preference: themePref, setPreference: setThemePref } = useThemePreference();
+  const [exporting, setExporting] = useState(false);
 
   async function handleLanguageChange(lang: string) {
     i18n.changeLanguage(lang);
@@ -38,6 +45,37 @@ export default function SettingsScreen() {
 
   async function handleThemeChange(pref: ThemePreference) {
     await setThemePref(pref);
+  }
+
+  async function runExport(format: ExportFormat) {
+    if (!user?.id || exporting) return;
+    setExporting(true);
+    try {
+      const data = await fetchProfileExport(user.id);
+      const content = formatProfileExport(data, format);
+      await Share.share({
+        title: t('settings.export_share_title'),
+        message: content,
+      });
+    } catch (err) {
+      console.error('[settings] profile export failed', err);
+      Alert.alert(t('common.error'), t('settings.export_error'));
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  function handleExport() {
+    if (exporting) return;
+    Alert.alert(
+      t('settings.export_title'),
+      t('settings.export_subtitle'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: 'JSON', onPress: () => runExport('json') },
+        { text: 'CSV', onPress: () => runExport('csv') },
+      ]
+    );
   }
 
   function handleLogout() {
@@ -127,6 +165,24 @@ export default function SettingsScreen() {
             <Ionicons name="key-outline" size={22} color={theme.textPrimary} />
             <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t('settings.change_password')}</Text>
             <Ionicons name="chevron-forward" size={18} color={theme.textMuted} style={{ marginLeft: 'auto' }} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.row, { borderTopColor: theme.border }]}
+            onPress={handleExport}
+            disabled={exporting}
+            accessibilityRole="button"
+            accessibilityLabel={t('settings.export_title')}
+            accessibilityState={{ disabled: exporting }}
+          >
+            <Ionicons name="download-outline" size={22} color={theme.textPrimary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowText, { color: theme.textPrimary }]}>
+                {exporting ? t('settings.export_in_progress') : t('settings.export_title')}
+              </Text>
+              <Text style={[styles.rowSub, { color: theme.textMuted }]}>{t('settings.export_subtitle')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity

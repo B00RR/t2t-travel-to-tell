@@ -11,11 +11,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileDiaryCard } from '@/components/ProfileDiaryCard';
+import { ProfileTimeline } from '@/components/ProfileTimeline';
 import { TripPlanCard } from '@/components/TripPlanCard';
 import type { Diary } from '@/types/supabase';
 import type { TripPlan } from '@/types/tripPlan';
 
-type Tab = 'diaries' | 'plans';
+type Tab = 'diaries' | 'plans' | 'timeline';
 
 export default function PublicProfileScreen() {
   const { t } = useTranslation();
@@ -78,9 +79,15 @@ export default function PublicProfileScreen() {
     [currentUser?.id]
   );
 
-  const isLoading = activeTab === 'diaries' ? loadingDiaries : loadingPlans;
+  const isLoading =
+    activeTab === 'diaries' || activeTab === 'timeline' ? loadingDiaries : loadingPlans;
   const activeData = useMemo(
-    () => (activeTab === 'diaries' ? diaries : plans) as (Diary | TripPlan)[],
+    () =>
+      (activeTab === 'diaries'
+        ? diaries
+        : activeTab === 'plans'
+          ? plans
+          : []) as (Diary | TripPlan)[],
     [activeTab, diaries, plans]
   );
 
@@ -147,11 +154,30 @@ export default function PublicProfileScreen() {
                   {t('planner.tab')} {plans.length > 0 ? `(${plans.length})` : ''}
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabBtn, { backgroundColor: theme.bgElevated }, activeTab === 'timeline' && { backgroundColor: theme.tealAlpha15 }]}
+                onPress={() => setActiveTab('timeline')}
+                accessibilityRole="button"
+                accessibilityState={{ selected: activeTab === 'timeline' }}
+              >
+                <Ionicons
+                  name="time-outline"
+                  size={16}
+                  color={activeTab === 'timeline' ? theme.teal : theme.textMuted}
+                />
+                <Text style={[styles.tabBtnText, { color: activeTab === 'timeline' ? theme.teal : theme.textMuted }]}>
+                  {t('profile.timeline_tab')}
+                </Text>
+              </TouchableOpacity>
             </View>
+
+            {activeTab === 'timeline' && !loadingDiaries && (
+              <ProfileTimeline diaries={diaries} />
+            )}
           </View>
         }
         ListEmptyComponent={
-          !isLoading ? (
+          activeTab === 'timeline' ? null : !isLoading ? (
             <View style={styles.empty}>
               <Ionicons
                 name={activeTab === 'diaries' ? 'journal-outline' : 'map-outline'}

@@ -130,7 +130,9 @@
     "saved_diaries": "Saved",
     "no_saved": "No saved diaries yet.",
     "explore_diaries": "Explore diaries",
-    "edit": "Edit Profile"
+    "edit": "Edit Profile",
+    "timeline_tab": "Timeline",
+    "timeline_empty": "No trips to show on the timeline yet."
   },
   "social": {
     "comments": "Comments",
@@ -289,7 +291,11 @@
     "center_on_me": "Center on my location",
     "loading_stories": "Loading travel stories...",
     "stories_here": "Stories from here",
-    "view_diary": "View diary"
+    "view_diary": "View diary",
+    "export_title": "Export map",
+    "export_subtitle": "Choose the export format",
+    "export_empty": "No locations to export.",
+    "export_error": "Export failed. Please try again."
   },
   "cover": {
     "title": "Cover Image",
@@ -542,7 +548,12 @@
     "delete_account_subtitle": "This action is irreversible",
     "logout": "Sign out",
     "version": "Version",
-    "saved": "Preferences saved"
+    "saved": "Preferences saved",
+    "export_title": "Export data",
+    "export_subtitle": "Download your data in JSON or CSV format",
+    "export_in_progress": "Exporting…",
+    "export_error": "Unable to export your data. Please try again.",
+    "export_share_title": "T2T — Data Export"
   },
   "password_change": {
     "title": "Change password",

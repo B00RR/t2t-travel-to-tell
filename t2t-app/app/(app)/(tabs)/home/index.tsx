@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  RefreshControl, StatusBar, Platform, Alert, Share,
+  RefreshControl, StatusBar, Alert, Share,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
@@ -20,12 +20,14 @@ import { HomeHero } from '@/components/HomeHero';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { Spacing, Typography, Radius } from '@/constants/theme';
 import type { FeedDiary } from '@/types/supabase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type FeedTab = 'discover' | 'following';
 
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<FeedTab>('discover');
   const [discoverDiaries, setDiscoverDiaries] = useState<FeedDiary[]>([]);
   const [followingDiaries, setFollowingDiaries] = useState<FeedDiary[]>([]);
@@ -187,7 +189,7 @@ export default function HomeScreen() {
       />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <Text style={[styles.headerLogo, { color: theme.teal }]}>T2T</Text>
         <View style={styles.headerRight}>
           {/* Tab toggle */}
@@ -312,7 +314,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingBottom: 12,
     borderBottomWidth: 1,
   },

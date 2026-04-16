@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius, Spacing, Typography } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -23,6 +24,7 @@ export default function PasswordChangeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -94,7 +96,7 @@ export default function PasswordChangeScreen() {
       style={[styles.container, { backgroundColor: theme.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
           <Ionicons name="close" size={26} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -220,7 +222,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },

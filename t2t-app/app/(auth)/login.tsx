@@ -84,14 +84,25 @@ export default function LoginScreen() {
         }
 
         if (result.type === 'success') {
-          const url = result.url;
-          if (url.includes('access_token=') || url.includes('auth_callback')) {
-            const { data: authData, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError || !authData.session) {
-              Alert.alert(t('common.error'), t('auth.err_google_failed'));
-            } else {
-              router.replace('/(app)' as any);
+          try {
+            const parsedUrl = new URL(result.url);
+            const code = parsedUrl.searchParams.get('code');
+            if (code) {
+              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              if (!exchangeError) {
+                router.replace('/(app)' as any);
+                return;
+              }
             }
+            // Fallback: session may already be set (implicit flow)
+            const { data: fallbackData } = await supabase.auth.getSession();
+            if (fallbackData.session) {
+              router.replace('/(app)' as any);
+            } else {
+              Alert.alert(t('common.error'), t('auth.err_google_failed'));
+            }
+          } catch {
+            Alert.alert(t('common.error'), t('auth.err_google_failed'));
           }
         } else {
           Alert.alert(t('common.error'), t('auth.err_google_failed'));

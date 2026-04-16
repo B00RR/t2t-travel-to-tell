@@ -16,6 +16,7 @@ import { useDiaryPermissions } from '@/hooks/useDiaryPermissions';
 import { CoverImagePicker } from '@/components/CoverImagePicker';
 import { Spacing, Radius, Typography, Shadows } from '@/constants/theme';
 import type { Diary } from '@/types/supabase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Visibility = 'private' | 'public' | 'friends';
 type Status = 'draft' | 'published';
@@ -32,6 +33,7 @@ export default function EditDiaryScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const permissions = useDiaryPermissions(id);
 
@@ -154,7 +156,7 @@ export default function EditDiaryScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={[styles2.header, { borderBottomColor: theme.border }]}>
+      <View style={[styles2.header, { borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <TouchableOpacity style={styles2.headerBtn} onPress={() => router.back()}>
           <Ionicons name="close" size={26} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -422,7 +424,6 @@ const createStyles = (theme: AppTheme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: Spacing.lg,
-      paddingTop: Platform.OS === 'ios' ? 60 : 40,
       paddingBottom: Spacing.md,
       borderBottomWidth: 1,
     },

@@ -28,6 +28,7 @@ import { JourneyProgressBar } from '@/components/JourneyProgressBar';
 import { CollaboratorAvatarStack } from '@/components/CollaboratorAvatarStack';
 import { Diary } from '@/types/supabase';
 import { Palette, Glass } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -46,6 +47,7 @@ type DiaryDay = {
 export default function DiaryDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [diary, setDiary] = useState<Diary | null>(null);
   const [days, setDays] = useState<DiaryDay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,7 +264,7 @@ export default function DiaryDetailScreen() {
   if (days.length === 0) {
     return (
       <View style={styles.container}>
-        <Animated.View style={[styles.floatingHeader, headerStyle]}>
+        <Animated.View style={[styles.floatingHeader, headerStyle, { paddingTop: insets.top }]}>
           <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
@@ -492,7 +494,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingTop: Platform.OS === 'ios' ? 54 : 38,
+    paddingTop: 10,
     paddingBottom: 10,
     backgroundColor: Glass.storyBg,
     borderBottomWidth: StyleSheet.hairlineWidth,

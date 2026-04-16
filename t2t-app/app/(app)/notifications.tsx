@@ -12,6 +12,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppTheme } from '@/hooks/useAppTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type NotifType = Notification['type'];
 
@@ -80,6 +81,7 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications();
   const [respondingId, setRespondingId] = useState<string | null>(null);
@@ -236,7 +238,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <View style={[styles.header, { borderBottomColor: theme.borderLight }]}>
+      <View style={[styles.header, { borderBottomColor: theme.borderLight, paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -287,7 +289,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,

@@ -5,12 +5,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AddDayScreen() {
   const { t } = useTranslation();
   const { diary_id } = useLocalSearchParams();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [dateStr, setDateStr] = useState('');
@@ -67,7 +69,7 @@ export default function AddDayScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} disabled={loading}>
           <Ionicons name="close" size={20} color={theme.textSecondary} />
         </TouchableOpacity>
@@ -129,7 +131,6 @@ function makeStyles(t: AppTheme) {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
-      paddingTop: 60,
       paddingBottom: 16,
       borderBottomWidth: 1,
       borderBottomColor: t.border,

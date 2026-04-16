@@ -8,6 +8,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Radius } from '@/constants/theme';
 
 // Hooks & Types
@@ -34,6 +35,7 @@ export default function DayDetailScreen() {
   const diary_id = Array.isArray(params.diary_id) ? params.diary_id[0] : params.diary_id;
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
   // Custom Hooks
@@ -128,7 +130,7 @@ export default function DayDetailScreen() {
   if (loading && (!dayInfo || entries.length === 0)) {
     return (
       <View style={[styles.container, { backgroundColor: theme.bg }]}>
-        <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
+        <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border, paddingTop: insets.top }]}>
           <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -149,7 +151,7 @@ export default function DayDetailScreen() {
   if (!loading && !dayInfo) {
     return (
       <View style={[styles.container, { backgroundColor: theme.bg }]}>
-        <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
+        <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border, paddingTop: insets.top }]}>
           <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 60, paddingBottom: 16,
+    paddingHorizontal: 16, paddingBottom: 16,
     borderBottomWidth: 1,
   },
   headerIcon: { padding: 4 },

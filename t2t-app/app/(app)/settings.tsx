@@ -8,6 +8,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useThemePreference, ThemePreference } from '@/hooks/useThemePreference';
 import { Radius, Typography } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import i18n from '@/i18n';
 
 const LANGUAGES = [
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { updateProfile } = useUserProfile(user?.id);
   const { preference: themePref, setPreference: setThemePref } = useThemePreference();
@@ -52,7 +54,7 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -169,7 +171,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
   },

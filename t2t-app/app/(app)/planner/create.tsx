@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Step = 'choose' | 'manual' | 'from_diary';
 
@@ -26,7 +27,8 @@ export default function CreateTripPlanScreen() {
   const { user } = useAuth();
   const { creating, createManual, createFromDiary } = useCreateTripPlan(user?.id);
   const theme = useAppTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(theme, insets.top), [theme, insets.top]);
 
   const [step, setStep] = useState<Step>('choose');
   const [title, setTitle] = useState('');
@@ -186,10 +188,10 @@ export default function CreateTripPlanScreen() {
   );
 }
 
-function makeStyles(t: AppTheme) {
+function makeStyles(t: AppTheme, topInset: number) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 60, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: t.border },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: topInset, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: t.border },
     iconBtn: { width: 40, padding: 4 },
     headerTitle: { fontSize: 18, fontWeight: '700', color: t.textPrimary },
     chooseContent: { flex: 1, padding: 24 },

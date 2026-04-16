@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMapLocations } from '@/hooks/useMapLocations';
 import { usePublicMapLocations, type PublicMapLocation } from '@/hooks/usePublicMapLocations';
 import { Palette } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type MapMode = 'mine' | 'discover';
 
@@ -26,6 +27,7 @@ export default function MapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<MapMode>('mine');
 
   const { locations: myLocations, loading: myLoading, refresh: myRefresh } = useMapLocations(user?.id);
@@ -91,7 +93,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{mode === 'mine' ? t('map.my_map') : t('map.discover')}</Text>
         <View style={styles.toggle}>
           <TouchableOpacity
@@ -190,7 +192,6 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bgPrimary,
   },
   header: {
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,

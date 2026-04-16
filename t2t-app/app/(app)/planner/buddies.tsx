@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius } from '@/constants/theme';
 import type { TripPlan } from '@/types/tripPlan';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface BuddyPlan extends TripPlan {
   profiles: {
@@ -24,6 +25,7 @@ export default function TravelBuddiesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
   const [myDestinations, setMyDestinations] = useState<string[]>([]);
@@ -186,7 +188,7 @@ export default function TravelBuddiesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { backgroundColor: theme.bgSurface, borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -261,7 +263,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 60,
     paddingBottom: 16,
     borderBottomWidth: 1,
   },

@@ -20,6 +20,7 @@ import { useDiaryPermissions } from '@/hooks/useDiaryPermissions';
 import { CollaboratorListItem } from '@/components/CollaboratorListItem';
 import { InviteCollaboratorModal } from '@/components/InviteCollaboratorModal';
 import { Radius, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MAX_COLLABORATORS = 10;
 
@@ -27,6 +28,7 @@ export default function CollaboratorsScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const params = useLocalSearchParams();
   const diaryId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -72,7 +74,7 @@ export default function CollaboratorsScreen() {
       <View
         style={[
           styles.header,
-          { backgroundColor: theme.bgSurface, borderBottomColor: theme.border },
+          { backgroundColor: theme.bgSurface, borderBottomColor: theme.border, paddingTop: insets.top },
         ]}
       >
         <TouchableOpacity
@@ -180,7 +182,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: 56,
     paddingBottom: 12,
     borderBottomWidth: 1,
     gap: 8,

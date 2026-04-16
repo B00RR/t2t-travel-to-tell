@@ -20,6 +20,7 @@ import { InviteCollaboratorModal } from '@/components/InviteCollaboratorModal';
 import { TripPlanCollaboratorListItem } from '@/components/TripPlanCollaboratorListItem';
 import type { TripPlan } from '@/types/tripPlan';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Visibility = TripPlan['visibility'];
 
@@ -31,7 +32,8 @@ export default function TripPlanDetailScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const theme = useAppTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(theme, insets.top), [theme, insets.top]);
 
   const {
     plan, stops, checklist, loading, saving,
@@ -373,7 +375,7 @@ export default function TripPlanDetailScreen() {
   );
 }
 
-function makeStyles(t: AppTheme) {
+function makeStyles(t: AppTheme, topInset: number) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg, gap: 12 },
@@ -384,7 +386,7 @@ function makeStyles(t: AppTheme) {
     coverPlaceholder: { width: SCREEN_WIDTH, height: 160, backgroundColor: t.bgElevated, justifyContent: 'center', alignItems: 'center', gap: 10 },
     coverPlaceholderText: { fontSize: 14, color: t.textMuted, fontWeight: '500' },
     coverEditBadge: { position: 'absolute', bottom: 12, right: 16, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, padding: 7 },
-    floatingHeader: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12 },
+    floatingHeader: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: topInset, paddingBottom: 12 },
     floatingBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center' },
     cloneHeaderBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 19, paddingHorizontal: 14, paddingVertical: 9, gap: 6, borderWidth: 1, borderColor: t.tealAlpha50 },
     cloneHeaderBtnText: { color: t.teal, fontWeight: '700', fontSize: 14 },

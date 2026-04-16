@@ -10,6 +10,7 @@ import { TripPlanCard } from '@/components/TripPlanCard';
 import { DiaryCardSkeleton } from '@/components/Skeleton';
 import type { TripPlan } from '@/types/tripPlan';
 import { Palette } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Tab = 'my' | 'discover';
 
@@ -17,6 +18,7 @@ export default function PlannerScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('my');
 
   const { myPlans, publicPlans, loading, refreshing, fetchMyPlans, fetchPublicPlans, refresh } =
@@ -75,7 +77,7 @@ export default function PlannerScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>{t('planner.tab')}</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
@@ -164,7 +166,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
     paddingBottom: 16,
     backgroundColor: Palette.bgPrimary,
     borderBottomWidth: 1,

@@ -12,6 +12,7 @@ import { useFlightSearch } from '@/hooks/useFlightSearch';
 import { useHotelSearch } from '@/hooks/useHotelSearch';
 import { SearchBar } from '@/components/SearchBar';
 import { Radius } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FlightOffer, HotelOffer } from '@/services/rapidapi';
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -153,6 +154,7 @@ export default function TravelSearchScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [category, setCategory] = useState<SearchCategory>('flights');
 
   const flightSearch = useFlightSearch();
@@ -237,7 +239,7 @@ export default function TravelSearchScreen() {
       <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
@@ -342,7 +344,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 60 : 48,
+    paddingTop: 0,
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,

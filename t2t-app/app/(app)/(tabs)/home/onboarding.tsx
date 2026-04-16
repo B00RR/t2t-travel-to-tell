@@ -18,6 +18,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { InteractiveGlobe } from '@/components/InteractiveGlobe';
 import { Spacing, Typography, Fonts, Shadows } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
@@ -80,6 +81,7 @@ export default function OnboardingScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useSharedValue(0);
@@ -147,7 +149,7 @@ export default function OnboardingScreen() {
   }, [theme, t]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
 
       {/* Skip button */}
@@ -218,7 +220,6 @@ function AnimatedDot({ index, scrollX, theme }: { index: number; scrollX: Shared
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 60 : 48,
   },
   skipBtn: {
     alignSelf: 'flex-end',

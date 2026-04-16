@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList,
-  TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Platform,
+  TouchableOpacity, ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
@@ -18,6 +18,7 @@ import type { SortMode, DurationFilter } from '@/components/explore/SortBar';
 import { ListHeader } from '@/components/explore/ListHeader';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { AdvancedFiltersModal, FilterBadge, matchesAdvancedFilters, type AdvancedFilters } from '@/components/explore/AdvancedFilters';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ExploreMode = 'browse' | 'map';
 
@@ -45,6 +46,7 @@ export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
@@ -93,9 +95,8 @@ export default function DiscoveryScreen() {
       .order(orderColumn, { ascending: false })
       .range(from, to);
 
-    if (user?.id) {
-      query = query.or(`and(status.eq.published,visibility.eq.public),author_id.eq.${user.id}`);
-    } else {
+    // RLS already enforces visibility. For unauthenticated users add explicit filter.
+    if (!user?.id) {
       query = query.eq('status', 'published').eq('visibility', 'public');
     }
 
@@ -122,9 +123,8 @@ export default function DiscoveryScreen() {
       .order('created_at', { ascending: false })
       .limit(50);
 
-    if (user?.id) {
-      searchQ = searchQ.or(`and(status.eq.published,visibility.eq.public),author_id.eq.${user.id}`);
-    } else {
+    // RLS already enforces visibility. For unauthenticated users add explicit filter.
+    if (!user?.id) {
       searchQ = searchQ.eq('status', 'published').eq('visibility', 'public');
     }
 
@@ -243,7 +243,7 @@ export default function DiscoveryScreen() {
     return filtered;
   }, [sortMode, durationFilter, trendingDiaries, diaries, advancedFilters]);
 
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme, insets.top), [theme, insets.top]);
 
   const isSearchMode = searchQuery.trim().length > 0;
 
@@ -386,13 +386,13 @@ export default function DiscoveryScreen() {
   );
 }
 
-function createStyles(t: ReturnType<typeof useAppTheme>) {
+function createStyles(t: ReturnType<typeof useAppTheme>, topInset: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
     },
     header: {
-      paddingTop: Platform.OS === 'ios' ? 56 : 40,
+      paddingTop: topInset,
       paddingHorizontal: 20,
       paddingBottom: 12,
       borderBottomWidth: 1,
@@ -407,7 +407,7 @@ function createStyles(t: ReturnType<typeof useAppTheme>) {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingTop: Platform.OS === 'ios' ? 56 : 40,
+      paddingTop: topInset,
       paddingHorizontal: 20,
       paddingBottom: 12,
       borderBottomWidth: 1,

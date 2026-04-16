@@ -1,7 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Platform,
+  View, Text, TouchableOpacity, StyleSheet,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -41,6 +42,7 @@ const TAB_LABELS: Record<string, string> = {
 export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBarProps) {
   const theme = useAppTheme();
   const { unreadCount } = useNotifications();
+  const insets = useSafeAreaInsets();
 
   // Mount animation
   const mountProgress = useSharedValue(0);
@@ -75,6 +77,7 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
         {
           backgroundColor: theme.bgSurface,
           borderTopColor: theme.border,
+          paddingBottom: Math.max(insets.bottom, 10),
         },
         Shadows.tabBar,
         containerStyle,
@@ -83,6 +86,10 @@ export function MorphingTabBar({ state, descriptors, navigation }: MorphingTabBa
       {state.routes.map((route: any, index: number) => {
         const isFocused = state.index === index;
         const isCreate = route.name === 'create';
+
+        // Respect Expo Router href:null — hide tabs not meant for the tab bar
+        const routeOptions = (descriptors[route.key]?.options as any);
+        if (routeOptions?.href === null) return null;
 
         const iconConfig = TAB_ICONS[route.name];
         if (!iconConfig && !isCreate) return null;
@@ -154,7 +161,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 10,
     paddingTop: 10,
   },
   tabBtn: {

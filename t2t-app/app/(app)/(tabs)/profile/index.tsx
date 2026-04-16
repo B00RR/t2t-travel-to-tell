@@ -19,6 +19,7 @@ import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import i18n from '@/i18n';
 import type { Diary, FeedDiary } from '@/types/supabase';
 import { normalizeProfile } from '@/types/supabase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BIO_MAX = 160;
 
@@ -29,6 +30,7 @@ export default function ProfileScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { profile, loading: profileLoading, updateProfile, uploadAvatar, checkUsernameUnique } = useUserProfile(user?.id);
   const { unreadCount } = useNotifications();
   const [diaries, setDiaries] = useState<Diary[]>([]);
@@ -170,7 +172,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+      <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border, paddingTop: insets.top }]}>
         <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{t('profile.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerIcon} onPress={handleShareProfile}>
@@ -562,7 +564,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 56 : 40,
     paddingBottom: 16,
     borderBottomWidth: 1,
   },

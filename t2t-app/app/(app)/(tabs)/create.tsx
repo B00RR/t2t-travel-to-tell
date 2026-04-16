@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows, Fonts, Glass } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STEPS = 3;
 
@@ -30,6 +31,7 @@ export default function CreateDiaryScreen() {
   const router = useRouter();
   const theme = useAppTheme();
 
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState<Step>(0);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -156,7 +158,7 @@ export default function CreateDiaryScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
         <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
           {t('create.title')}
         </Text>
@@ -511,7 +513,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Platform.OS === 'ios' ? 60 : 48,
     paddingBottom: Spacing.sm,
   },
   headerTitle: {

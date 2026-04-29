@@ -26,7 +26,7 @@ export function useMapLocations(userId: string | undefined) {
       });
       if (!mountedRef.current) return;
       if (error) {
-        console.error('useMapLocations fetch failed', error);
+        if (__DEV__) console.error('useMapLocations fetch failed', error);
       } else if (data) {
         setLocations(data as MapLocation[]);
       }

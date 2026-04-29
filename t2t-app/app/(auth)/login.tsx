@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StatusBar,
 } from 'react-native';
+import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,19 +23,20 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   async function handleLogin() {
     setLoading(true);
 
     if (!email || !password) {
-      Alert.alert(t('common.error'), t('auth.err_invalid_email'));
+      toast.show({ message: t('auth.err_invalid_email'), type: 'error' });
       setLoading(false);
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert(t('common.error'), t('auth.err_invalid_email'));
+      toast.show({ message: t('auth.err_invalid_email'), type: 'error' });
       setLoading(false);
       return;
     }
@@ -44,9 +46,9 @@ export default function LoginScreen() {
     if (error) {
       console.error('Login error:', error);
       if (error.message.includes('Invalid login credentials')) {
-        Alert.alert(t('common.error'), t('auth.err_invalid_credentials'));
+        toast.show({ message: t('auth.err_invalid_credentials'), type: 'error' });
       } else {
-        Alert.alert(t('common.error'), t('auth.err_login_failed'));
+        toast.show({ message: t('auth.err_login_failed'), type: 'error' });
       }
     } else {
       router.replace('/(app)' as any);
@@ -67,7 +69,7 @@ export default function LoginScreen() {
 
       if (error) {
         console.error('Google sign in error:', error);
-        Alert.alert(t('common.error'), t('auth.err_google_failed'));
+        toast.show({ message: t('auth.err_google_failed'), type: 'error' });
         setGoogleLoading(false);
         return;
       }
@@ -99,18 +101,18 @@ export default function LoginScreen() {
             if (fallbackData.session) {
               router.replace('/(app)' as any);
             } else {
-              Alert.alert(t('common.error'), t('auth.err_google_failed'));
+              toast.show({ message: t('auth.err_google_failed'), type: 'error' });
             }
           } catch {
-            Alert.alert(t('common.error'), t('auth.err_google_failed'));
+            toast.show({ message: t('auth.err_google_failed'), type: 'error' });
           }
         } else {
-          Alert.alert(t('common.error'), t('auth.err_google_failed'));
+          toast.show({ message: t('auth.err_google_failed'), type: 'error' });
         }
       }
     } catch (e) {
       console.error('Google sign in exception:', e);
-      Alert.alert(t('common.error'), t('auth.err_google_failed'));
+      toast.show({ message: t('auth.err_google_failed'), type: 'error' });
     } finally {
       setGoogleLoading(false);
     }

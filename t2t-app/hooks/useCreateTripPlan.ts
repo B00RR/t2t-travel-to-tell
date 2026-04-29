@@ -51,7 +51,7 @@ export function useCreateTripPlan(userId: string | undefined) {
     if (error) {
       setCreating(false);
       Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('createManual error', error);
+      if (__DEV__) console.error('createManual error', error);
       return null;
     }
 
@@ -80,7 +80,7 @@ export function useCreateTripPlan(userId: string | undefined) {
     if (diaryError || !diary) {
       setCreating(false);
       Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('createFromDiary: diary fetch error', diaryError);
+      if (__DEV__) console.error('createFromDiary: diary fetch error', diaryError);
       return null;
     }
 
@@ -92,7 +92,7 @@ export function useCreateTripPlan(userId: string | undefined) {
       .order('day_number', { ascending: true });
 
     if (daysError) {
-      console.warn('createFromDiary: days fetch error', daysError);
+      if (__DEV__) console.warn('createFromDiary: days fetch error', daysError);
     }
 
     // Fetch location entries for each day to fill location_name
@@ -138,7 +138,7 @@ export function useCreateTripPlan(userId: string | undefined) {
     if (planError || !plan) {
       setCreating(false);
       Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('createFromDiary: plan insert error', planError);
+      if (__DEV__) console.error('createFromDiary: plan insert error', planError);
       return null;
     }
 
@@ -180,7 +180,7 @@ export function useCreateTripPlan(userId: string | undefined) {
 
     if (error) {
       Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('clonePlan error', error);
+      if (__DEV__) console.error('clonePlan error', error);
       return null;
     }
 

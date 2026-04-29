@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
+import { showToast } from '@/components/Toast';
 import type { TripPlan } from '@/types/tripPlan';
 
 const PLAN_FIELDS = `
@@ -34,8 +34,8 @@ export function useTripPlans(userId: string | undefined) {
     if (!error && data) {
       setMyPlans(data as unknown as TripPlan[]);
     } else if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
-      console.error('fetchMyPlans error', error);
+      showToast({ message: t('common.error_generic'), type: 'error' });
+      if (__DEV__) console.error('fetchMyPlans error', error);
     }
 
     if (!isRefreshing) setLoading(false);
@@ -55,7 +55,7 @@ export function useTripPlans(userId: string | undefined) {
     if (!error && data) {
       setPublicPlans(data as unknown as TripPlan[]);
     } else if (error) {
-      console.error('fetchPublicPlans error', error);
+      if (__DEV__) console.error('fetchPublicPlans error', error);
     }
 
     if (!isRefreshing) setLoading(false);

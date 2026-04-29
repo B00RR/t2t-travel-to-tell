@@ -46,7 +46,7 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
       if (saveData) setHasSaved(true);
     } catch (e) {
       // Ignored: mostly means 0 rows returned
-      console.debug('Failed to fetch initial social state', e);
+      if (__DEV__) console.debug('Failed to fetch initial social state', e);
     } finally {
       setLoadingInitialState(false);
     }
@@ -80,7 +80,7 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
       // Rollback on failure
       setHasLiked(prevLiked);
       setCounters(prev => ({ ...prev, like_count: prev.like_count + (prevLiked ? 1 : -1) }));
-      console.warn('Failed to toggle like', e);
+      if (__DEV__) console.warn('Failed to toggle like', e);
     }
   }, [diaryId, userId, hasLiked]);
 
@@ -108,7 +108,7 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
       // Rollback on failure
       setHasSaved(prevSaved);
       setCounters(prev => ({ ...prev, save_count: prev.save_count + (prevSaved ? 1 : -1) }));
-      console.warn('Failed to toggle save', e);
+      if (__DEV__) console.warn('Failed to toggle save', e);
     }
   }, [diaryId, userId, hasSaved]);
 

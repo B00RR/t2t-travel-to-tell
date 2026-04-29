@@ -23,6 +23,7 @@ import '../i18n';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { ThemePreferenceProvider } from '@/hooks/useThemePreference';
+import { ToastProvider } from '@/components/Toast';
 
 export { ErrorBoundary };
 
@@ -78,7 +79,9 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemePreferenceProvider>
           <AuthProvider>
-            <RootLayoutNav />
+            <ToastProvider>
+              <RootLayoutNav />
+            </ToastProvider>
           </AuthProvider>
         </ThemePreferenceProvider>
       </GestureHandlerRootView>

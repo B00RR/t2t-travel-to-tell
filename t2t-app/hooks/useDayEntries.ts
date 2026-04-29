@@ -51,7 +51,7 @@ export function useDayEntries(dayId: string | string[]) {
       .eq('id', id)
       .single();
     if (error) {
-      console.error('fetchDayInfo failed', error);
+      if (__DEV__) console.error('fetchDayInfo failed', error);
       return;
     }
     if (data) setDayInfo(data);
@@ -112,10 +112,10 @@ export function useDayEntries(dayId: string | string[]) {
       } else if (error) {
         setEntries([]);
         Alert.alert(t('common.error'), t('common.error_generic'));
-        console.error('Error fetching entries:', error);
+        if (__DEV__) console.error('Error fetching entries:', error);
       }
     } catch (e) {
-      console.error('fetchEntries failed', e);
+      if (__DEV__) console.error('fetchEntries failed', e);
     } finally {
       setLoading(false);
     }
@@ -148,7 +148,7 @@ export function useDayEntries(dayId: string | string[]) {
               Alert.alert(t('common.warning'), t('day.geocode_not_found'));
             }
           } catch (e) {
-            console.warn('Geocoding failed, saving without coordinates:', e);
+            if (__DEV__) console.warn('Geocoding failed, saving without coordinates:', e);
             Alert.alert(t('common.warning'), t('day.geocode_failed'));
           }
         }
@@ -183,7 +183,7 @@ export function useDayEntries(dayId: string | string[]) {
         if (error) {
           setSaving(false);
           Alert.alert(t('common.error'), t('day.err_add_failed'));
-          console.error('Error adding entry:', error);
+          if (__DEV__) console.error('Error adding entry:', error);
           return false;
         }
 
@@ -206,7 +206,7 @@ export function useDayEntries(dayId: string | string[]) {
               });
             }
           } catch (e) {
-            console.warn('Failed to save to diary_locations:', e);
+            if (__DEV__) console.warn('Failed to save to diary_locations:', e);
           }
         }
       } else {
@@ -253,7 +253,7 @@ export function useDayEntries(dayId: string | string[]) {
 
         if (error) {
           Alert.alert(t('common.error'), t('day.err_add_failed'));
-          console.error('Error adding mood:', error);
+          if (__DEV__) console.error('Error adding mood:', error);
           return false;
         }
       } else {
@@ -292,7 +292,7 @@ export function useDayEntries(dayId: string | string[]) {
 
         if (error) {
           Alert.alert(t('common.error'), t('day.err_update_failed'));
-          console.error('Error updating entry:', error);
+          if (__DEV__) console.error('Error updating entry:', error);
           return false;
         }
       } else {
@@ -370,7 +370,7 @@ export function useDayEntries(dayId: string | string[]) {
                     .from('diary-media')
                     .remove(pathsToRemove);
                 } catch (e) {
-                  console.warn('Failed to cleanup media', e);
+                  if (__DEV__) console.warn('Failed to cleanup media', e);
                 }
               }
 
@@ -384,7 +384,7 @@ export function useDayEntries(dayId: string | string[]) {
                   await fetchEntries();
                 } else {
                   Alert.alert(t('common.error'), t('day.err_delete_failed'));
-                  console.error('Error deleting entry:', error);
+                  if (__DEV__) console.error('Error deleting entry:', error);
                 }
               } else {
                 setEntries(prev => prev.filter(e => e.id !== entryId));

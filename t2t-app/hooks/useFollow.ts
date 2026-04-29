@@ -26,7 +26,7 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
       setIsFollowing(!!data);
     } catch (e) {
       // Typically throws if no rows found
-      console.debug('Failed to check follow status', e);
+      if (__DEV__) console.debug('Failed to check follow status', e);
       setIsFollowing(false);
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
     } catch (e) {
       // Revert optimism
       setIsFollowing(isFollowing);
-      console.warn('Failed to toggle follow', e);
+      if (__DEV__) console.warn('Failed to toggle follow', e);
       Alert.alert(t('common.error'), t('social.err_follow_toggle'));
     }
   }, [currentUserId, targetProfileId, isFollowing]);

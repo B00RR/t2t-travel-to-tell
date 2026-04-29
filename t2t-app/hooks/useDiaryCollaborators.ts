@@ -43,7 +43,7 @@ export function useDiaryCollaborators(diaryId?: string): UseDiaryCollaboratorsRe
       setCollaborators(rows.filter(r => r.status === 'accepted'));
       setPending(rows.filter(r => r.status === 'pending'));
     } else if (error) {
-      console.error('fetchCollaborators failed', error);
+      if (__DEV__) console.error('fetchCollaborators failed', error);
       setCollaborators([]);
       setPending([]);
     }
@@ -62,7 +62,7 @@ export function useDiaryCollaborators(diaryId?: string): UseDiaryCollaboratorsRe
       });
 
       if (error) {
-        console.error('inviteCollaborator failed', error);
+        if (__DEV__) console.error('inviteCollaborator failed', error);
         const msg = error.message || '';
         if (msg.includes('User not found')) return { ok: false, errorKey: 'collab.user_not_found' };
         if (msg.includes('Cannot invite yourself')) return { ok: false, errorKey: 'collab.cannot_invite_self' };
@@ -87,7 +87,7 @@ export function useDiaryCollaborators(diaryId?: string): UseDiaryCollaboratorsRe
         .eq('id', collabId);
 
       if (error) {
-        console.error('removeCollaborator failed', error);
+        if (__DEV__) console.error('removeCollaborator failed', error);
         return false;
       }
       await fetchAll();
@@ -109,7 +109,7 @@ export function useDiaryCollaborators(diaryId?: string): UseDiaryCollaboratorsRe
       .eq('user_id', uid);
 
     if (error) {
-      console.error('leaveCollaboration failed', error);
+      if (__DEV__) console.error('leaveCollaboration failed', error);
       return false;
     }
     await fetchAll();
@@ -123,7 +123,7 @@ export function useDiaryCollaborators(diaryId?: string): UseDiaryCollaboratorsRe
         p_accept: accept,
       });
       if (error) {
-        console.error('respondInvitation failed', error);
+        if (__DEV__) console.error('respondInvitation failed', error);
         return false;
       }
       await fetchAll();

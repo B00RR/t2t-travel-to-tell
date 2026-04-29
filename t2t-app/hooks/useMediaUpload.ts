@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
+
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import type { VideoMetadata, PhotoMetadata } from '@/types/dayEntry';
+import { showToast } from '@/components/Toast';
 
 interface UseMediaUploadOptions {
   userId: string | undefined;
@@ -207,7 +208,7 @@ export function useMediaUpload({
   const pickAndUploadMedia = useCallback(async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert(t('common.error'), t('media.permission_denied'));
+      toast.show({ message: t('media.permission_denied'), type: 'error' });
       return;
     }
 
@@ -242,7 +243,7 @@ export function useMediaUpload({
     }
 
     if (failed > 0) {
-      Alert.alert(t('common.upload_error'), t('media.upload_failed'));
+      toast.show({ message: t('media.upload_failed'), type: 'error' });
     }
 
     setUploading(false);

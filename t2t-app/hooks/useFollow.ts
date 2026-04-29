@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Alert } from 'react-native';
+import { showToast } from '@/components/Toast';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
@@ -39,7 +39,8 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
 
   const toggleFollow = useCallback(async () => {
     if (!currentUserId) {
-      Alert.alert(t('social.login_required'), t('social.login_to_follow'));
+      showToast({ message: t('social.login_required'), type: 'warning' });
+      showToast({ message: t('social.login_to_follow'), type: 'warning' });
       return;
     }
 
@@ -70,7 +71,7 @@ export function useFollow(currentUserId: string | undefined, targetProfileId: st
       // Revert optimism
       setIsFollowing(isFollowing);
       if (__DEV__) console.warn('Failed to toggle follow', e);
-      Alert.alert(t('common.error'), t('social.err_follow_toggle'));
+      showToast({ message: t('common.error') + ' — ' + t('social.err_follow_toggle'), type: 'error' });
     }
   }, [currentUserId, targetProfileId, isFollowing]);
 

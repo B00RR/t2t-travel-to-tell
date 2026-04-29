@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 /**
  * Delete account screen — requires the user to type the confirmation
@@ -21,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function DeleteAccountScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const toast = useToast();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
 
@@ -44,7 +46,7 @@ export default function DeleteAccountScreen() {
       if (error || !data?.ok) {
         console.error('Account deletion failed:', error);
         setDeleting(false);
-        Alert.alert(t('common.error'), t('delete_account.err_generic'));
+        toast.show({ message: t('delete_account.err_generic'), type: 'error' });
         return;
       }
 
@@ -61,7 +63,7 @@ export default function DeleteAccountScreen() {
     } catch (err) {
       console.error('delete-account error:', err);
       setDeleting(false);
-      Alert.alert(t('common.error'), t('delete_account.err_generic'));
+      toast.show({ message: t('delete_account.err_generic'), type: 'error' });
     }
   }, [canSubmit, t]);
 

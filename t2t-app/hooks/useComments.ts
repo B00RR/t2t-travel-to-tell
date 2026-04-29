@@ -6,6 +6,7 @@ import { validateComment } from '@/utils/inputValidator';
 import { supabase } from '@/lib/supabase';
 import { getNetworkStateAsync } from 'expo-network';
 import { offlineQueue } from '@/lib/offline';
+import { showToast } from '@/components/Toast';
 
 export function useComments() {
   const { t } = useTranslation();
@@ -65,7 +66,7 @@ export function useComments() {
       setSubmitting(false);
 
       if (dbError) {
-        Alert.alert(t('common.error'), t('social.err_comment_post'));
+        toast.show({ message: t('social.err_comment_post'), type: 'error' });
         return false;
       }
     } else {
@@ -95,7 +96,7 @@ export function useComments() {
           if (online) {
             const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId);
             if (dbError) {
-              Alert.alert(t('common.error'), t('social.err_comment_delete'));
+              toast.show({ message: t('social.err_comment_delete'), type: 'error' });
             } else {
               await fetchComments(diaryId);
             }
@@ -129,7 +130,7 @@ export function useComments() {
       setSubmitting(false);
 
       if (dbError) {
-        Alert.alert(t('common.error'), t('social.err_comment_update'));
+        toast.show({ message: t('social.err_comment_update'), type: 'error' });
         return false;
       }
     } else {

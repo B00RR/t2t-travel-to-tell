@@ -19,10 +19,12 @@ import { ListHeader } from '@/components/explore/ListHeader';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { AdvancedFiltersModal, FilterBadge, matchesAdvancedFilters, type AdvancedFilters } from '@/components/explore/AdvancedFilters';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 type ExploreMode = 'browse' | 'map';
 
 const PAGE_SIZE = 20;
+const toast = useToast();
 
 function getDurationDays(diary: FeedDiary): number | null {
   if (!diary.start_date || !diary.end_date) return null;
@@ -103,7 +105,7 @@ export default function DiscoveryScreen() {
     const { data, error } = await query;
 
     if (error) {
-      Alert.alert(t('common.error'), t('explore.error_fetch'));
+      toast.show({ message: t('explore.error_fetch'), type: 'error' });
     } else if (data) {
       setDiaries(prev => pageNum === 0 ? data as FeedDiary[] : [...prev, ...data as FeedDiary[]]);
       setHasMore(data.length === PAGE_SIZE);

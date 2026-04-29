@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { showToast } from '@/components/Toast';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { supabase } from '@/lib/supabase';
@@ -58,7 +58,8 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
 
   const toggleLike = useCallback(async () => {
     if (!userId) {
-      Alert.alert(t('social.login_required'), t('social.login_to_like'));
+      showToast({ message: t('social.login_required'), type: 'warning' });
+      showToast({ message: t('social.login_to_like'), type: 'warning' });
       return;
     }
 
@@ -86,7 +87,8 @@ export function useDiarySocial({ diaryId, userId, initialCounters }: UseDiarySoc
 
   const toggleSave = useCallback(async () => {
     if (!userId) {
-      Alert.alert(t('social.login_required'), t('social.login_to_save'));
+      showToast({ message: t('social.login_required'), type: 'warning' });
+      showToast({ message: t('social.login_to_save'), type: 'warning' });
       return;
     }
 

@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCreateTripPlan } from '@/hooks/useCreateTripPlan';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 type Step = 'choose' | 'manual' | 'from_diary';
 
@@ -23,6 +24,7 @@ type DiaryOption = {
 
 export default function CreateTripPlanScreen() {
   const router = useRouter();
+  const toast = useToast();
   const { t } = useTranslation();
   const { user } = useAuth();
   const { creating, createManual, createFromDiary } = useCreateTripPlan(user?.id);
@@ -55,14 +57,14 @@ export default function CreateTripPlanScreen() {
   useFocusEffect(useCallback(() => { if (step === 'from_diary') fetchMyDiaries(); }, [step, fetchMyDiaries]));
 
   async function handleCreateManual() {
-    if (!title.trim()) { Alert.alert(t('common.error'), t('planner.err_title_required')); return; }
+    toast.show({ message: t('planner.err_title_required'), type: 'error' });
     const destArray = destinations.split(',').map(d => d.trim()).filter(Boolean);
     const newId = await createManual({ title: title.trim(), description: description.trim() || undefined, destinations: destArray, start_date: startDate.trim() || undefined, end_date: endDate.trim() || undefined, visibility: 'private' });
     if (newId) router.replace(`/planner/${newId}`);
   }
 
   async function handleCreateFromDiary() {
-    if (!selectedDiaryId) { Alert.alert(t('common.error'), t('planner.err_select_diary')); return; }
+    toast.show({ message: t('planner.err_select_diary'), type: 'error' });
     const newId = await createFromDiary(selectedDiaryId);
     if (newId) router.replace(`/planner/${newId}`);
   }

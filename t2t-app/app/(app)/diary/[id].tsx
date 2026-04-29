@@ -180,7 +180,7 @@ export default function DiaryDetailScreen() {
           onPress: async () => {
             const ok = await leaveCollaboration();
             if (ok) router.replace('/(app)/(tabs)/home' as never);
-            else Alert.alert(t('common.error'), t('collab.invite_error'));
+            else toast.show({ message: t('collab.invite_error'), type: 'error' });
           },
         },
       ],
@@ -200,7 +200,7 @@ export default function DiaryDetailScreen() {
 
   async function deleteDiary() {
     const { error } = await supabase.from('diaries').delete().eq('id', id);
-    if (error) Alert.alert(t('common.error'), t('diary.err_delete_failed'));
+    if (error) toast.show({ message: t('diary.err_delete_failed'), type: 'error' });
     else router.replace('/(app)/(tabs)/home' as never);
   }
 

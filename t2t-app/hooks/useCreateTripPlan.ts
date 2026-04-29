@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
+
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
 import type { TripPlanVisibility, BudgetEstimate } from '@/types/tripPlan';
+import { showToast } from '@/components/Toast';
 
 const DEFAULT_CHECKLIST = [
   { category: 'documents' as const, label: 'Passport / ID', sort_order: 1 },
@@ -50,7 +51,7 @@ export function useCreateTripPlan(userId: string | undefined) {
 
     if (error) {
       setCreating(false);
-      Alert.alert(t('common.error'), t('common.error_generic'));
+      toast.show({ message: t('common.error_generic'), type: 'error' });
       if (__DEV__) console.error('createManual error', error);
       return null;
     }
@@ -79,7 +80,7 @@ export function useCreateTripPlan(userId: string | undefined) {
 
     if (diaryError || !diary) {
       setCreating(false);
-      Alert.alert(t('common.error'), t('common.error_generic'));
+      toast.show({ message: t('common.error_generic'), type: 'error' });
       if (__DEV__) console.error('createFromDiary: diary fetch error', diaryError);
       return null;
     }
@@ -137,7 +138,7 @@ export function useCreateTripPlan(userId: string | undefined) {
 
     if (planError || !plan) {
       setCreating(false);
-      Alert.alert(t('common.error'), t('common.error_generic'));
+      toast.show({ message: t('common.error_generic'), type: 'error' });
       if (__DEV__) console.error('createFromDiary: plan insert error', planError);
       return null;
     }
@@ -179,7 +180,7 @@ export function useCreateTripPlan(userId: string | undefined) {
     setCreating(false);
 
     if (error) {
-      Alert.alert(t('common.error'), t('common.error_generic'));
+      toast.show({ message: t('common.error_generic'), type: 'error' });
       if (__DEV__) console.error('clonePlan error', error);
       return null;
     }

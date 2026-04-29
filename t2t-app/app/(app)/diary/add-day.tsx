@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme, type AppTheme } from '@/hooks/useAppTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 export default function AddDayScreen() {
   const { t } = useTranslation();
   const { diary_id } = useLocalSearchParams();
   const router = useRouter();
+  const toast = useToast();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -31,7 +33,7 @@ export default function AddDayScreen() {
       .limit(1);
 
     if (countError) {
-      Alert.alert(t('common.error'), t('diary.err_calc_day'));
+      toast.show({ message: t('diary.err_calc_day'), type: 'error' });
       setLoading(false);
       return;
     }
@@ -61,7 +63,7 @@ export default function AddDayScreen() {
     setLoading(false);
 
     if (insertError) {
-      Alert.alert(t('common.error'), t('diary.err_add_day'));
+      toast.show({ message: t('diary.err_add_day'), type: 'error' });
     } else {
       router.back();
     }

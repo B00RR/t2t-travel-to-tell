@@ -19,6 +19,7 @@ import { ListHeader } from '@/components/explore/ListHeader';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { AdvancedFiltersModal, FilterBadge, matchesAdvancedFilters, type AdvancedFilters } from '@/components/explore/AdvancedFilters';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 type ExploreMode = 'browse' | 'map';
 
@@ -46,6 +47,7 @@ export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const theme = useAppTheme();
+  const toast = useToast();
   const insets = useSafeAreaInsets();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,7 +105,7 @@ export default function DiscoveryScreen() {
     const { data, error } = await query;
 
     if (error) {
-      Alert.alert(t('common.error'), t('explore.error_fetch'));
+      toast.show({ message: t('explore.error_fetch'), type: 'error' });
     } else if (data) {
       setDiaries(prev => pageNum === 0 ? data as FeedDiary[] : [...prev, ...data as FeedDiary[]]);
       setHasMore(data.length === PAGE_SIZE);

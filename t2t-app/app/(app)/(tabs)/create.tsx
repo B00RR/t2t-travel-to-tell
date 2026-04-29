@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, ScrollView, Platform, Image,
+  ActivityIndicator, ScrollView, Platform, Image,
   KeyboardAvoidingView,
 } from 'react-native';
 import Animated, {
@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Spacing, Radius, Typography, Shadows, Fonts, Glass } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 const STEPS = 3;
 
@@ -29,6 +30,7 @@ export default function CreateDiaryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const theme = useAppTheme();
 
   const insets = useSafeAreaInsets();
@@ -54,7 +56,7 @@ export default function CreateDiaryScreen() {
   const handlePickCover = useCallback(async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert(t('common.error'), t('media.permission_denied'));
+      toast.show({ message: t('media.permission_denied'), type: 'error' });
       return;
     }
 
@@ -78,7 +80,7 @@ export default function CreateDiaryScreen() {
 
   async function handleCreateDiary() {
     if (!title.trim()) {
-      Alert.alert(t('common.error'), t('create.err_title_required'));
+      toast.show({ message: t('create.err_title_required'), type: 'error' });
       return;
     }
 
@@ -103,7 +105,7 @@ export default function CreateDiaryScreen() {
 
     if (error || !data) {
       setLoading(false);
-      Alert.alert(t('common.error'), t('create.err_create_failed'));
+      toast.show({ message: t('create.err_create_failed'), type: 'error' });
       return;
     }
 
@@ -134,7 +136,7 @@ export default function CreateDiaryScreen() {
 
     setLoading(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(t('create.success_title'), t('create.success_msg'));
+    toast.show({ message: t('create.success_msg'), type: 'success' });
     setTitle('');
     setDescription('');
     setDestinations('');

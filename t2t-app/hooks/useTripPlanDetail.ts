@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
+
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { getNetworkStateAsync } from 'expo-network';
 import { offlineQueue } from '@/lib/offline';
 import type { TripPlan, TripPlanStop, ChecklistItem } from '@/types/tripPlan';
+import { showToast } from '@/components/Toast';
 
 export function useTripPlanDetail(planId: string | string[]) {
   const { t } = useTranslation();
@@ -68,7 +69,7 @@ export function useTripPlanDetail(planId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         if (__DEV__) console.error('updatePlan error', error);
         return false;
       }
@@ -88,7 +89,7 @@ export function useTripPlanDetail(planId: string | string[]) {
     if (online) {
       const { error } = await supabase.from('trip_plans').delete().eq('id', id);
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         if (__DEV__) console.error('deletePlan error', error);
         return false;
       }
@@ -114,7 +115,7 @@ export function useTripPlanDetail(planId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         if (__DEV__) console.error('addStop error', error);
         return false;
       }
@@ -142,7 +143,7 @@ export function useTripPlanDetail(planId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         return false;
       }
       setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...updates } : s));
@@ -161,7 +162,7 @@ export function useTripPlanDetail(planId: string | string[]) {
     if (online) {
       const { error } = await supabase.from('trip_plan_stops').delete().eq('id', stopId);
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         return false;
       }
     } else {
@@ -212,7 +213,7 @@ export function useTripPlanDetail(planId: string | string[]) {
       setSaving(false);
 
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         return false;
       }
       setChecklist(prev => [...prev, data as ChecklistItem]);
@@ -237,7 +238,7 @@ export function useTripPlanDetail(planId: string | string[]) {
         .eq('id', itemId);
 
       if (error) {
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        toast.show({ message: t('common.error_generic'), type: 'error' });
         return false;
       }
     } else {

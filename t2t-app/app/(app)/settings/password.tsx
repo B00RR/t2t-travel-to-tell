@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -22,6 +23,7 @@ const MIN_PASSWORD_LENGTH = 8;
 export default function PasswordChangeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const toast = useToast();
   const theme = useAppTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -36,19 +38,19 @@ export default function PasswordChangeScreen() {
 
   const handleSave = useCallback(async () => {
     if (next !== confirm) {
-      Alert.alert(t('common.error'), t('password_change.err_mismatch'));
+      toast.show({ message: t('password_change.err_mismatch'), type: 'error' });
       return;
     }
     if (next.length < MIN_PASSWORD_LENGTH) {
-      Alert.alert(t('common.error'), t('password_change.err_short'));
+      toast.show({ message: t('password_change.err_short'), type: 'error' });
       return;
     }
     if (next === current) {
-      Alert.alert(t('common.error'), t('password_change.err_same'));
+      toast.show({ message: t('password_change.err_same'), type: 'error' });
       return;
     }
     if (!user?.email) {
-      Alert.alert(t('common.error'), t('password_change.err_generic'));
+      toast.show({ message: t('password_change.err_generic'), type: 'error' });
       return;
     }
 
@@ -65,7 +67,7 @@ export default function PasswordChangeScreen() {
 
     if (authError) {
       setSaving(false);
-      Alert.alert(t('common.error'), t('password_change.err_wrong_current'));
+      toast.show({ message: t('password_change.err_wrong_current'), type: 'error' });
       return;
     }
 
@@ -77,7 +79,7 @@ export default function PasswordChangeScreen() {
 
     if (updateError) {
       console.error('Password update failed:', updateError);
-      Alert.alert(t('common.error'), t('password_change.err_generic'));
+      toast.show({ message: t('password_change.err_generic'), type: 'error' });
       return;
     }
 

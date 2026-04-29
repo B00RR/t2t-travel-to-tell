@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Alert } from 'react-native';
+import { showToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
@@ -111,7 +111,7 @@ export function useDayEntries(dayId: string | string[]) {
         setEntries(resolved);
       } else if (error) {
         setEntries([]);
-        Alert.alert(t('common.error'), t('common.error_generic'));
+        showToast({ message: t('common.error') + ' — ' + t('common.error_generic'), type: 'error' });
         if (__DEV__) console.error('Error fetching entries:', error);
       }
     } catch (e) {
@@ -145,11 +145,11 @@ export function useDayEntries(dayId: string | string[]) {
                 lng: results[0].longitude,
               };
             } else {
-              Alert.alert(t('common.warning'), t('day.geocode_not_found'));
+              showToast({ message: t('day.geocode_not_found'), type: 'warning' });
             }
           } catch (e) {
             if (__DEV__) console.warn('Geocoding failed, saving without coordinates:', e);
-            Alert.alert(t('common.warning'), t('day.geocode_failed'));
+            showToast({ message: t('day.geocode_failed'), type: 'warning' });
           }
         }
       }
@@ -182,7 +182,7 @@ export function useDayEntries(dayId: string | string[]) {
 
         if (error) {
           setSaving(false);
-          Alert.alert(t('common.error'), t('day.err_add_failed'));
+          showToast({ message: t('common.error') + ' — ' + t('day.err_add_failed'), type: 'error' });
           if (__DEV__) console.error('Error adding entry:', error);
           return false;
         }
@@ -252,7 +252,7 @@ export function useDayEntries(dayId: string | string[]) {
         setSaving(false);
 
         if (error) {
-          Alert.alert(t('common.error'), t('day.err_add_failed'));
+          showToast({ message: t('common.error') + ' — ' + t('day.err_add_failed'), type: 'error' });
           if (__DEV__) console.error('Error adding mood:', error);
           return false;
         }
@@ -291,7 +291,7 @@ export function useDayEntries(dayId: string | string[]) {
         setSaving(false);
 
         if (error) {
-          Alert.alert(t('common.error'), t('day.err_update_failed'));
+          showToast({ message: t('common.error') + ' — ' + t('day.err_update_failed'), type: 'error' });
           if (__DEV__) console.error('Error updating entry:', error);
           return false;
         }
@@ -383,7 +383,7 @@ export function useDayEntries(dayId: string | string[]) {
                 if (!error) {
                   await fetchEntries();
                 } else {
-                  Alert.alert(t('common.error'), t('day.err_delete_failed'));
+                  showToast({ message: t('common.error') + ' — ' + t('day.err_delete_failed'), type: 'error' });
                   if (__DEV__) console.error('Error deleting entry:', error);
                 }
               } else {

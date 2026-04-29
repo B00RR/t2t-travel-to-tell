@@ -13,6 +13,7 @@ import { useMapLocations } from '@/hooks/useMapLocations';
 import { usePublicMapLocations, type PublicMapLocation } from '@/hooks/usePublicMapLocations';
 import { Palette } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 type MapMode = 'mine' | 'discover';
 
@@ -26,6 +27,7 @@ const DEFAULT_REGION: Region = {
 export default function MapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const toast = useToast();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<MapMode>('mine');
@@ -77,7 +79,7 @@ export default function MapScreen() {
 
   const centerOnMe = useCallback(async () => {
     if (!locationPermission) {
-      Alert.alert(t('common.error'), t('map.location_permission_denied'));
+      toast.show({ message: t('map.location_permission_denied'), type: 'error' });
       return;
     }
     const pos = await Location.getCurrentPositionAsync({});

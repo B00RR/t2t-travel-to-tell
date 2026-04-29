@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '@/components/Toast';
 
 const MIN_PASSWORD_LENGTH = 8;
-const toast = useToast();
 
 /**
  * Password change screen — requires re-auth with the current password
@@ -24,6 +23,7 @@ const toast = useToast();
 export default function PasswordChangeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const toast = useToast();
   const theme = useAppTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();

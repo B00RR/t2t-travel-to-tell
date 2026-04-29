@@ -158,7 +158,7 @@ export default function HomeScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             if (!user?.id) return;
             const { error } = await supabase.from('saves').insert({ user_id: user.id, diary_id: diaryId });
-            if (error) Alert.alert(t('common.error'), t('social.save_failed'));
+            if (error) toast.show({ message: t('social.save_failed'), type: 'error' });
           },
         },
         { text: t('common.cancel') || 'Cancel', style: 'cancel' },

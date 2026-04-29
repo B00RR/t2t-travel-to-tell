@@ -24,7 +24,6 @@ import { useToast } from '@/components/Toast';
 type ExploreMode = 'browse' | 'map';
 
 const PAGE_SIZE = 20;
-const toast = useToast();
 
 function getDurationDays(diary: FeedDiary): number | null {
   if (!diary.start_date || !diary.end_date) return null;
@@ -48,6 +47,7 @@ export default function DiscoveryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const theme = useAppTheme();
+  const toast = useToast();
   const insets = useSafeAreaInsets();
   const [exploreMode, setExploreMode] = useState<ExploreMode>('browse');
   const [searchQuery, setSearchQuery] = useState('');

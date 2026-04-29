@@ -61,7 +61,7 @@ export default function EditDiaryScreen() {
         .single();
 
       if (error || !data) {
-        Alert.alert(t('common.error'), t('diary.not_found'));
+        toast.show({ message: t('diary.not_found'), type: 'error' });
         router.back();
         return;
       }
@@ -95,7 +95,7 @@ export default function EditDiaryScreen() {
   const handleSave = useCallback(async () => {
     if (!diary) return;
     if (!title.trim()) {
-      Alert.alert(t('common.error'), t('create.err_title_required'));
+      toast.show({ message: t('create.err_title_required'), type: 'error' });
       return;
     }
 
@@ -122,7 +122,7 @@ export default function EditDiaryScreen() {
 
     if (error) {
       console.error('Diary update failed:', error);
-      Alert.alert(t('common.error'), t('edit_diary.err_save_failed'));
+      toast.show({ message: t('edit_diary.err_save_failed'), type: 'error' });
       return;
     }
 

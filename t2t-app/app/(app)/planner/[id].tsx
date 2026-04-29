@@ -78,7 +78,7 @@ export default function TripPlanDetailScreen() {
   }, [plan]);
 
   async function handleSaveMetadata() {
-    if (!editForm.title.trim()) { Alert.alert(t('common.error'), t('planner.err_title_required')); return; }
+    if (!editForm.title.trim()) { toast.show({ message: t('planner.err_title_required'), type: 'error' }); return; }
     const destinations = editForm.destinations.split(',').map(d => d.trim()).filter(Boolean);
     await updatePlan({ title: editForm.title.trim(), description: editForm.description.trim() || null, destinations, start_date: editForm.start_date.trim() || null, end_date: editForm.end_date.trim() || null, visibility: editForm.visibility });
     setEditVisible(false);

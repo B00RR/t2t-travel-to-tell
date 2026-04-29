@@ -23,7 +23,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '@/components/Toast';
 
 const STEPS = 3;
-const toast = useToast();
 
 type Step = 0 | 1 | 2;
 
@@ -31,6 +30,7 @@ export default function CreateDiaryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const theme = useAppTheme();
 
   const insets = useSafeAreaInsets();

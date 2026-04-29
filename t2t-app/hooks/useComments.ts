@@ -44,7 +44,7 @@ export function useComments() {
   const addComment = useCallback(async (diaryId: string, userId: string, content: string, parentId: string | null = null) => {
     const validation = validateComment(content);
     if (!validation.valid) {
-      Alert.alert(t('social.err_comment_validation'), validation.reason);
+      showToast({ message: validation.reason, type: 'warning' });
       return false;
     }
 
@@ -112,7 +112,7 @@ export function useComments() {
   const updateComment = useCallback(async (commentId: string, diaryId: string, content: string) => {
     const validation = validateComment(content);
     if (!validation.valid) {
-      Alert.alert(t('social.err_comment_validation'), validation.reason);
+      showToast({ message: validation.reason, type: 'warning' });
       return false;
     }
 

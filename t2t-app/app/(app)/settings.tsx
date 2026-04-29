@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { useThemePreference, ThemePreference } from '@/hooks/useThemePreference'
 import { Radius, Typography } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import i18n from '@/i18n';
+import { useToast } from '@/components/Toast';
 
 const LANGUAGES = [
   { code: 'it', label: 'Italiano', flag: '🇮🇹' },
@@ -30,6 +31,7 @@ export default function SettingsScreen() {
   const { user } = useAuth();
   const { updateProfile } = useUserProfile(user?.id);
   const { preference: themePref, setPreference: setThemePref } = useThemePreference();
+  const toast = useToast();
 
   async function handleLanguageChange(lang: string) {
     i18n.changeLanguage(lang);
@@ -40,15 +42,9 @@ export default function SettingsScreen() {
     await setThemePref(pref);
   }
 
-  function handleLogout() {
-    Alert.alert(
-      t('common.logout'),
-      t('common.logout_confirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.logout'), style: 'destructive', onPress: () => supabase.auth.signOut() },
-      ]
-    );
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    toast.show({ message: t('common.logout'), type: 'success' });
   }
 
   return (

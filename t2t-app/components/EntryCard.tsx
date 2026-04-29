@@ -34,7 +34,7 @@ export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: E
         <TouchableOpacity
           style={[styles.moodCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.ocean }]}
           onLongPress={() => onLongPress?.(entry.id)}
-          delayLongPress={600}
+          delayLongPress={400}
         >
           <Text style={styles.moodEmoji}>{entry.content}</Text>
           <Text style={[styles.moodLabel, { color: theme.ocean }]}>{entry.metadata?.label || t('day.type_mood')}</Text>
@@ -57,7 +57,7 @@ export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: E
           style={[styles.photoCard, { backgroundColor: theme.bgElevated }]}
           onPress={() => setLightboxOpen(true)}
           onLongPress={() => onLongPress?.(entry.id)}
-          delayLongPress={600}
+          delayLongPress={400}
           accessibilityRole="button"
           accessibilityLabel={t('day.view_photo')}
         >
@@ -99,7 +99,7 @@ export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: E
           style={[styles.locationCard, { backgroundColor: theme.bgSurface, borderLeftColor: theme.red }]}
           onPress={() => onPress?.(entry)}
           onLongPress={() => onLongPress?.(entry.id)}
-          delayLongPress={600}
+          delayLongPress={400}
         >
           <Ionicons name="location" size={20} color={theme.red} />
           <Text style={[styles.locationText, { color: theme.textPrimary }]}>{entry.content}</Text>
@@ -120,7 +120,7 @@ export function EntryCard({ entry, onPress, onLongPress, showAuthor = false }: E
         ]}
         onPress={() => onPress?.(entry)}
         onLongPress={() => onLongPress?.(entry.id)}
-        delayLongPress={600}
+        delayLongPress={400}
       >
         <View style={styles.entryHeader}>
           <Ionicons

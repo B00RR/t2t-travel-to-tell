@@ -57,7 +57,7 @@ async function getExpoPushToken(): Promise<string | null> {
       : await Notifications.getExpoPushTokenAsync();
     return tokenResponse.data;
   } catch (err) {
-    console.warn('Failed to fetch Expo push token', err);
+    if (__DEV__) console.warn('Failed to fetch Expo push token', err);
     return null;
   }
 }
@@ -106,10 +106,10 @@ export function usePushRegistration() {
           );
 
         if (error) {
-          console.warn('Failed to persist push token', error.message);
+          if (__DEV__) console.warn('Failed to persist push token', error.message);
         }
       } catch (err) {
-        console.warn('Push registration failed', err);
+        if (__DEV__) console.warn('Push registration failed', err);
       }
     })();
   }, [user]);

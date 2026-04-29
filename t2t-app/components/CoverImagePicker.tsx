@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, Modal, StyleSheet, TouchableOpacity, Image,
-  FlatList, TextInput, ActivityIndicator, Dimensions, Alert,
+  FlatList, TextInput, ActivityIndicator, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { useStockImages } from '@/hooks/useStockImages';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius } from '@/constants/theme';
+import { useToast } from '@/components/Toast';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const THUMB_SIZE = (SCREEN_WIDTH - 48 - 16) / 3;
@@ -30,6 +31,7 @@ export function CoverImagePicker({
 }: CoverImagePickerProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const toast = useToast();
   const { images, loading: stockLoading, searchImages, apiKeyMissing } = useStockImages();
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,7 +66,7 @@ export function CoverImagePicker({
       onCoverSet(url);
       onClose();
     } catch {
-      Alert.alert(t('common.error'), t('cover.err_set_failed'));
+      toast.show({ message: t('cover.err_set_failed'), type: 'error' });
     } finally {
       setUploading(false);
     }
@@ -73,7 +75,7 @@ export function CoverImagePicker({
   const handlePickFromGallery = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert(t('common.error'), t('cover.permission_denied'));
+      toast.show({ message: t('cover.permission_denied'), type: 'error' });
       return;
     }
 
@@ -126,7 +128,7 @@ export function CoverImagePicker({
       onClose();
     } catch (e) {
       console.error('Cover upload failed:', e);
-      Alert.alert(t('common.error'), t('cover.err_upload_failed'));
+      toast.show({ message: t('cover.err_upload_failed'), type: 'error' });
     } finally {
       setUploading(false);
     }

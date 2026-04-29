@@ -11,13 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Radius } from '@/constants/theme';
+import { useToast } from '@/components/Toast';
 
 interface ProfileSearchResult {
   id: string;
@@ -41,6 +41,7 @@ export function InviteCollaboratorModal({
 }: InviteCollaboratorModalProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const toast = useToast();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProfileSearchResult[]>([]);
@@ -95,10 +96,10 @@ export function InviteCollaboratorModal({
     setInviting(null);
 
     if (ok) {
-      Alert.alert(t('common.success'), t('collab.invite_sent'));
+      toast.show({ message: t('collab.invite_sent'), type: 'success' });
       onClose();
     } else {
-      Alert.alert(t('common.error'), t(errorKey || 'collab.invite_error'));
+      toast.show({ message: t(errorKey || 'collab.invite_error'), type: 'error' });
     }
   };
 

@@ -14,7 +14,7 @@ export function OfflineBanner() {
 
   if (!isOnline) {
     return (
-      <View style={styles.banner} data-testid="offline-banner">
+      <View style={styles.banner} testID="offline-banner">
         <Ionicons name="cloud-offline" size={18} color="#fff" style={styles.icon} />
         <Text style={styles.text}>{t('offline.offline_mode')}</Text>
         {pendingCount > 0 && (
@@ -28,7 +28,7 @@ export function OfflineBanner() {
 
   if (isSyncing) {
     return (
-      <View style={[styles.banner, styles.syncing]} data-testid="sync-banner">
+      <View style={[styles.banner, styles.syncing]} testID="sync-banner">
         <Ionicons name="sync" size={18} color="#fff" style={styles.icon} />
         <Text style={styles.text}>{t('offline.syncing')}</Text>
       </View>
@@ -40,7 +40,7 @@ export function OfflineBanner() {
       <TouchableOpacity 
         style={[styles.banner, styles.pending_banner]} 
         onPress={retrySync}
-        data-testid="pending-banner"
+        testID="pending-banner"
       >
         <Ionicons name="cloud-upload" size={18} color="#fff" style={styles.icon} />
         <Text style={styles.text}>

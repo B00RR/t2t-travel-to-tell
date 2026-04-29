@@ -31,7 +31,7 @@ export function VideoEntryCard({ entry, onLongPress }: VideoEntryCardProps) {
   const thumbnailUrl = entry.metadata?.thumbnailUrl;
 
   const longPressGesture = Gesture.LongPress()
-    .minDuration(600)
+    .minDuration(400)
     .onEnd((_event, success) => {
       if (success) {
         runOnJS(onLongPress)(entry.id);
@@ -68,7 +68,7 @@ export function VideoEntryCard({ entry, onLongPress }: VideoEntryCardProps) {
             style={[StyleSheet.absoluteFill, styles.playOverlay]}
             onPress={handleInitialPlay}
             onLongPress={() => onLongPress(entry.id)}
-            delayLongPress={600}
+            delayLongPress={400}
           >
             <Ionicons name="play-circle" size={80} color="#fff" />
           </TouchableOpacity>

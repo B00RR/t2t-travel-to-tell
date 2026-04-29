@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StatusBar,
 } from 'react-native';
+import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,16 +20,17 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   async function signUpWithEmail() {
     setLoading(true);
     try {
       if (!email || !password) {
-        Alert.alert(t('common.error'), t('auth.err_invalid_email'));
+        toast.show({ message: t('auth.err_invalid_email'), type: 'error' });
         return;
       }
       if (password.length < 6) {
-        Alert.alert(t('common.error'), t('auth.err_pass_too_short'));
+        toast.show({ message: t('auth.err_pass_too_short'), type: 'error' });
         return;
       }
 
@@ -40,14 +42,14 @@ export default function RegisterScreen() {
 
       if (error) {
         console.error('Registration error:', error);
-        Alert.alert(t('common.error'), t('auth.err_register_failed'));
+        toast.show({ message: t('auth.err_register_failed'), type: 'error' });
       } else {
-        Alert.alert(t('common.success'), t('auth.register_success'));
+        toast.show({ message: t('auth.register_success'), type: 'success' });
         router.replace('/(app)/(tabs)/home' as never);
       }
     } catch (e: any) {
       console.error('Registration exception:', e);
-      Alert.alert(t('common.error'), t('auth.err_register_failed'));
+      toast.show({ message: t('auth.err_register_failed'), type: 'error' });
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert,
+  ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -13,6 +13,7 @@ import type { AppTheme } from '@/hooks/useAppTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '@/components/Toast';
 
 type NotifType = Notification['type'];
 
@@ -85,6 +86,7 @@ export default function NotificationsScreen() {
   const { user } = useAuth();
   const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications();
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  const toast = useToast();
 
   const respondToInvitation = useCallback(
     async (notification: Notification, accept: boolean) => {
@@ -102,7 +104,7 @@ export default function NotificationsScreen() {
 
       if (lookupError || !collabRow) {
         setRespondingId(null);
-        Alert.alert(t('common.error'), t('notifications.invitation_error'));
+        toast.show({ message: t('notifications.invitation_error'), type: 'error' });
         return;
       }
 
@@ -115,7 +117,7 @@ export default function NotificationsScreen() {
 
       if (rpcError) {
         console.error('respond_diary_invitation failed', rpcError);
-        Alert.alert(t('common.error'), t('notifications.invitation_error'));
+        toast.show({ message: t('notifications.invitation_error'), type: 'error' });
         return;
       }
 
@@ -123,10 +125,10 @@ export default function NotificationsScreen() {
       await fetchNotifications();
 
       if (accept) {
-        Alert.alert(t('common.success'), t('notifications.invitation_accepted'));
+        toast.show({ message: t('notifications.invitation_accepted'), type: 'success' });
         router.push(`/(app)/diary/${notification.target_id}`);
       } else {
-        Alert.alert(t('common.success'), t('notifications.invitation_declined'));
+        toast.show({ message: t('notifications.invitation_declined'), type: 'success' });
       }
     },
     [user?.id, t, markAsRead, fetchNotifications, router],

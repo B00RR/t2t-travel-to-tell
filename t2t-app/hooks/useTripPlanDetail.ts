@@ -44,7 +44,7 @@ export function useTripPlanDetail(planId: string | string[]) {
     ]);
 
     if (planRes.error) {
-      console.error('fetchPlan error', planRes.error);
+      if (__DEV__) console.error('fetchPlan error', planRes.error);
     } else if (planRes.data) {
       setPlan(planRes.data as unknown as TripPlan);
     }
@@ -69,7 +69,7 @@ export function useTripPlanDetail(planId: string | string[]) {
 
       if (error) {
         Alert.alert(t('common.error'), t('common.error_generic'));
-        console.error('updatePlan error', error);
+        if (__DEV__) console.error('updatePlan error', error);
         return false;
       }
       setPlan(prev => prev ? { ...prev, ...updates } : prev);
@@ -89,7 +89,7 @@ export function useTripPlanDetail(planId: string | string[]) {
       const { error } = await supabase.from('trip_plans').delete().eq('id', id);
       if (error) {
         Alert.alert(t('common.error'), t('common.error_generic'));
-        console.error('deletePlan error', error);
+        if (__DEV__) console.error('deletePlan error', error);
         return false;
       }
     } else {
@@ -115,7 +115,7 @@ export function useTripPlanDetail(planId: string | string[]) {
 
       if (error) {
         Alert.alert(t('common.error'), t('common.error_generic'));
-        console.error('addStop error', error);
+        if (__DEV__) console.error('addStop error', error);
         return false;
       }
       setStops(prev => [...prev, data as TripPlanStop]);
@@ -190,7 +190,7 @@ export function useTripPlanDetail(planId: string | string[]) {
 
       if (error) {
         setChecklist(prev => prev.map(i => i.id === itemId ? { ...i, is_checked: item.is_checked } : i));
-        console.error('toggleChecklistItem error', error);
+        if (__DEV__) console.error('toggleChecklistItem error', error);
       }
     } else {
       await offlineQueue.addAction('UPDATE', 'trip_plan_checklist_items', { id: itemId, is_checked: newChecked });

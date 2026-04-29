@@ -39,7 +39,7 @@ export function useStockImages() {
         );
       }
     } catch (e) {
-      console.warn('Pexels search failed:', e);
+      if (__DEV__) console.warn('Pexels search failed:', e);
       setImages([]);
     } finally {
       setLoading(false);

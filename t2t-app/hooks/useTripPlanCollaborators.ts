@@ -55,7 +55,7 @@ export function useTripPlanCollaborators(planId?: string): UseTripPlanCollaborat
       setCollaborators(rows.filter(r => r.status === 'accepted'));
       setPending(rows.filter(r => r.status === 'pending'));
     } else if (error) {
-      console.error('fetchTripPlanCollaborators failed', error);
+      if (__DEV__) console.error('fetchTripPlanCollaborators failed', error);
       setCollaborators([]);
       setPending([]);
     }
@@ -74,7 +74,7 @@ export function useTripPlanCollaborators(planId?: string): UseTripPlanCollaborat
       });
 
       if (error) {
-        console.error('inviteTripPlanCollaborator failed', error);
+        if (__DEV__) console.error('inviteTripPlanCollaborator failed', error);
         const msg = error.message || '';
         if (msg.includes('User not found')) return { ok: false, errorKey: 'collab.user_not_found' };
         if (msg.includes('Cannot invite yourself')) return { ok: false, errorKey: 'collab.cannot_invite_self' };
@@ -99,7 +99,7 @@ export function useTripPlanCollaborators(planId?: string): UseTripPlanCollaborat
         .eq('id', collabId);
 
       if (error) {
-        console.error('removeTripPlanCollaborator failed', error);
+        if (__DEV__) console.error('removeTripPlanCollaborator failed', error);
         return false;
       }
       await fetchAll();
@@ -121,7 +121,7 @@ export function useTripPlanCollaborators(planId?: string): UseTripPlanCollaborat
       .eq('user_id', uid);
 
     if (error) {
-      console.error('leaveTripPlanCollaboration failed', error);
+      if (__DEV__) console.error('leaveTripPlanCollaboration failed', error);
       return false;
     }
     await fetchAll();
@@ -135,7 +135,7 @@ export function useTripPlanCollaborators(planId?: string): UseTripPlanCollaborat
         p_accept: accept,
       });
       if (error) {
-        console.error('respondTripPlanInvitation failed', error);
+        if (__DEV__) console.error('respondTripPlanInvitation failed', error);
         return false;
       }
       await fetchAll();

@@ -90,7 +90,7 @@ export function useMediaUpload({
     if (isVideo && hasRealMime) {
       const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm', 'video/x-m4v'];
       if (!ALLOWED_VIDEO_MIMES.includes(assetMime)) {
-        console.warn('Skipping unsupported video MIME:', assetMime);
+        if (__DEV__) console.warn('Skipping unsupported video MIME:', assetMime);
         return;
       }
     }
@@ -120,7 +120,7 @@ export function useMediaUpload({
         thumbnailUri = uri;
         thumbnailStoragePath = `${userId}/${dId}/${daId}/${timestamp}_thumb.jpg`;
       } catch (e) {
-        console.warn('Failed to generate thumbnail', e);
+        if (__DEV__) console.warn('Failed to generate thumbnail', e);
       }
     }
 
@@ -135,7 +135,7 @@ export function useMediaUpload({
       uploadPromises.push(
         uploadFileToSupabase(thumbnailUri, thumbnailStoragePath, 'image/jpeg').then(({ error }) => {
           if (error) {
-            console.warn('Failed to upload thumbnail, continuing without it', error);
+            if (__DEV__) console.warn('Failed to upload thumbnail, continuing without it', error);
           }
         })
       );
@@ -199,7 +199,7 @@ export function useMediaUpload({
           }
         }
       } catch (e) {
-        console.warn('Failed to auto-set cover image:', e);
+        if (__DEV__) console.warn('Failed to auto-set cover image:', e);
       }
     }
   };
@@ -233,7 +233,7 @@ export function useMediaUpload({
       } catch (e: unknown) {
         failed++;
         const message = e instanceof Error ? e.message : String(e);
-        console.error('Upload error for asset:', message);
+        if (__DEV__) console.error('Upload error for asset:', message);
       }
     }
 

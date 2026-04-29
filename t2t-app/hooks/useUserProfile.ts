@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/supabase';
-import { Alert } from 'react-native';
+import { showToast } from '@/components/Toast';
 import { useTranslation } from 'react-i18next';
 
 export function useUserProfile(profileId: string | undefined) {
@@ -49,8 +49,8 @@ export function useUserProfile(profileId: string | undefined) {
       setProfile(prev => prev ? { ...prev, ...updates } : null);
       return { success: true };
     } catch (err: any) {
-      console.error('Update profile error:', err);
-      Alert.alert(t('common.error'), t('profile.err_update_failed'));
+      if (__DEV__) console.error('Update profile error:', err);
+      showToast({ message: t('profile.err_update_failed'), type: 'error' });
       return { success: false, error: err.message };
     } finally {
       setLoading(false);
@@ -82,8 +82,8 @@ export function useUserProfile(profileId: string | undefined) {
       await updateProfile({ avatar_url: publicUrl });
       return { success: true, url: publicUrl };
     } catch (err: any) {
-      console.error('Upload avatar error:', err);
-      Alert.alert(t('common.upload_error'), t('profile.err_avatar_failed'));
+      if (__DEV__) console.error('Upload avatar error:', err);
+      showToast({ message: t('profile.err_avatar_failed'), type: 'error' });
       return { success: false };
     } finally {
       setLoading(false);
